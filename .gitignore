@@ -1,0 +1,21 @@
+# Bytecode Python
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+
+# Config
+.env
+
+# VS Code
+.vscode/
+
+# Temp files
+*.tmp
+*.log
+
+# Build artifacts
+dist/
+build/
+*.egg-info/

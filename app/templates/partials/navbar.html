@@ -1,0 +1,182 @@
+<nav class="navbar fixed-top" style="background-color: var(--color-navbar-bg); z-index:1030;">
+  <div class="container-fluid position-relative">
+
+
+ <!-- 🌍 Link mappa mondo (a sinistra) -->
+<div class="navbar-map d-flex align-items-center me-3">
+  <a href="{{ url_for('full_map.full_map') }}" class="icon-box">
+    <img src="{{ url_for('static', filename='img/world.png') }}"
+         alt="Mappa mondo"
+         class="map-icon">
+  </a>
+</div>
+
+
+    <!-- 🔵 Logo -->
+    <div class="brand-wrapper">
+      <a class="navbar-brand d-flex align-items-center justify-content-center" href="{{ url_for('home.home') }}">
+        <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Volò">
+      </a>
+    </div>
+
+
+    <!-- 🔵 Icone sempre visibili -->
+    {% if current_user.is_authenticated %}
+    <div class="d-flex align-items-center ms-auto">
+
+      <!-- 🔔 Notifiche -->
+      <a href="#" class="nav-link p-0 position-relative me-3" id="notifications-toggle">
+        <div class="icon-box">
+        <img src="{{ url_for('static', filename='img/bell.png') }}"
+             alt="Notifiche"
+             class="nav-icon">
+             </div>
+        {% set unread = 0 %}
+        {% if current_user.notifications is defined %}
+          {% set unread = current_user.notifications|selectattr("is_read","equalto",False)|list|length %}
+        {% endif %}
+        {% if unread > 0 %}
+          <span id="notif-badge"
+                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+            {{ unread }}
+          </span>
+        {% endif %}
+      </a>
+
+      <!-- 💬 Chat -->
+      <a href="#" class="nav-link p-0 position-relative me-3" id="chat-toggle">
+        <div class="icon-box">
+        <img src="{{ url_for('static', filename='img/icon_chat.png') }}"
+             alt="Chat"
+             class="nav-icon">
+             </div>
+        <span id="chat-badge"></span>
+      </a>
+
+      <!-- 👤 Profilo con menu dropdown -->
+<!-- 👤 Profilo con menu dropdown senza freccia -->
+<div class="dropdown icon-box">
+  <a class="nav-link p-0 me-3" href="#" id="userDropdown" role="button"
+     data-bs-toggle="dropdown" aria-expanded="false">
+    
+    <img src="{% if current_user.photo_filename %}
+                {{ url_for('dashboard.static', filename='uploads/profile-photo/' ~ current_user.photo_filename) }}
+              {% else %}
+                {{ url_for('static', filename='img/avatar-placeholder.png') }}
+              {% endif %}"
+         alt="Profilo"
+         class="rounded-circle profile-icon">
+  </a>
+  <ul class="dropdown-menu dropdown-menu-end text-start" aria-labelledby="userDropdown">
+    <li><a class="dropdown-item" href="{{ url_for('dashboard.dashboard') }}">{{ _('Profilo') }}</a></li>
+    <li><a class="dropdown-item" href="{{ url_for('associations.list_associations') }}">{{ _('Associazioni') }}</a></li>
+    <li><a class="dropdown-item" href="#" data-bs-toggle="offcanvas"
+          data-bs-target="#offcanvasSettings" aria-controls="offcanvasSettings">{{ _('Impostazioni') }}</a></li>
+    <li><a class="dropdown-item" href="{{ url_for('public.faq') }}">{{ _('Aiuto') }}</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item text-danger w-100" href="{{ url_for('auth.logout') }}">{{ _('Esci') }}</a></li>
+  </ul>
+</div>
+
+    </div>
+    {% endif %}
+  </div>
+</nav>
+
+<style>
+/* Stile icone standard */
+/* Contenitore quadrato con angoli smussati */
+.icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  background-color: #16974a52; /* più chiaro della navbar */
+  transition: background-color 0.2s ease;
+}
+.icon-box:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.navbar-map img.map-icon {
+  height: 36px;
+  width: 36px;
+  object-fit: contain;
+}
+
+.nav-icon {
+  height: 32px;
+  width: 32px;
+  object-fit: contain;
+}
+.profile-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.navbar {
+  height: 50px;
+  width: auto;
+  object-fit: contain;
+}
+
+
+
+
+.navbar .brand-wrapper {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: 45%;   /* valore iniziale: centrato */
+  transition: left 0.3s ease;
+}
+
+/* Tablet: inizia a spostarsi */
+@media (max-width: 1200px) {
+  .navbar .brand-wrapper {
+    left: 40%;
+  }
+}
+
+@media (max-width: 992px) {
+  .navbar .brand-wrapper {
+    left: 35%;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar .brand-wrapper {
+    left: 30%;
+  }
+}
+
+@media (max-width: 576px) {
+  .navbar .brand-wrapper {
+    left: 25%;
+  }
+}
+
+@media (max-width: 420px) {
+  .navbar .brand-wrapper {
+    left: 15;  /* estrema sinistra */
+  }
+}
+
+
+
+.navbar-brand img {
+  height: 60px;
+  object-fit: contain;
+}
+
+
+</style>
+
+{# 👉 Pannelli separati #}
+{% include "partials/chat.html" %}
+{% include "partials/notifications.html" %}
+{% include "partials/settings_offcanvas.html" %}

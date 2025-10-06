@@ -1,0 +1,95 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Associazioni seguite{% endblock %}
+
+{% block content %}
+<div class="container mt-3">
+
+  <!-- Titolo dinamico -->
+  {% if volunteer %}
+    <h2 class="mb-4">{{ _('Associazioni seguite da') }} {{ volunteer.name }}</h2>
+  {% else %}
+    <h2 class="mb-4">{{ _('Le tue associazioni seguite') }}</h2>
+  {% endif %}
+
+  <!-- Lista di associazioni -->
+  <div class="row">
+    {% if associations %}
+      {% for association in associations %}
+        <div class="col-sm-6 col-lg-4 mb-3">
+          <a href="{{ url_for('associations.public_profile', association_id=association.id) }}"
+             class="text-decoration-none link-primary">
+            <div class="card h-100 shadow-sm border-0 hover-card small-card">
+              <div class="card-body text-center p-3">
+
+                <!-- Logo / Foto -->
+                {% if association.photo_filename %}
+                  <img src="{{ url_for('dashboard.static', filename='uploads/profile-photo/' ~ association.photo_filename) }}"
+                       class="rounded-circle mb-2 shadow-sm profile-pic"
+                       width="70" height="70" alt="Logo {{ association.name }}">
+                {% else %}
+                  <img src="{{ url_for('static', filename='img/avatar-placeholder.png') }}"
+                       class="rounded-circle mb-2 shadow-sm profile-pic"
+                       width="70" height="70" alt="Logo {{ association.name }}">
+                {% endif %}
+
+                <!-- Nome -->
+                <h6 class="mb-1 fw-bold">{{ association.name }}</h6>
+
+                <!-- Bio breve -->
+                {% if association.bio %}
+                  <p class="card-text small text-muted mb-2">
+                    {{ association.bio[:60] }}{% if association.bio|length > 60 %}...{% endif %}
+                  </p>
+                {% endif %}
+
+                <!-- Numero followers -->
+                <div class="followers-count text-muted small">
+                  👥 {{ association.followers.count() }} follower{% if association.followers.count() != 1 %}s{% endif %}
+                </div>
+
+              </div>
+            </div>
+          </a>
+        </div>
+      {% endfor %}
+    {% else %}
+      <div class="col-12">
+        {% if volunteer %}
+          <p class="text-muted text-center">
+            {{ volunteer.name }} {{ _('non segue ancora nessuna associazione.') }}
+          </p>
+        {% else %}
+          <p class="text-muted text-center">
+            {{ _('Non segui ancora nessuna associazione.') }}
+          </p>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<style>
+  .hover-card {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    border-radius: 10px;
+  }
+  .hover-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  .small-card {
+    max-width: 280px;
+    margin: 0 auto;
+  }
+  .profile-pic {
+    object-fit: cover;
+    border: 2px solid #eee;
+  }
+  .followers-count {
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+</style>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "layout/base.html" %}
+{% block title %}Termini e Condizioni{% endblock %}
+{% block container_class %}container-xl{% endblock %}
+
+{% block content %}
+<div class="card-container" style="font-size: 0.9rem; text-align: justify;">
+    <h1 class="mb-3 text-center" style="font-size: 1.6rem;">Termini e Condizioni d’uso</h1>
+    <p class="text-muted mb-4 text-center" style="font-size: 0.8rem;">Ultimo aggiornamento: Agosto 2025</p>
+
+    <h2 style="font-size: 1.1rem;">1. Oggetto</h2>
+    <p>
+      La piattaforma <strong>Volò – Volontariato Digitale</strong> (di seguito “Piattaforma”) ha lo scopo di
+      facilitare l’incontro tra volontari, associazioni, enti del terzo settore e imprese sociali,
+      attraverso un sistema digitale gratuito di condivisione e promozione di eventi e iniziative.
+      I presenti Termini e Condizioni regolano l’uso del sito e dei servizi offerti.
+    </p>
+
+    <h2 style="font-size: 1.1rem;">2. Natura del servizio</h2>
+    <p>
+      La Piattaforma è fornita a titolo gratuito. Non vengono venduti beni né gestiti flussi finanziari
+      diretti: le donazioni, quando previste, avvengono al di fuori della Piattaforma o tramite canali
+      esterni indicati dalle singole associazioni.
+    </p>
+
+    <h2 style="font-size: 1.1rem;">3. Registrazione e utilizzo</h2>
+    <p>
+      Gli utenti possono registrarsi come <em>volontari</em> o <em>associazioni</em>.  
+      L’utente si impegna a:
+    </p>
+    <ul style="font-size: 0.9rem;">
+      <li>fornire dati corretti e aggiornati al momento della registrazione;</li>
+      <li>utilizzare la Piattaforma in buona fede e nel rispetto delle finalità sociali del progetto;</li>
+      <li>non inserire contenuti illeciti, discriminatori o lesivi di terzi.</li>
+    </ul>
+
+    <h2 style="font-size: 1.1rem;">4. Responsabilità delle associazioni</h2>
+    <p>
+      Le associazioni sono responsabili della veridicità e liceità degli eventi e delle campagne
+      pubblicati. Volò non assume alcuna responsabilità per i contenuti caricati dagli utenti né per
+      l’effettivo svolgimento delle attività proposte.
+    </p>
+
+    <h2 style="font-size: 1.1rem;">5. Limitazione di responsabilità</h2>
+    <p>
+      La Piattaforma è fornita “così com’è” e senza garanzie di disponibilità continua.
+      Il gestore non è responsabile per interruzioni del servizio, perdite di dati, danni derivanti
+      da malfunzionamenti tecnici o da comportamenti scorretti degli utenti o delle associazioni.
+    </p>
+
+    <h2 style="font-size: 1.1rem;">6. Privacy e protezione dei dati</h2>
+    <p>
+      Il trattamento dei dati personali è effettuato in conformità al <strong>Regolamento (UE) 2016/679 (GDPR)</strong> 
+      e descritto nella <a href="{{ url_for('public.privacy') }}">Privacy Policy</a> e nella
+      <a href="{{ url_for('public.privacy') }}">Cookie Policy</a>.  
+      Il conferimento dei dati è necessario per la registrazione e l’utilizzo della Piattaforma.
+    </p>
+
+    <h2 style="font-size: 1.1rem;">7. Proprietà intellettuale</h2>
+    <p>
+      Il marchio, il logo e i contenuti originali della Piattaforma sono di proprietà dei rispettivi titolari.
+      È vietata la riproduzione non autorizzata del codice, dei testi o dei materiali grafici.
+    </p>
+
+    <h2 style="font-size: 1.1rem;">8. Modifiche ai Termini</h2>
+    <p>
+      Il gestore si riserva il diritto di modificare in qualsiasi momento i presenti Termini e Condizioni.
+      Le modifiche avranno effetto dalla pubblicazione sul sito.  
+      Si invita l’utente a consultare periodicamente questa sezione.
+    </p>
+
+    <h2 style="font-size: 1.1rem;">9. Legge applicabile e foro competente</h2>
+    <p>
+      I presenti Termini sono regolati dalla legge italiana.  
+      Per ogni controversia relativa all’utilizzo della Piattaforma è competente in via esclusiva il Foro
+      del luogo di residenza o domicilio dell’utente consumatore, se in Italia; in ogni altro caso, è
+      competente il Foro di Bari.
+    </p>
+</div>
+{% endblock %}

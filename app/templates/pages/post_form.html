@@ -1,0 +1,111 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}{{ 'Modifica Post' if edit else 'Nuovo Post' }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <a href="{{ url_for('dashboard.dashboard_association') }}" class="btn btn-outline-secondary mb-3">
+    ← {{ _('Indietro') }}
+  </a>
+
+  <h2 class="mb-4">{{ _('Modifica il post') if edit else _('Crea un nuovo post') }}</h2>
+
+  <form method="POST" enctype="multipart/form-data" novalidate>
+    {{ form.hidden_tag() }}
+
+    <!-- Titolo -->
+    <div class="mb-3">
+      {{ form.title.label(class="form-label") }}
+      {{ form.title(class="form-control", placeholder="Titolo del post") }}
+      {% if form.title.errors %}
+        <div class="text-danger small">{{ form.title.errors[0] }}</div>
+      {% endif %}
+    </div>
+
+    <!-- Contenuto -->
+    <div class="mb-3">
+      {{ form.content.label(class="form-label") }}
+      {{ form.content(class="form-control", rows=6, placeholder="{{ _('Scrivi qui il contenuto...') }}") }}
+      {% if form.content.errors %}
+        <div class="text-danger small">{{ form.content.errors[0] }}</div>
+      {% endif %}
+    </div>
+
+    <!-- Immagine attuale + rimozione (solo in modifica) -->
+    {% if edit and post and post.image_filename %}
+      <div class="mb-3">
+        <label class="form-label">{{ _('Immagine attuale') }}</label>
+        <div class="mb-2">
+          <img src="{{ url_for('posts.static', filename='uploads/posts/' ~ post.image_filename) }}"
+               class="img-fluid rounded border" style="max-height: 220px" alt="Immagine post">
+        </div>
+        <div class="form-check">
+          {{ form.remove_image(class="form-check-input", id="remove-image") }}
+          <label for="remove-image" class="form-check-label">{{ _('Rimuovi immagine') }}</label>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Carica nuova immagine -->
+    <div class="mb-3">
+      {{ form.image.label(class="form-label") }}
+      {{ form.image(class="form-control", id="imageInput", accept="image/*") }}
+      {% if not edit %}
+        <div id="imagePreviewContainer" class="mt-3 d-none">
+          <label class="form-label">Anteprima:</label><br>
+          <img id="imagePreview" src="#" alt="Anteprima immagine post" class="img-thumbnail" style="max-width: 200px;">
+        </div>
+      {% else %}
+        <div class="form-text">{{ _('Carica una nuova immagine per sostituire quella attuale (opzionale).') }}</div>
+        <img id="new-image-preview" class="img-fluid rounded mt-2 d-none" style="max-height: 220px" alt="Preview nuova immagine">
+      {% endif %}
+      {% if form.image.errors %}
+        <div class="text-danger small">{{ form.image.errors[0] }}</div>
+      {% endif %}
+    </div>
+
+    <!-- Pulsante -->
+    <div class="d-flex justify-content-end mt-4">
+      {{ form.submit(class="btn btn-success", value=(_('Salva modifiche') if edit else _('Pubblica'))) }}
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  // Preview immagine (create/edit)
+  const imageInput = document.getElementById("imageInput");
+  if (!imageInput) return;
+
+  const preview = document.getElementById("imagePreview");
+  const container = document.getElementById("imagePreviewContainer");
+  const newPreview = document.getElementById("new-image-preview");
+
+  imageInput.addEventListener("change", function () {
+    const file = this.files[0];
+    if (file && file.type.startsWith("image/")) {
+      const url = URL.createObjectURL(file);
+      if (preview) {
+        preview.src = url;
+        container && container.classList.remove("d-none");
+      }
+      if (newPreview) {
+        newPreview.src = url;
+        newPreview.classList.remove("d-none");
+      }
+    } else {
+      if (preview) {
+        preview.src = "#";
+        container && container.classList.add("d-none");
+      }
+      if (newPreview) {
+        newPreview.src = "";
+        newPreview.classList.add("d-none");
+      }
+    }
+  });
+});
+</script>
+{% endblock %}

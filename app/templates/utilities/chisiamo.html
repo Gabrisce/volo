@@ -1,0 +1,53 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Chi siamo{% endblock %}
+{% block container_class %}container-xl{% endblock %}
+
+{% block content %}
+<div class="card-container" style="font-size: 0.9rem; text-align: justify;">
+    <h1 class="mb-3 text-center" style="font-size: 1.6rem;">Chi siamo</h1>
+    <p class="text-muted mb-4 text-center" style="font-size: 0.8rem;">
+        {{ _('La nostra missione, i nostri valori e il nostro impegno') }}
+    </p>
+
+    <!-- 🌍 Missione -->
+    <h2 style="font-size: 1.1rem;">La nostra missione</h2>
+    <p>
+        {{ _('La nostra missione è facilitare l’incontro tra volontari, associazioni ed imprese sociali. Vogliamo rendere semplice e accessibile a tutti la partecipazione attiva, abbattendo le barriere geografiche e burocratiche grazie alla tecnologia.') }}
+    </p>
+
+    <!-- 👁️ Visione -->
+    <h2 style="font-size: 1.1rem;">La nostra visione</h2>
+    <p>
+        {{ _('La nostra visione è un mondo in cui ogni individuo possa esprimere il proprio potenziale e contribuire attivamente al bene comune. Vogliamo creare una comunità inclusiva e solidale, in cui le diversità siano valorizzate e le opportunità siano accessibili a tutti.') }}
+    </p>
+
+    <!-- 💡 Valori -->
+    <h2 style="font-size: 1.1rem;">{{ _('I nostri valori') }}</h2>
+    <ul style="font-size: 0.9rem;">
+        <li><strong>{{ _('Trasparenza') }}</strong> – {{ _('tutte le iniziative sono verificabili e chiare;') }} </li>
+        <li><strong>{{ _('Inclusione') }}</strong> – {{ _('chiunque può trovare un modo per contribuire;') }}</li>
+        <li><strong>{{ _('Sostenibilità') }}</strong> – {{ _('promuoviamo progetti con impatto sociale e ambientale positivo;') }}</li>
+        <li><strong>{{ _('Collaborazione') }}</strong> – {{ _('mettiamo in rete realtà diverse per obiettivi comuni.') }}</li>
+    </ul>
+
+    <!-- ⚙️ Come funziona -->
+    <h2 style="font-size: 1.1rem;">{{ _('Come funziona') }}</h2>
+    <p>
+        {{ _('Attraverso la nostra mappa interattiva puoi scoprire eventi e campagne
+        vicino a te o online, filtrare per interesse, competenze o tematiche,
+        e partecipare con pochi click.  
+        Le associazioni, dal canto loro, possono gestire in autonomia eventi, post e campagne,
+        raggiungendo più volontari e aumentando la visibilità delle proprie iniziative.') }}
+    </p>
+
+    <!-- 🤝 Il nostro impegno -->
+    <h2 style="font-size: 1.1rem;">{{ _('Il nostro impegno') }}</h2>
+    <p>
+        {{ _('Siamo un progetto') }} <strong>{{ _('senza fini di lucro') }}</strong>.  
+        {{ _('Tutto il lavoro di sviluppo e gestione è orientato a creare un bene comune digitale,
+        accessibile e sicuro, in conformità agli standard') }} <strong>{{ _('WCAG AA') }}</strong> {{ _('per l’accessibilità
+        e al') }} <strong>{{ _('GDPR') }}</strong> {{ _('per la protezione dei dati.') }}
+    </p>
+</div>
+{% endblock %}

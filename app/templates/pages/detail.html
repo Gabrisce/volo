@@ -1,0 +1,420 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}
+  {% if type == 'event' %}{{ item.title }} - Evento{% endif %}
+  {% if type == 'campaign' %}{{ item.title }} - Campagna{% endif %}
+  {% if type == 'report' %}{{ item.title }} - Segnalazione{% endif %}
+  {% if type == 'petition' %}{{ item.title }} - Petizione{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top:0.5rem;">
+
+  <!-- 🔙 Torna indietro -->
+ <div style="margin-bottom:8px;">
+  <a href="{{ request.referrer or url_for('home.home') }}" 
+     aria-label="Torna alla pagina precedente"
+     style="color:#006400; font-weight:600; font-size:0.95rem; text-decoration:none;">
+    <i class="bi bi-arrow-left" style="margin-right:4px;"></i> {{ _('Indietro') }}
+  </a>
+</div>
+
+  {# === Gestione capienza eventi === #}
+  {% if type == 'event' %}
+    {% set total_seats    = item.capacity_max %}
+    {% set accepted_count = item.participants|selectattr("status","equalto","accepted")|list|length %}
+    {% set seats_left     = (total_seats - accepted_count) if total_seats is not none else None %}
+    {% set is_full        = (total_seats is not none and seats_left <= 0) %}
+  {% endif %}
+
+<article class="card shadow-sm p-4 text-center position-relative">
+
+      <!-- 🏷️ Titolo -->
+      <h3 class="fw-bold mb-3">{{ item.title }}</h3>
+
+      <!-- 👥 Organizzatore -->
+      {% if item.association %}
+        <div class="d-flex flex-column align-items-center mb-3">
+          <img
+            src="{% if item.association.photo_filename %}
+                   {{ url_for('dashboard.static', filename='uploads/profile-photo/' ~ item.association.photo_filename) }}
+                 {% else %}
+                   {{ url_for('static', filename='img/avatar-placeholder.png') }}
+                 {% endif %}"
+            alt="Logo {{ item.association.name }}"
+            width="64" height="64"
+            class="rounded-circle shadow-sm object-fit-cover mb-2">
+          <div class="small text-muted">
+            {% if type in ['event','campaign'] %}{{ _('Organizzato da') }} {% endif %}
+            <a class="text-dark-green text-decoration-none"
+               href="{{ url_for('associations.public_profile', association_id=item.association.id) }}">
+              {{ item.association.name }}
+            </a>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Data petizione -->
+      {% if type == 'petition' %}
+        <section class="detail-info d-flex flex-column align-items-center gap-2 mb-3">
+          <span>
+            <i class="bi bi-calendar-event me-1"></i>
+            Creata il {{ item.created_at.strftime('%d/%m/%Y') }}
+          </span>
+        </section>
+      {% endif %}
+
+      <!-- 📌 Info principali -->
+      <section class="detail-info d-flex flex-column align-items-center gap-2 mb-3">
+        {% if type == 'event' and item.date %}
+          <span><i class="bi bi-calendar-event me-1"></i>{{ item.date.strftime('%d/%m/%Y %H:%M') }}</span>
+        {% endif %}
+        {% if type in ['event','campaign','report','petition'] and item.location %}
+          <span>
+            <i class="bi bi-geo-alt me-1"></i>
+            <a href="https://www.google.com/maps/search/?api=1&query={{ (item.location or '') | urlencode }}"
+              target="_blank" rel="noopener"
+              class="text-decoration-none">
+              {{ item.location }}
+            </a>
+          </span>
+        {% endif %}
+        {% if type == 'campaign' and item.goal_amount %}
+          <span><i class="bi bi-bullseye me-1"></i>{{ item.goal_amount }}</span>
+        {% endif %}
+
+        {% if type == 'event' %}
+          {% if total_seats is not none %}
+            <span>
+              <i class="bi bi-people me-1"></i>
+              Posti: {{ accepted_count }}/{{ total_seats }}
+              {% if is_full %}
+                · <span class="text-danger fw-bold">{{ _('Evento al completo') }}</span>
+              {% else %}
+                ·{{ _('Disponibili:') }} {{ seats_left }}
+              {% endif %}
+            </span>
+          {% else %}
+            <span><i class="bi bi-people me-1"></i>{{ _('Posti: illimitati') }}</span>
+          {% endif %}
+        {% endif %}
+      </section>
+
+      <!-- 📖 Descrizione -->
+      <section class="detail-content text-start">
+        {% if type == 'event' and item.description %}
+          <p class="mb-3">{{ item.description }}</p>
+        {% elif type == 'campaign' and item.description %}
+          <p class="mb-3">{{ item.description }}</p>
+        {% elif type == 'report' and item.description %}
+          <p class="mb-3">{{ item.description }}</p>
+        {% elif type == 'petition' and item.description %}
+          <p class="mb-3" style="white-space: pre-line;">{{ item.description }}</p>
+        {% endif %}
+      </section>
+
+       <!-- 🖼️ Immagine principale -->
+      {% if item.image_filename %}
+        <div class="detail-image-wrapper">
+          {% if type == 'event' %}
+            <img src="{{ url_for('events.static', filename='uploads/events/' ~ item.image_filename) }}"
+                alt="{{ item.title }}" class="detail-image">
+          {% elif type == 'campaign' %}
+            <img src="{{ url_for('campaigns.static', filename='uploads/campaigns/' ~ item.image_filename) }}"
+                alt="{{ item.title }}" class="detail-image">
+          {% elif type == 'report' %}
+            <img src="{{ url_for('reports.static', filename='uploads/reports/' ~ item.image_filename) }}"
+                alt="{{ item.title }}" class="detail-image">
+          {% elif type == 'petition' %}
+            <img src="{{ url_for('petitions.static', filename='uploads/petitions/' ~ item.image_filename) }}"
+                alt="{{ item.title }}" class="detail-image">
+          {% endif %}
+        </div>
+      {% endif %}
+
+      
+
+
+<!-- === SHARE DROPDOWN === -->
+<div class="dropdown share-dropdown-card text-end mt-3 me-3">
+  <a href="#" id="shareDropdown"
+   data-bs-toggle="dropdown" aria-expanded="false"
+   style="color:#006400; font-weight:600; text-decoration:none;">
+  <i class="bi bi-share me-1"></i> {{ _('Condividi') }}
+</a>
+  <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="shareDropdown">
+    <li>
+      <a class="dropdown-item" href="https://www.facebook.com/sharer/sharer.php?u={{ request.url|urlencode }}"
+         target="_blank" rel="noopener">
+        <i class="bi bi-facebook me-2" style="color:#1877F2;"></i>
+      </a>
+    </li>
+    <li>
+      <a class="dropdown-item" href="https://twitter.com/intent/tweet?url={{ request.url|urlencode }}&text={{ item.title|urlencode }}"
+         target="_blank" rel="noopener">
+        <i class="bi bi-twitter-x me-2" style="color:#000000;"></i>
+      </a>
+    </li>
+    <li>
+      <a class="dropdown-item" href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.url|urlencode }}"
+         target="_blank" rel="noopener">
+        <i class="bi bi-linkedin me-2" style="color:#0A66C2;"></i>
+      </a>
+    </li>
+    <li>
+      <a class="dropdown-item" href="https://api.whatsapp.com/send?text={{ item.title|urlencode }}%20{{ request.url|urlencode }}"
+         target="_blank" rel="noopener">
+        <i class="bi bi-whatsapp me-2" style="color:#25D366;"></i>
+      </a>
+    </li>
+    <li>
+      <a class="dropdown-item" href="https://t.me/share/url?url={{ request.url|urlencode }}&text={{ item.title|urlencode }}"
+         target="_blank" rel="noopener">
+        <i class="bi bi-telegram me-2" style="color:#0088cc;"></i>
+      </a>
+    </li>
+    <li>
+      <button class="dropdown-item text-danger" type="button" onclick="copyLink()">
+        <i class="bi bi-instagram me-2" style="color:#E4405F;"></i>
+      </button>
+    </li>
+  </ul>
+</div>
+
+
+      <!-- 🎯 Azioni -->
+      <footer class="detail-actions d-flex justify-content-center gap-3 mt-4">
+        {% if type == 'campaign' %}
+          <a href="{{ url_for('payments.donation_form', campaign_id=item.id) }}"
+             class="btn btn-success btn-sm">
+            <i class="bi bi-heart-fill me-1"></i> Dona
+          </a>
+        {% endif %}
+
+        {% if type == 'event' %}
+          {% if current_user.is_authenticated and current_user.user_type == 'volunteer' %}
+            {% set part = item.participants|selectattr("volunteer_id","equalto",current_user.id)|first %}
+            {% if part %}
+              <span class="text-muted small">{{ _('Hai già inviato una candidatura!') }} ({{ part.status }})</span>
+            {% else %}
+              {% if is_full %}
+                <button class="btn btn-secondary btn-sm" disabled>{{ _('Posti esauriti') }}</button>
+              {% else %}
+                <a href="{{ url_for('events.apply', event_id=item.id) }}" class="btn btn-primary btn-sm">
+                  {{ _('Partecipa') }}
+                </a>
+              {% endif %}
+            {% endif %}
+          {% elif not current_user.is_authenticated %}
+            <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-sm">
+              <i class="bi bi-box-arrow-in-right me-1"></i> {{ _('Accedi per candidarti') }}
+            </a>
+          {% endif %}
+        {% endif %}
+
+        {% if type == 'petition' %}
+        <div class="text-center mt-4">
+          {% if current_user.is_authenticated %}
+            {% if current_user.user_type == 'volunteer' %}
+              {% set already_signed = item.signatures|selectattr("user_id","equalto",current_user.id)|list|length > 0 %}
+
+              {% if already_signed %}
+                <p class="text-muted mb-2">{{ _('Hai già firmato questa petizione!') }}</p>
+                <div class="mt-2">
+                  <div class="petition-stats mt-3">
+                    <p class="mb-1 text-muted">
+                      ✍️ <strong>{{ item.signatures|length }}</strong> {{ _('firme') }}
+                    </p>
+                    <p class="mb-0 text-muted">
+                      <strong>{{ item.supports|length }}</strong> {{ _('sponsor') }}
+                    </p>
+                  </div>
+                </div>
+              {% else %}
+                <!-- Bottone Firma con conferma -->
+                <button type="button" class="btn btn-primary"
+                        data-bs-toggle="modal" data-bs-target="#confirmSignModal">
+                  <i class="bi bi-pencil me-1"></i> {{ _('Firma la petizione') }}
+                </button>
+
+                <!-- Modale Firma -->
+                <div class="modal fade" id="confirmSignModal" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title">{{ _('Conferma firma') }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Chiudi') }}"></button>
+                      </div>
+                      <div class="modal-body">
+                        {{ _('Sei sicuro di voler firmare questa petizione?') }}
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Annulla') }}</button>
+                        <form method="POST" action="{{ url_for('petitions.sign_petition', petition_id=item.id) }}">
+                          <button type="submit" class="btn btn-primary">{{ _('Conferma firma') }}</button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+
+            {% elif current_user.user_type == 'association' %}
+              {% set already_supported = item.supports|selectattr("association_id","equalto",current_user.id)|list|length > 0 %}
+
+              {% if already_supported %}
+                <p class="text-muted mb-2">✅ {{ _('La tua associazione sostiene già questa petizione') }}</p>
+                <div class="mt-2">
+                  <p class="mb-1 text-muted">
+                      ✍️ <strong>{{ item.signatures|length }}</strong> {{ _('Firme') }}
+                    </p>
+                    <p class="mb-0 text-muted">
+                      <strong>{{ item.supports|length }}</strong> {{ _('Sponsor') }}
+                    </p>
+                </div>
+              {% else %}
+                <!-- Bottone Supporto con conferma -->
+                <button type="button" class="btn btn-success"
+                        data-bs-toggle="modal" data-bs-target="#confirmSupportModal">
+                  <i class="bi bi-hand-thumbs-up me-1"></i> {{ _('Sostieni come Associazione') }}
+                </button>
+
+                <!-- Modale Supporto -->
+                <div class="modal fade" id="confirmSupportModal" tabindex="-1" aria-hidden="true">
+                  <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title">{{ _('Conferma supporto') }}</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Chiudi') }}"></button>
+                      </div>
+                      <div class="modal-body">
+                        {{ _('Sei sicuro di voler sostenere questa petizione come associazione?') }}
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ _('Annulla') }}</button>
+                        <form method="POST" action="{{ url_for('petitions.support_petition', petition_id=item.id) }}">
+                          <button type="submit" class="btn btn-success">{{ _('Conferma supporto') }}</button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endif %}
+            {% endif %}
+          {% else %}
+            <a href="{{ url_for('auth.login') }}" class="btn btn-secondary">
+              <i class="bi bi-box-arrow-in-right me-1"></i> {{ _('Accedi per firmare o sostenere') }}
+            </a>
+          {% endif %}
+
+        </div>
+{% endif %}
+
+
+      </footer>
+    </div>
+  </article>
+
+   <!-- Toast feedback copia link -->
+<div class="position-fixed bottom-0 start-50 translate-middle-x p-3" style="z-index:1080">
+  <div id="copyToast" class="toast align-items-center text-bg-dark border-0" role="status"
+       aria-live="assertive" aria-atomic="true" data-bs-delay="2000">
+    <div class="d-flex">
+      <div class="toast-body">
+        ✅ {{ _('Link copiato! Incollalo su Instagram Stories o in un post.') }}
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto"
+              data-bs-dismiss="toast" aria-label="{{ _('Chiudi') }}"></button>
+    </div>
+  </div>
+</div>
+
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+  .text-dark-green { color: #006400 !important; }
+  .text-dark-green:hover { color: #004d00 !important; }
+
+  /* 🔄 Contenitore immagine principale */
+  /* Contenitore immagine */
+.detail-image-wrapper {
+  width: 100%;    /* ✅ altezza fissa */
+  overflow: hidden;
+  border-radius: 12px;
+  margin: 0 auto 1.5rem auto; /* centrata */
+  background: #f1f1f1;
+}
+
+.detail-image {
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+  .detail-content p { line-height: 1.6; font-size: 1rem; }
+
+  /* Posizionamento in basso a destra dentro la card */
+.share-dropdown-card {
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+}
+.detail-card {
+  position: relative; /* necessario per contenere il dropdown posizionato assoluto */
+}
+
+.detail-info span {
+  font-size: 0.95rem;
+  color: #444;
+}
+
+.badge {
+  font-size: 0.85rem;
+  padding: 0.4em 0.6em;
+  border-radius: 8px;
+}
+
+
+</style>
+
+
+
+
+
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+  function copyLink() {
+    const url = window.location.href;
+    const toastEl = document.getElementById('copyToast');
+    const toast = bootstrap.Toast.getOrCreateInstance(toastEl);
+
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(url).then(() => {
+        toast.show();
+      }).catch(() => {
+        fallbackCopy(url, toast);
+      });
+    } else {
+      fallbackCopy(url, toast);
+    }
+  }
+
+  function fallbackCopy(text, toastInst) {
+    const input = document.createElement("input");
+    input.value = text;
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand("copy");
+    document.body.removeChild(input);
+    toastInst.show();
+  }
+
+</script>
+
+{% endblock %}

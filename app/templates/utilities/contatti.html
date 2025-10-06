@@ -1,0 +1,50 @@
+{% extends "layout/base.html" %}
+
+{% block title %}Contatti{% endblock %}
+{% block container_class %}container-xl{% endblock %}
+
+{% block content %}
+<div class="card-container" style="font-size: 0.9rem; text-align: justify;">
+    <h1 class="mb-3 text-center" style="font-size: 1.6rem;">{{ _('Contattaci') }}</h1>
+    <p class="text-muted mb-4 text-center" style="font-size: 0.8rem;">
+    {{ _('Siamo felici di ascoltarti. Ecco tutti i modi per raggiungerci.') }}
+    </p>
+
+    <!-- 📧 Email -->
+    <h2 style="font-size: 1.1rem;">{{ _('Email') }}</h2>
+    <p>
+        {{ _('Puoi scriverci a:') }} <a href="mailto:info@volo.org">info@volo.org</a><br>
+        {{ _('Rispondiamo generalmente entro 48 ore lavorative.') }}
+    </p>
+
+    <!-- 📱 Social -->
+    <h2 style="font-size: 1.1rem;">{{ _('Seguici sui social') }}</h2>
+    <ul class="list-unstyled" style="font-size: 0.9rem;">
+        <li><a href="https://facebook.com" target="_blank"><i class="bi bi-facebook"></i> {{ _('Facebook') }}</a></li>
+        <li><a href="https://instagram.com" target="_blank"><i class="bi bi-instagram"></i> {{ _('Instagram') }}</a></li>
+        <li><a href="https://linkedin.com" target="_blank"><i class="bi bi-linkedin"></i> {{ _('LinkedIn') }}</a></li>
+    </ul>
+
+    <!-- 📍 Luogo -->
+    <h2 style="font-size: 1.1rem;">{{ _('Dove siamo') }}</h2>
+    <p>{{ _('Siamo basati a Bari, ma la Piattaforma è attiva in tutta Italia.') }}</p>
+
+    <!-- ✉️ Form contatto (solo UI, non backend ancora) -->
+    <h2 class="mt-4" style="font-size: 1.1rem;">{{ _('Scrivici un messaggio') }}</h2>
+    <form method="post" action="#" class="mt-3" style="font-size: 0.9rem;">
+        <div class="mb-3">
+            <label for="name" class="form-label">{{ _('Nome') }}</label>
+            <input type="text" id="name" name="name" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">{{ _('Email') }}</label>
+            <input type="email" id="email" name="email" class="form-control" required>
+        </div>
+        <div class="mb-3">
+            <label for="message" class="form-label">Messaggio</label>
+            <textarea id="message" name="message" class="form-control" rows="4" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-sm">{{ _('Invia') }}</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,289 @@
+{% extends "layout/base.html" %}
+{% block title %}Registrazione Associazione{% endblock %}
+{% block container_class %}container-xl{% endblock %}
+
+{% block content %}
+<div class="container mt-3 mb-4">
+  <div class="row justify-content-center">
+    <div class="col-md-10 col-lg-8">
+      <div class="card shadow-sm border-0">
+        <div class="card-body p-5">
+          <h3 class="mb-4 text-center">{{ _('Registrati come Associazione') }}</h3>
+
+          <!-- Progress bar -->
+          <div class="progress mb-4" style="height: 6px;">
+            <div id="progress-bar" class="progress-bar bg-primary" role="progressbar" style="width: 25%;"></div>
+          </div>
+          <p class="text-center text-muted mb-4" id="progress-text">{{ _('Step 1 di 4') }}</p>
+
+          <form method="POST" enctype="multipart/form-data" id="associationForm" novalidate>
+            {{ form.hidden_tag() }}
+
+            <!-- Step 1 -->
+            <div class="step" id="step-1">
+              <h5 class="mb-3">{{ _('Dati principali') }}</h5>
+
+              <div class="mb-3">
+                {{ form.name.label(class="form-label") }}
+                {{ form.name(class="form-control", placeholder="Denominazione", required=True) }}
+                {% for error in form.name.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="mb-3">
+                {{ form.email.label(class="form-label") }}
+                {{ form.email(class="form-control", placeholder="email@example.com", required=True) }}
+                {% for error in form.email.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="mb-3">
+                {{ form.phone.label(class="form-label") }}
+                {{ form.phone(class="form-control", placeholder="+393331234567", required=True) }}
+                {% for error in form.phone.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="d-flex justify-content-end">
+                <button type="button" class="btn btn-primary next-btn">{{ _('Avanti →') }}</button>
+              </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="step d-none" id="step-2">
+              <h5 class="mb-3">{{ _('Credenziali e sede legale') }}</h5>
+
+              <div class="mb-3 position-relative">
+                {{ form.password.label(class="form-label") }}
+                <div class="input-group input-group-sm">
+                  {{ form.password(class="form-control", id="passwordField", placeholder="Password", required=True) }}
+                  <button type="button" class="btn btn-outline-secondary" id="togglePassword">{{ _('Mostra') }}</button>
+                </div>
+                <div id="passwordStrength" class="form-text mt-1"></div>
+                {% for error in form.password.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="mb-3">
+                {{ form.confirm_password.label(class="form-label") }}
+                {{ form.confirm_password(class="form-control", placeholder="Conferma Password", required=True) }}
+                {% for error in form.confirm_password.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="mb-3">
+                {{ form.address.label(class="form-label") }}
+                {{ form.address(class="form-control", placeholder="Indirizzo sede legale", required=True) }}
+                {% for error in form.address.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              {{ form.latitude(id="latitude") }}
+              {{ form.longitude(id="longitude") }}
+
+              <div class="d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary prev-btn">← {{ _('Indietro') }}</button>
+                <button type="button" class="btn btn-primary next-btn">{{ _('Avanti →') }}</button>
+              </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="step d-none" id="step-3">
+              <h5 class="mb-3">{{ _('Profilo e documenti') }}</h5>
+
+              <div class="mb-3">
+                {{ form.logo.label(class="form-label") }}
+                {{ form.logo(class="form-control", id="logoInput") }}
+                <div class="mt-2">
+                  <img id="logoPreview" src="#" alt="Anteprima logo" class="img-fluid rounded d-none" style="max-height:120px;">
+                </div>
+                {% for error in form.logo.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="mb-3">
+                {{ form.bio.label(class="form-label") }}
+                {{ form.bio(class="form-control", rows=3, placeholder="{{ _('Descrivi la missione della tua associazione') }}") }}
+                {% for error in form.bio.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="mb-3">
+                {{ form.website.label(class="form-label") }}
+                {{ form.website(class="form-control", placeholder="https://...") }}
+                {% for error in form.website.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="mb-3">
+                {{ form.iban.label(class="form-label") }}
+                {{ form.iban(class="form-control", placeholder="IT60X0542811101000000123456") }}
+                {% for error in form.iban.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="mb-3">
+                {{ form.official_docs.label(class="form-label") }}
+                {{ form.official_docs(class="form-control", required=True, id="docsInput") }}
+                <div class="mt-2" id="docsPreview" class="small text-muted"></div>
+                {% for error in form.official_docs.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary prev-btn">← {{ _('Indietro') }}</button>
+                <button type="button" class="btn btn-primary next-btn">{{ _('Avanti →') }}</button>
+              </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="step d-none" id="step-4">
+              <h5 class="mb-3">{{ _('Consensi') }}</h5>
+
+              <div class="form-check mb-2">
+                {{ form.consenso_dati(class="form-check-input", required=True) }}
+                {{ form.consenso_dati.label(class="form-check-label") }}
+                {% for error in form.consenso_dati.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="form-check mb-3">
+                {{ form.accetta_termini(class="form-check-input", required=True) }}
+                {{ form.accetta_termini.label(class="form-check-label") }}
+                {% for error in form.accetta_termini.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+
+              <div class="d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary prev-btn">← {{ _('Indietro') }}</button>
+                <button type="submit" class="btn btn-success">{{ _('Registrati') }}</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const steps = document.querySelectorAll(".step");
+const progressBar = document.getElementById("progress-bar");
+const progressText = document.getElementById("progress-text");
+let currentStep = 0;
+
+function showStep(index) {
+  steps.forEach((step, i) => step.classList.toggle("d-none", i !== index));
+  currentStep = index;
+  const progress = ((index + 1) / steps.length) * 100;
+  progressBar.style.width = progress + "%";
+  progressText.innerText = `Step ${index + 1} di ${steps.length}`;
+}
+
+function validateStep(index) {
+  const inputs = steps[index].querySelectorAll("input, textarea, select");
+  for (let input of inputs) {
+    if (input.hasAttribute("required") && !input.value.trim()) {
+      input.classList.add("is-invalid");
+      return false;
+    } else {
+      input.classList.remove("is-invalid");
+    }
+  }
+  return true;
+}
+
+document.querySelectorAll(".next-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (validateStep(currentStep) && currentStep < steps.length - 1) {
+      showStep(currentStep + 1);
+    }
+  });
+});
+
+document.querySelectorAll(".prev-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    if (currentStep > 0) showStep(currentStep - 1);
+  });
+});
+
+document.getElementById("associationForm").addEventListener("submit", e => {
+  if (!validateStep(currentStep)) e.preventDefault();
+});
+
+// Toggle password visibility
+document.addEventListener("click", e => {
+  if (e.target.id === "togglePassword") {
+    const field = document.getElementById("passwordField");
+    if (field.type === "password") {
+      field.type = "text";
+      e.target.textContent = "Nascondi";
+    } else {
+      field.type = "password";
+      e.target.textContent = "Mostra";
+    }
+  }
+});
+
+// Password strength indicator
+const pwdField = document.getElementById("passwordField");
+const pwdStrength = document.getElementById("passwordStrength");
+if (pwdField) {
+  pwdField.addEventListener("input", () => {
+    const val = pwdField.value;
+    let strength = "Debole";
+    if (val.length >= 8 && /[A-Z]/.test(val) && /\d/.test(val) && /\W/.test(val)) {
+      strength = "Forte";
+    } else if (val.length >= 6) {
+      strength = "Media";
+    }
+    pwdStrength.textContent = "Forza password: " + strength;
+  });
+}
+
+// Logo preview
+document.getElementById("logoInput").addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = document.getElementById("logoPreview");
+      img.src = ev.target.result;
+      img.classList.remove("d-none");
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+// Docs preview
+document.getElementById("docsInput").addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (file) {
+    document.getElementById("docsPreview").textContent = "File caricato: " + file.name;
+  }
+});
+
+// Geolocation
+if (navigator.geolocation) {
+  navigator.geolocation.getCurrentPosition(pos => {
+    document.getElementById("latitude").value = pos.coords.latitude;
+    document.getElementById("longitude").value = pos.coords.longitude;
+  });
+}
+</script>
+{% endblock %}

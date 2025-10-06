@@ -1,0 +1,63 @@
+{% extends 'layout/base.html' %}
+{% block title %}Conferma partecipazione{% endblock %}
+{% block container_class %}container-sm{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm border-0 mt-4" style="border-radius:12px;">
+  <div class="card-body p-4">
+
+    <!-- Titolo -->
+    <h4 class="mb-3 text-center">{{ _('Conferma partecipazione') }}</h4>
+
+    <!-- Info evento -->
+    <h5 class="mb-2">{{ event.title }}</h5>
+    <p class="mb-1"><strong>Data:</strong> {{ event.date.strftime('%d/%m/%Y %H:%M') }}</p>
+    <p class="mb-1"><strong>Luogo:</strong> {{ event.location }}</p>
+
+    {% if event.association %}
+  <p class="mb-3 d-flex align-items-center gap-2">
+    <strong>{{ _('Organizzato da:') }}</strong>
+    <a href="{{ url_for('public.public_profile', association_id=event.association.id) }}"
+       class="d-inline-flex align-items-center text-decoration-none">
+       <span>{{ event.association.name }}</span>
+      <img
+        class="rounded-circle me-2"
+        width="36" height="36"
+        src="{% if event.association.photo_filename %}
+               {{ url_for('dashboard.static', filename='uploads/profile-photo/' ~ event.association.photo_filename) }}
+             {% else %}
+               {{ url_for('static', filename='img/avatar-placeholder.png') }}
+             {% endif %}"
+        alt="Logo {{ event.association.name }}">
+    </a>
+  </p>
+{% endif %}
+
+
+    <!-- Dichiarazione di responsabilità -->
+    <div class="alert alert-warning text-start" style="border-radius:10px;">
+      <h6 class="mb-2">{{ _('Assunzione di responsabilità') }}</h6>
+      <p class="mb-1">
+        {{ _('Confermando, dichiari di voler partecipare a questo evento come volontario e ti impegni a rispettare orario e modalità indicate.') }}
+      </p>
+      <p class="mb-1">
+        {{ _('Se non potessi più partecipare, sei pregato di annullare la tua adesione al più presto per lasciare spazio ad altri volontari.') }}
+      </p>
+      <p class="mb-0">
+        {{ _('Riceverai inoltre una') }} <strong>{{ _('notifica di promemoria 24 ore prima dell’evento') }}</strong>, {{ _('con la possibilità di confermare nuovamente la tua presenza o cancellarla.') }}
+      </p>
+    </div>
+
+    <!-- Azioni -->
+    <div class="text-center">
+      <form method="POST" action="{{ url_for('events.confirm_participation', event_id=event.id) }}" class="d-inline">
+        <button type="submit" class="btn btn-success me-2">✅ {{ _('Conferma partecipazione') }}</button>
+      </form>
+      <a href="{{ url_for('events.event_detail', event_id=event.id) }}" class="btn btn-outline-secondary">
+        ❌ {{ _('Annulla') }}
+      </a>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

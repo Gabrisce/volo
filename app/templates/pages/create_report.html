@@ -1,0 +1,111 @@
+{% extends 'layout/base.html' %}
+{% block title %}Nuova Segnalazione{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">{{ _('Effettua una segnalazione') }}</h2>
+
+<form method="POST" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+
+    <!-- Titolo -->
+    <div class="mb-3">
+        {{ form.title.label(class="form-label") }}
+        {{ form.title(class="form-control", placeholder="{{ _('Inserisci un titolo') }}") }}
+    </div>
+
+    <!-- Descrizione -->
+    <div class="mb-3">
+        {{ form.description.label(class="form-label") }}
+        {{ form.description(class="form-control", rows="4", placeholder="{{ _('Descrivi la segnalazione...') }}") }}
+    </div>
+
+    <!-- Barra indirizzo -->
+    <div class="mb-3">
+        {{ form.address.label(class="form-label") }}
+        {{ form.address(id="address_hidden", type="hidden") }}
+        <input id="address" type="text" class="form-control" placeholder="{{ _('Cerca un indirizzo o seleziona sulla mappa') }}">
+    </div>
+
+    <!-- Mappa -->
+    <div class="mb-3">
+        <label>{{ _('Seleziona il punto sulla mappa') }}</label>
+        <div id="map" style="height: 400px; border-radius: 6px;"></div>
+    </div>
+
+    <!-- Campi nascosti lat/lng -->
+    {{ form.latitude(id="latitude") }}
+    {{ form.longitude(id="longitude") }}
+
+    <!-- Immagine -->
+    <div class="mb-3">
+        {{ form.image.label(class="form-label") }}
+        {{ form.image(class="form-control") }}
+    </div>
+
+    <button type="submit" class="btn btn-primary">{{ _('Invia segnalazione') }}</button>
+</form>
+
+<script>
+let map, marker, autocomplete, geocoder;
+
+function initMap() {
+    const defaultPosition = { lat: 41.1171, lng: 16.8719 }; // Bari
+
+    map = new google.maps.Map(document.getElementById("map"), {
+        center: defaultPosition,
+        zoom: 13
+    });
+
+    geocoder = new google.maps.Geocoder();
+
+    // Autocomplete collegato alla barra indirizzo
+    autocomplete = new google.maps.places.Autocomplete(
+        document.getElementById("address"),
+        { fields: ["geometry", "formatted_address"] }
+    );
+    autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        if (!place.geometry) return;
+
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+        const addr = place.formatted_address;
+
+        setMarker(lat, lng, addr);
+        map.setCenter({ lat, lng });
+    });
+
+    // Click su mappa -> reverse geocoding
+    map.addListener("click", (e) => {
+        const lat = e.latLng.lat();
+        const lng = e.latLng.lng();
+
+        geocoder.geocode({ location: { lat, lng } }, (results, status) => {
+            let addr = "";
+            if (status === "OK" && results[0]) {
+                addr = results[0].formatted_address;
+                document.getElementById("address").value = addr;
+            }
+            setMarker(lat, lng, addr);
+        });
+    });
+}
+
+function setMarker(lat, lng, addr="") {
+    if (marker) marker.setMap(null);
+    marker = new google.maps.Marker({
+        position: { lat, lng },
+        map: map
+    });
+
+    document.getElementById("latitude").value = lat;
+    document.getElementById("longitude").value = lng;
+    document.getElementById("address_hidden").value = addr;
+}
+</script>
+
+<!-- Import Google Maps con libreria Places -->
+<script async
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDcXFwnHjAn_WPunfH5oB2A13WTiDotRig&libraries=places&callback=initMap">
+</script>
+{% endblock %}

@@ -1,0 +1,609 @@
+{% extends 'layout/base.html' %}
+{% block title %}Home{% endblock %}
+{% block container_class %}container-xl{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center gy-4">
+
+  <!-- Colonna centrale (centrata) -->
+  <div class="col-12 col-lg-8 col-xl-7">
+    <section class="d-flex flex-column home-center">
+
+      {# ===================== BARRA RICERCA (versione pill) ===================== #}
+      <form method="GET" action="{{ url_for('home.home') }}" class="mb-3" role="search" aria-label="{{ _('Cerca') }}">
+        <div class="search-wrapper">
+          <div class="input-group input-group-sm align-items-stretch search-inputgroup">
+            <label class="visually-hidden" for="q">{{ _('Cerca') }}</label>
+
+            <span class="input-group-text search-icon" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/>
+                <line x1="20" y1="20" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </span>
+
+            <input id="q" type="text" name="q" class="form-control form-control-sm search-input"
+                   placeholder="{{ _('Cerca per titolo, descrizione o luogo...') }}"
+                   value="{{ request.args.get('q', '') }}" autocomplete="off" />
+
+            <button class="btn btn-search" type="submit" aria-label="{{ _('Cerca') }}">
+              {{ _('Cerca') }}
+            </button>
+          </div>
+        </div>
+      </form>
+
+      {# ------------------ RISULTATI: Associazioni PRIMA del feed (solo se q) ------------------ #}
+      {% if found_associations and request.args.get('q') %}
+        <div class="search-results mb-4">
+          <h6 class="mb-2">{{ _('Associazioni trovate') }}</h6>
+          <div class="row g-2">
+            {% for assoc in found_associations %}
+              <div class="col-12">
+                <a href="{{ url_for('public.public_profile', association_id=assoc.id) }}"
+                   class="d-flex align-items-center p-2 border rounded-3 text-decoration-none hover-shadow"
+                   style="gap:.75rem;">
+                  <img class="rounded-circle" width="36" height="36"
+                       src="{% if assoc.photo_filename %}
+                              {{ url_for('dashboard.static', filename='uploads/profile-photo/' ~ assoc.photo_filename) }}
+                            {% else %}
+                              {{ url_for('static', filename='img/avatar-placeholder.png') }}
+                            {% endif %}"
+                       alt="Logo {{ assoc.name }}">
+                  <div class="d-flex flex-column">
+                    <strong class="text-body">{{ assoc.name }}</strong>
+                  </div>
+                </a>
+              </div>
+            {% endfor %}
+          </div>
+          <hr class="my-3">
+        </div>
+      {% endif %}
+      {# ----------------------------- FEED DINAMICO ----------------------------- #}
+      {% if feed_items %}
+        <div class="feed-container" style="max-height: calc(100vh - 200px); overflow-y: auto; padding-right: 6px;">
+          {% for entry in feed_items %}
+
+            {# ====== EVENTO ====== #}
+            {% if entry.type == 'event' %}
+              {% set event = entry.item %}
+              <article class="card shadow-sm mb-3 feed-card">
+                <div class="type-badge type-event"></div>
+                <div class="card-body position-relative">
+                  <h5 class="card-title mb-1">
+                    <a href="{{ url_for('public.detail', content_type='event', item_id=event.id) }}" class="text-decoration-none text-dark-green">
+                      {{ event.title }}
+                    </a>
+                  </h5>
+
+                  <p class="organizer mb-1 d-flex align-items-center">
+                    {{ _('organizzato da') }}
+                    <a href="{{ url_for('public.public_profile', association_id=event.association.id) }}"
+                       class="text-decoration-none text-dark-green d-inline-flex align-items-center ms-1">
+                      {{ event.association.name }}
+                      <img
+                        class="rounded-circle avatar-xs me-1"
+                        src="{% if event.association.photo_filename %}
+                                {{ url_for('dashboard.static', filename='uploads/profile-photo/' ~ event.association.photo_filename) }}
+                              {% else %}
+                                {{ url_for('static', filename='img/avatar-placeholder.png') }}
+                              {% endif %}"
+                        alt="Logo {{ event.association.name }}">
+                    </a>
+                  </p>
+
+                  <small class="text-muted d-block mb-2">
+                    {% if event.date %}{{ event.date.strftime('%d/%m/%Y') }} – {% endif %}{{ event.location or 'Luogo non indicato' }}
+                  </small>
+
+                  {% if event.description %}
+                    <p class="card-text clamp" data-clamp="4">{{ event.description }}</p>
+                  {% endif %}
+
+                  {% if event.image_filename %}
+                    <div class="thumb-top-right">
+                      <a href="{{ url_for('events.static', filename='uploads/events/' ~ event.image_filename) }}" target="_blank">
+                        <img src="{{ url_for('events.static', filename='uploads/events/' ~ event.image_filename) }}"
+                             alt="Immagine evento"
+                             class="thumb-img">
+                      </a>
+                    </div>
+                  {% endif %}
+
+                  <button type="button" class="toggle-card d-none">{{ _('Mostra altro') }}</button>
+                </div>
+              </article>
+
+            {# ====== POST ====== #}
+            {% elif entry.type == 'post' %}
+              {% set post = entry.item %}
+              <article class="card shadow-sm mb-3 feed-card">
+                <div class="type-badge type-post"></div>
+                <div class="card-body position-relative">
+
+                  <!-- Titolo con avatar + nome associazione -->
+                  <div class="d-flex align-items-center mb-1">
+                    <a href="{{ url_for('public.public_profile', association_id=post.association.id) }}"
+                       class="text-decoration-none d-inline-flex align-items-center">
+                      <span class="h6 mb-0 text-dark-green">{{ post.association.name }}</span>
+                      <img
+                        class="rounded-circle avatar-xs me-1"
+                        src="{% if post.association.photo_filename %}
+                                {{ url_for('dashboard.static', filename='uploads/profile-photo/' ~ post.association.photo_filename) }}
+                              {% else %}
+                                {{ url_for('static', filename='img/avatar-placeholder.png') }}
+                              {% endif %}"
+                        alt="Logo {{ post.association.name }}">
+                    </a>
+                  </div>
+                  <small class="text-muted d-block mb-2">{{ _('Pubblicato il') }} {{ entry.timestamp.strftime('%d/%m/%Y') }}</small>
+
+                  <h6 class="card-title pe-5">
+                    <a href="{{ url_for('posts.post_detail', post_id=post.id) }}"
+                       class="text-decoration-none text-dark">
+                      {{ post.title or "Titolo mancante" }}
+                    </a>
+                  </h6>
+
+                  {% if post.content %}
+                    <p class="card-text clamp" data-clamp="4">{{ post.content }}</p>
+                  {% endif %}
+
+                  {% if post.image_filename %}
+                    <div class="thumb-top-right">
+                      <a href="{{ url_for('posts.static', filename='uploads/posts/' ~ post.image_filename) }}" target="_blank">
+                        <img src="{{ url_for('posts.static', filename='uploads/posts/' ~ post.image_filename) }}"
+                             alt="Immagine post"
+                             class="thumb-img">
+                      </a>
+                    </div>
+                  {% endif %}
+
+                  <div><button type="button" class="toggle-card d-none">{{ _('Mostra altro') }}</button></div>
+
+                  {% set applause_count = post.applause|length if post.applause is defined else 0 %}
+                  {% set user_has_applauded = current_user.is_authenticated and post.applause|selectattr("user_id","equalto",current_user.id)|list|length > 0 %}
+                  <button type="button"
+                      class="applause-btn d-inline-flex align-items-center {% if user_has_applauded %}active{% endif %} mt-2"
+                      data-post-id="{{ post.id }}">
+                    <svg class="applause-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
+                      <path d="M368 16V80c0 8.8-7.2 16-16 16s-16-7.2-16-16V16c0-8.8 
+                              7.2-16 16-16s16 7.2 16 16zm-98.7 7.1l32 48c4.9 7.4 
+                              2.9 17.3-4.4 22.2s-17.3 2.9-22.2-4.4l-32-48c-4.9-7.4 
+                              2.9-17.3 4.4-22.2s17.3-2.9 22.2 4.4zM167 119c9.4-9.4 
+                              24.6-9.4 33.9 0L324.7 242.7c10.1 10.1 27.3 2.9 
+                              27.3-11.3V192c0-17.7 14.3-32 32-32s32 14.3 
+                              32 32V345.6c0 57.1-30 110-78.9 139.4c-64 
+                              38.4-145.8 28.3-198.5-24.4L39 361c-9.4-9.4-9.4-24.6 
+                              0-33.9s24.6-9.4 33.9 0l53 53c6.1 6.1 16 6.1 
+                              22.1 0s6.1-16 0-22.1L55 265c-9.4-9.4-9.4-24.6 
+                              0-33.9s24.6-9.4 33.9 0l93 93c6.1 6.1 16 6.1 
+                              22.1 0s6.1-16 0-22.1L87 185c-9.4-9.4-9.4-24.6 
+                              0-33.9s24.6-9.4 33.9 0l117 117c6.1 6.1 16 6.1 
+                              22.1 0s6.1-16 0-22.1l-93-93c-9.4-9.4-9.4-24.6 
+                              0-33.9zM465.1 484.9c-24.2 14.5-50.9 22.1-77.7 
+                              23.1c48.1-39.6 76.6-99 76.6-162.4l0-98.1c8.2-.1 
+                              16-6.4 16-16V192c0-17.7 14.3-32 32-32s32 14.3 
+                              32 32V345.6c0 57.1-30 110-78.9 139.4zM456.9 
+                              18.7c7.4 4.9 9.3 14.8 4.4 22.2l-32 48c-4.9 
+                              7.4-14.8 9.3-22.2 4.4s-9.3-14.8-4.4-22.2l32-48c4.9-7.4 
+                              14.8-9.3 22.2-4.4z"/>
+                    </svg>
+                    <span class="applause-count ms-1">{{ applause_count }}</span>
+                  </button>
+                </div>
+              </article>
+
+            {# ====== CAMPAGNA ====== #}
+            {% elif entry.type == 'campaign' %}
+              {% set campaign = entry.item %}
+              <article class="card shadow-sm mb-3 feed-card">
+                <div class="type-badge type-campaign"></div>
+                <div class="card-body position-relative">
+                  <h5 class="card-title mb-1">
+                    <a href="{{ url_for('public.detail', content_type='campaign', item_id=campaign.id) }}" class="text-decoration-none text-dark-green">
+                      {{ campaign.title }}
+                    </a>
+                  </h5>
+
+                  <p class="organizer mb-1 d-flex align-items-center">
+                    {{ _('organizzato da') }}
+                    <a href="{{ url_for('public.public_profile', association_id=campaign.association.id) }}"
+                       class="text-decoration-none text-dark-green d-inline-flex align-items-center ms-1">
+                      {{ campaign.association.name }}
+                      <img
+                        class="rounded-circle avatar-xs me-1"
+                        src="{% if campaign.association.photo_filename %}
+                                {{ url_for('dashboard.static', filename='uploads/profile-photo/' ~ campaign.association.photo_filename) }}
+                              {% else %}
+                                {{ url_for('static', filename='img/avatar-placeholder.png') }}
+                              {% endif %}"
+                        alt="Logo {{ campaign.association.name }}">
+                    </a>
+                  </p>
+                  <small class="text-muted d-block mb-2">{{ _('Pubblicato il') }} {{ entry.timestamp.strftime('%d/%m/%Y') }}</small>
+
+                  {% if campaign.description %}
+                    <p class="card-text clamp" data-clamp="4">{{ campaign.description }}</p>
+                  {% endif %}
+
+                  {% if campaign.image_filename %}
+                    <div class="thumb-top-right">
+                      <a href="{{ url_for('campaigns.static', filename='uploads/campaigns/' ~ campaign.image_filename) }}" target="_blank">
+                        <img src="{{ url_for('campaigns.static', filename='uploads/campaigns/' ~ campaign.image_filename) }}"
+                             alt="Immagine campaign"
+                             class="thumb-img">
+                      </a>
+                    </div>
+                  {% endif %}
+
+                  <button type="button" class="toggle-card d-none">{{ _('Mostra altro') }}</button>
+                </div>
+              </article>
+            {% endif %}
+
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted">{{ _('Nessun risultato trovato') }}{% if request.args.get('q') %} per “{{ request.args.get('q') }}”{% endif %}</p>
+      {% endif %}
+    </section>
+  </div>
+
+  <!-- Colonna destra: Petizioni (moderna & sticky) -->
+  <div class="col-12 col-lg-4 d-none d-lg-block">
+    <aside class="petitions-panel card shadow-sm border-0">
+      <div class="petitions-header d-flex align-items-center justify-content-between">
+        <h6 class="mb-0">{{ _('Petizioni recenti') }}</h6>
+      </div>
+
+      <div class="petitions-body">
+        <ul class="list-unstyled m-0">
+          {% for petition in petitions %}
+            <li class="petition-item">
+              <a href="{{ url_for('petitions.petition_detail', petition_id=petition.id) }}"
+                 class="petition-link">
+                <div class="petition-meta">
+                  <h6 class="petition-title">{{ petition.title }}</h6>
+                  <div class="petition-info">
+                    {{ petition.created_at.strftime("%d/%m/%Y") }}
+                    {% if petition.location %} · 📍 {{ petition.location }}{% endif %}
+                  </div>
+                  {% if petition.description %}
+                    <p class="petition-desc desc-text" data-full="{{ petition.description }}">
+                      {{ petition.description[:140] }}{% if petition.description|length > 140 %}… <span class="toggle-desc link-like">Mostra altro</span>{% endif %}
+                    </p>
+                  {% endif %}
+                </div>
+
+                {% if petition.image_filename %}
+                  <div class="petition-thumb">
+                    <img src="{{ url_for('petitions.static', filename='uploads/petitions/' ~ petition.image_filename) }}"
+                         alt="Immagine petizione" loading="lazy">
+                  </div>
+                {% endif %}
+              </a>
+            </li>
+          {% else %}
+            <li class="text-muted small px-3 py-2">{{ _('Nessuna petizione attiva') }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </aside>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/events.js') }}"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  // === Gestione Mostra Altro / Mostra Meno ===
+  document.querySelectorAll('.feed-card').forEach(function(card){
+    const text = card.querySelector('.clamp');
+    const media = card.querySelector('.clamp-media');
+    const btn = card.querySelector('.toggle-card');
+
+    let needsToggle = false;
+    if (text && (text.innerText || '').trim().length > 300) needsToggle = true;
+    if (media) needsToggle = true;
+
+    if (needsToggle && btn) {
+      btn.classList.remove('d-none');
+      btn.addEventListener('click', function(){
+        card.classList.toggle('expanded');
+        btn.textContent = card.classList.contains('expanded') ? 'Mostra meno' : 'Mostra altro';
+      });
+    }
+  });
+});
+
+document.addEventListener("DOMContentLoaded", function(){
+  document.querySelectorAll(".toggle-desc").forEach(link=>{
+    link.addEventListener("click", function(e){
+      e.preventDefault();
+      const p = this.closest(".desc-text");
+      const full = p.dataset.full;
+      const short = full.slice(0,160);
+
+      if (p.classList.contains("expanded")) {
+        p.innerHTML = short + '... <a href="#" class="toggle-desc">Mostra altro</a>';
+        p.classList.remove("expanded");
+      } else {
+        p.innerHTML = full + ' <a href="#" class="toggle-desc">Mostra meno</a>';
+        p.classList.add("expanded");
+      }
+      p.querySelector(".toggle-desc").addEventListener("click", arguments.callee);
+    });
+  });
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.thumb-img').forEach(img => {
+    img.addEventListener('click', (e) => {
+      e.preventDefault();
+      const src = img.closest('a').href;
+
+      const overlay = document.createElement("div");
+      overlay.style.position = "fixed";
+      overlay.style.top = 0;
+      overlay.style.left = 0;
+      overlay.style.width = "100%";
+      overlay.style.height = "100%";
+      overlay.style.background = "rgba(0,0,0,0.85)";
+      overlay.style.display = "flex";
+      overlay.style.alignItems = "center";
+      overlay.style.justifyContent = "center";
+      overlay.style.zIndex = 9999;
+      overlay.style.cursor = "zoom-out";
+
+      const bigImg = document.createElement("img");
+      bigImg.src = src;
+      bigImg.style.maxWidth = "90%";
+      bigImg.style.maxHeight = "90%";
+      bigImg.style.borderRadius = "8px";
+      bigImg.style.boxShadow = "0 4px 20px rgba(0,0,0,0.5)";
+
+      overlay.appendChild(bigImg);
+      overlay.addEventListener("click", () => overlay.remove());
+
+      document.body.appendChild(overlay);
+    });
+  });
+});
+</script>
+
+<script src="{{ url_for('static', filename='js/applause.js') }}"></script>
+
+<style>
+/* =========================================================
+   VOLÒ — Home (look futuristico, accessibile, no breaking changes)
+   ========================================================= */
+
+/* ---------- Design tokens fallback (se non definiti in :root) ---------- */
+:root{
+  --color-primary: var(--v-primary, #019f95);
+  --color-primary-dark: var(--v-primary-dark, #006b5f);
+  --surface: #ffffff;
+  --surface-2: #f6f8fb;
+  --ink: #0f172a;
+  --ink-2: #334155;
+  --muted: #64748b;
+  --ring: 0 0 0 3px rgba(1,159,149,.25);
+  --elev-1: 0 6px 18px rgba(16,24,40,.08);
+  --elev-2: 0 12px 28px rgba(16,24,40,.12);
+  --radius-md: 12px;
+  --radius-lg: 16px;
+}
+
+/* ---------- Riduci animazioni dove richiesto ---------- */
+@media (prefers-reduced-motion: reduce){
+  * { animation: none !important; transition: none !important; }
+}
+
+/* ---------- Micro layout utilities ---------- */
+.home-center{ margin-left:auto; margin-right:auto; }
+.card{ border-radius: var(--radius-md); box-shadow: 0 1px 0 rgba(16,24,40,.04); border: 1px solid #e9edf3; }
+.hover-shadow:hover { box-shadow: var(--elev-1); }
+
+/* =========================================================
+   SEARCH (pill) — glassmorphism + focus ring AA
+   ========================================================= */
+.search-wrapper{
+  background: rgba(255,255,255,.6);
+  backdrop-filter: saturate(180%) blur(10px);
+  -webkit-backdrop-filter: saturate(180%) blur(10px);
+  border: 1px solid rgba(226,232,240,.8);
+  border-radius: 999px;
+  padding:.25rem .35rem;
+  overflow:hidden;
+  box-shadow: var(--elev-1);
+}
+.search-inputgroup{
+  display:flex; align-items:stretch; gap:.15rem;
+}
+.search-icon{
+  background: linear-gradient(180deg, rgba(255,255,255,.6), rgba(248,250,252,.5));
+  border: 0; color:#6b7280; border-radius:999px;
+  display:inline-flex; align-items:center; padding:0 .6rem;
+}
+.search-inputgroup .form-control,
+.search-input{
+  border:0 !important; box-shadow:none !important; background:transparent;
+  padding:.72rem .25rem; font-size:1.02rem; color: var(--ink);
+}
+.search-input::placeholder{ color:#94a3b8; }
+.search-input:focus{ outline:none; }
+.btn-search{
+  border:0 !important; border-radius:999px !important;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark)) !important;
+  color:#fff !important; padding:.58rem 1rem !important; font-weight:700; letter-spacing:.1px;
+  transition: transform .12s ease, box-shadow .2s ease;
+}
+.btn-search:hover{ transform: translateY(-1px); box-shadow: 0 8px 24px rgba(1,159,149,.25); }
+.btn-search:active{ transform: translateY(0); box-shadow: 0 4px 12px rgba(1,159,149,.2); }
+.btn-search:focus-visible{ box-shadow: var(--ring); }
+
+/* Mobile touch targets */
+@media (max-width: 575.98px){
+  .search-input{ padding:.8rem .35rem; font-size:1.06rem; }
+  .btn-search{ padding:.7rem 1rem !important; }
+}
+
+/* =========================================================
+   FEED — badges, clamp, card lift
+   ========================================================= */
+.feed-card.card{ overflow: visible; transition: box-shadow .2s ease, transform .12s ease; }
+.feed-card.card:hover{ box-shadow: var(--elev-2); transform: translateY(-1px); }
+.feed-card .card-body{ padding:.95rem 1rem; padding-right: 110px; }
+.organizer{ font-size:.92rem; color: var(--ink-2); }
+.text-dark-green{ color:#0b7a65 !important; }
+.text-dark-green:hover{ color:#075e4f !important; }
+
+/* Clamp 3 righe */
+.feed-card:not(.expanded) .clamp{
+  display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden;
+  line-clamp:3; -webkit-line-clamp:3;
+}
+@supports not (-webkit-line-clamp: 1){
+  .feed-card:not(.expanded) .clamp{ max-height:4.9em; overflow:hidden; }
+}
+.feed-card:not(.expanded) .clamp-media{ max-height: 10px; overflow:hidden; }
+.feed-card.expanded .clamp{ max-height:none; overflow:visible; line-clamp: initial; -webkit-line-clamp: initial; }
+.feed-card.expanded .clamp-media{ max-height:none; }
+
+.toggle-card{
+  color:#0b7a65; font-size:.84rem; margin-top:.25rem;
+  background:none; border:none; padding:0; cursor:pointer; text-decoration: underline;
+}
+.toggle-card:hover{ color:#075e4f; }
+.toggle-card:focus-visible{ outline: none; box-shadow: var(--ring); border-radius:6px; }
+
+/* Thumbnail top-right */
+.thumb-top-right{ position:absolute; top:.75rem; right:.75rem; width:92px; height:92px; }
+.thumb-top-right img{ width:100%; height:100%; object-fit:cover; border-radius:10px; cursor:zoom-in; box-shadow: 0 6px 20px rgba(2,8,23,.18); }
+
+/* Badges tipo (gradient) */
+.type-badge{
+  position:absolute; top:0; left:0; padding:.38rem .85rem; font-size:.72rem; font-weight:700;
+  color:#fff; border-top-left-radius: var(--radius-md); border-bottom-right-radius:10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.15); z-index:5; letter-spacing:.2px;
+}
+.type-event    { background: linear-gradient(135deg,#12a09a,#0e827d); }
+.type-campaign { background: linear-gradient(135deg,#f8b400,#f29e00); color:#1c1917; }
+.type-post     { background: linear-gradient(135deg,#239cf2,#1d7fd6); }
+
+
+/* =========================================================
+   PETITIONS — pannello sticky, liste ipermoderne
+   ========================================================= */
+.petitions-panel{
+  position: sticky; top: 84px;
+  border-radius: var(--radius-lg);
+  overflow:hidden; background: var(--surface);
+  box-shadow: var(--elev-1);
+}
+@media (min-width: 1400px){ .petitions-panel{ top: 92px; } }
+
+.petitions-header{
+  padding:.8rem 1rem;
+  background: linear-gradient(180deg,#ffffff,#f8fafc);
+  border-bottom:1px solid #eef2f7;
+  display:flex; align-items:center; justify-content:space-between;
+}
+.petitions-body{ max-height: calc(100vh - 180px); overflow-y:auto; padding:.5rem; }
+
+/* Scrollbar elegante */
+.petitions-body::-webkit-scrollbar,
+.feed-container::-webkit-scrollbar{ width: 10px; }
+.petitions-body::-webkit-scrollbar-thumb,
+.feed-container::-webkit-scrollbar-thumb{
+  background: linear-gradient(180deg,#e6eef4,#cfdae6);
+  border-radius: 10px; border: 2px solid #f8fafc;
+}
+
+/* Item */
+.petition-item{
+  border-radius: 14px; padding:.65rem .65rem; margin:.25rem .25rem;
+  transition: transform .12s ease, box-shadow .2s ease, background-color .2s ease, border-color .2s ease;
+  border:1px solid #e9edf3; background: #fff;
+}
+.petition-item:hover{ background:#f9fbfd; box-shadow: var(--elev-1); transform: translateY(-1px); }
+
+.petition-link{
+  display:grid; grid-template-columns: 1fr auto; gap:.8rem; align-items:start;
+  text-decoration:none; color: inherit;
+}
+.petition-meta{ min-width:0; }
+.petition-title{ margin:0 0 .15rem 0; font-weight:700; font-size:.98rem; line-height:1.3rem; color: var(--ink); }
+.petition-title:hover{ text-decoration: underline; text-underline-offset: 2px; }
+.petition-info{ font-size:.8rem; color: var(--muted); margin-bottom:.25rem; }
+.petition-desc{ font-size:.9rem; color: var(--ink-2); margin:0;
+  display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden; line-clamp:3; -webkit-line-clamp:3; }
+.link-like{ color:#0b7a65; text-decoration: underline; cursor:pointer; }
+.link-like:hover{ color:#075e4f; }
+
+.petition-thumb{ width:74px; height:74px; border-radius:12px; overflow:hidden; flex-shrink:0;
+  border:1px solid #e6eef4; box-shadow: 0 6px 18px rgba(2,8,23,.08); }
+.petition-thumb img{ width:100%; height:100%; object-fit:cover; display:block; }
+
+/* =========================================================
+   ACCESSIBILITÀ / FOCUS
+   ========================================================= */
+a:focus-visible, button:focus-visible{
+  outline: none; box-shadow: var(--ring);
+  border-radius: 8px;
+}
+
+/* =========================================================
+   DARK MODE (auto) — se l’utente usa tema scuro di sistema
+   ========================================================= */
+@media (prefers-color-scheme: dark){
+  :root{
+    --surface: #0b1220;
+    --surface-2: #0f172a;
+    --ink: #e5eef8;
+    --ink-2: #c7d2fe;
+    --muted: #93a4c5;
+    --ring: 0 0 0 3px rgba(1,159,149,.4);
+  }
+  .card{ background: var(--surface-2); border-color: #1e293b; box-shadow: none; }
+  .search-wrapper{ background: rgba(15,23,42,.6); border-color:#1f2937; }
+  .search-icon{ background: transparent; color:#a7b3c6; }
+  .feed-card.card:hover{ box-shadow: 0 12px 32px rgba(0,0,0,.45); }
+  .petition-item{ background: var(--surface-2); border-color:#1e293b; }
+  .petition-item:hover{ background:#121a2d; }
+  .text-dark-green{ color:#8df0e3 !important; }
+  .text-dark-green:hover{ color:#6bd2c5 !important; }
+  .toggle-card{ color:#8df0e3; }
+  .toggle-card:hover{ color:#6bd2c5; }
+  .petitions-header{ background: linear-gradient(180deg,#0f172a,#0b1220); border-bottom-color:#1e293b; }
+  .petition-title{ color: var(--ink); }
+  .petition-desc{ color: #c7d2fe; }
+  .thumb-top-right img{ box-shadow: 0 10px 28px rgba(0,0,0,.6); }
+  .applause-btn{ background:#0b1220; border-color:#1e293b; color:#e5eef8; }
+  .applause-btn.active{ background:#052a24; border-color:#0d3c36; }
+}
+
+/* =========================================================
+   PICCOLE RIFINITURE
+   ========================================================= */
+.avatar-xs{ width:24px; height:24px; object-fit:cover; border-radius:50%; border:1px solid #e5e7eb; }
+.btn-link-reset{ color:#0d6efd; text-decoration:underline; font-size:.85rem; }
+.btn-link-reset:hover{ color:#0a58ca; }
+.btn-link-reset:focus-visible{ box-shadow: var(--ring); }
+
+.feed-card.highlight{ outline: 3px solid var(--color-primary); transition: outline .2s ease; }
+
+/* Migliora rendering testo/icone su display moderni */
+html{ -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+</style>
+
+
+
+{% endblock %}

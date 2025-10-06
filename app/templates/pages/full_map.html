@@ -1,0 +1,600 @@
+{% extends 'layout/base.html' %}
+{% block title %}Mappa Eventi Completa{% endblock %}
+{% block container_class %}container-bleed{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="d-flex align-items-center justify-content-between mb-2">
+  <h5 class="mb-0 flex-grow-1">
+    <a href="{{ url_for('home.home') }}" class="back-link text-decoration-none">⬅ {{ _('Home') }}</a>
+  </h5>
+
+  <!-- Toggle contenuti mappa (ghost segmented) -->
+  <div class="segmented-ghost" role="group" aria-label="Selettore contenuti mappa">
+    <button type="button" class="btn-ghost-segment active" id="toggle-events">{{ _('Eventi e Campagne') }}</button>
+    <button type="button" class="btn-ghost-segment" id="toggle-reports">{{ _('Segnalazioni e Petizioni') }}</button>
+  </div>
+</div>
+
+<!-- Barra di ricerca + filtri -->
+<form id="filter-form" class="mb-3" role="search" aria-label="Filtra e cerca">
+  <div class="row g-2 align-items-stretch">
+    <div class="col-12 col-lg-8">
+      <div class="search-inputgroup">
+        <label for="search" class="visually-hidden">{{ _('Cerca') }}</label>
+        <input type="text"
+               class="search-input"
+               id="search"
+               placeholder="{{ _('Cerca per titolo, descrizione o luogo...') }}">
+        <button class="btn-ghost-brand btn-ghost-sm search-btn"
+                type="button"
+                id="search-submit"
+                aria-label="{{ _('Cerca') }}">
+          <i class="bi bi-search me-1"></i>{{ _('Cerca') }}
+        </button>
+      </div>
+    </div>
+
+    <div class="col-12 col-lg-4 text-lg-end">
+      <button class="btn-ghost-brand btn-ghost-sm"
+              type="button"
+              data-bs-toggle="collapse"
+              data-bs-target="#filtersCollapse"
+              aria-controls="filtersCollapse"
+              aria-expanded="false">
+        <i class="bi bi-sliders me-1"></i>{{ _('Filtri') }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Sezione filtri -->
+  <div class="collapse mt-2" id="filtersCollapse">
+    <div class="card shadow-sm border-0 filter-panel">
+      <div class="card-body pb-2 row g-3 align-items-end">
+
+        <!-- Distanza -->
+        <div class="col-12 col-md-6">
+          <label for="distance" class="form-label form-label-tight">{{ _('Distanza (km)') }}</label>
+          <div class="input-with-button">
+            <input type="number" class="ghost-input" id="distance" min="1" max="200" placeholder="es. 10">
+            <button type="button" class="btn-ghost-brand btn-ghost-sm" id="use-location">
+              <i class="bi bi-geo-alt me-1"></i>{{ _('Usa posizione') }}
+            </button>
+          </div>
+          <div class="form-text" id="loc-status">{{ _('Posizione: non impostata') }}</div>
+        </div>
+
+        <!-- Periodo -->
+        <div class="col-12 col-md-6">
+          <label class="form-label form-label-tight d-block">{{ _('Periodo') }}</label>
+          <div class="date-range">
+            <input type="date" class="ghost-input" id="date_from" aria-label="{{ _('Data inizio') }}">
+            <input type="date" class="ghost-input" id="date_to" aria-label="{{ _('Data fine') }}">
+          </div>
+        </div>
+      </div>
+
+      <div class="card-footer d-flex justify-content-between align-items-center px-3 py-2">
+        <a class="btn-link-reset" href="#" id="reset-filters-link">{{ _('Azzera') }}</a>
+        <div class="d-flex gap-2">
+          <button type="button"
+                  class="btn-ghost-brand btn-ghost-xs"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#filtersCollapse">
+            {{ _('Chiudi') }}
+          </button>
+          <button class="btn-ghost-brand btn-ghost-xs"
+                  type="button"
+                  id="apply-filters">
+            {{ _('Applica') }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+<!-- Contenuto principale -->
+<div class="row">
+  <!-- Feed -->
+  <div class="col-md-4">
+    <h6 class="mb-2" id="feed-title">{{ _('Eventi e campagne') }}</h6>
+    <div id="event-feed" class="d-flex flex-column" style="max-height: 500px; overflow-y: auto; padding-right: 6px;"></div>
+    <div id="empty-state" class="text-muted small d-none mt-2">{{ _('Nessun elemento corrisponde ai filtri.') }}</div>
+  </div>
+
+  <!-- Mappa -->
+  <div class="col-md-8 mt-3 mt-md-4">
+    <div id="map-full" style="height: 480px; width: 100%; border-radius: 12px; box-shadow: var(--elev-1, 0 2px 8px rgba(16,24,40,.06));"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDcXFwnHjAn_WPunfH5oB2A13WTiDotRig&callback=initMap" async defer></script>
+
+<script>
+/* ---------- JSON safe parse ---------- */
+function safeParse(jsonStr, fallback){
+  try{
+    const v = JSON.parse(jsonStr);
+    return (v == null ? fallback : v);
+  }catch(e){ return fallback; }
+}
+
+const ORIGINAL_EVENTS    = safeParse(`{{ events    | default([]) | tojson | safe }}`, []);
+const ORIGINAL_CAMPAIGNS = safeParse(`{{ campaigns | default([]) | tojson | safe }}`, []);
+const ORIGINAL_REPORTS   = safeParse(`{{ reports   | default([]) | tojson | safe }}`, []);
+const ORIGINAL_PETITIONS = safeParse(`{{ petitions | default([]) | tojson | safe }}`, []);
+
+let CURRENT_MODE = "events";
+
+/* ---------- Static bases ---------- */
+const STATIC_BASES = {
+  event:    "{{ url_for('events.static',    filename='uploads/events/') }}",
+  campaign: "{{ url_for('campaigns.static', filename='uploads/campaigns/') }}",
+  report:   "{{ url_for('reports.static',   filename='uploads/reports/') }}",
+  petition: "{{ url_for('petitions.static', filename='uploads/petitions/') }}"
+};
+const PROFILE_BASE = "{{ url_for('events.static', filename='uploads/profile-photo/') }}";
+const PLACEHOLDER  = "{{ url_for('events.static', filename='img/avatar-placeholder.png') }}";
+const PUBLIC_PROFILE_BASE = "{{ url_for('associations.public_profile', association_id=0)[:-1] }}";
+
+let MAP = null, CURRENT_INFO = null, GMARKERS = [];
+
+/* ---------- Utility ---------- */
+function pinSymbol(fill){
+  return {
+    path: "M12 2C7.03 2 3 6.03 3 11c0 5.25 9 13 9 13s9-7.75 9-13c0-4.97-4.03-9-9-9z M12 14a3 3 0 1 1 0-6 3 3 0 0 1 0 6z",
+    fillColor: fill, fillOpacity: 1, strokeColor: "#fff", strokeWeight: 2,
+    scale: 1.4, anchor: new google.maps.Point(12, 24)
+  };
+}
+function iconFor(type){
+  const COLORS = {
+    campaign: '#F8B400', // giallo (campagne)
+    event:    '#198754', // verde  (eventi)
+    report:   '#DC3545', // rosso  (segnalazioni)
+    petition: '#6F42C1', // viola  (petizioni)
+  };
+  return pinSymbol(COLORS[type] || '#888');
+}
+function clearMarkers(){ GMARKERS.forEach(({marker}) => marker.setMap(null)); GMARKERS = []; }
+
+/* ---------- Render feed + markers ---------- */
+function render(list){
+  const feed  = document.getElementById('event-feed');
+  const empty = document.getElementById('empty-state');
+  const title = document.getElementById('feed-title');
+
+  /* --- FEED (sempre) --- */
+  feed.innerHTML = '';
+  list.length ? empty.classList.add('d-none') : empty.classList.remove('d-none');
+  title.textContent = (CURRENT_MODE === 'reports') ? '{{ _("Segnalazioni e petizioni") }}' : '{{ _("Eventi e campagne") }}';
+
+  list.forEach(item => {
+    const isCampaign = item.type === 'campaign';
+    const isReport   = item.type === 'report';
+    const isPetition = item.type === 'petition';
+
+    const badgeType  = isCampaign ? 'badge-campaign'
+                    : (isPetition ? 'badge-petition'
+                    : (isReport ? 'badge-report' : 'badge-event'));
+    const typeLabel  = isCampaign ? '{{ _("Campagna") }}'
+                    : (isPetition ? '{{ _("Petizione") }}'
+                    : (isReport ? '{{ _("Segnalazione") }}' : '{{ _("Evento") }}'));
+
+    const durationLabel = item.duration === 'perennial' ? '{{ _("Perenne") }}'
+                        : (item.duration === 'temporary' ? '{{ _("Temporaneo") }}' : null);
+
+    const rawDate = item.date || item.created_at || null;
+    const when = rawDate
+      ? new Date(rawDate).toLocaleString("it-IT", {day:"2-digit", month:"2-digit", year:"numeric", hour:"2-digit", minute:"2-digit"})
+      : '';
+    const loc  = item.location || '';
+
+    let mediaHtml = '';
+    if (item.image_filename){
+      const base = STATIC_BASES[item.type] || '';
+      mediaHtml = `
+        <div class="thumb-wrap">
+          <img src="${base}${item.image_filename}" class="img-thumbnail rounded" alt="Immagine ${typeLabel}">
+        </div>`;
+    }
+
+    const assocName  = item.association_name || '';
+    const assocId    = item.association_id ? String(item.association_id) : '';
+    const assocHref  = assocId ? `${PUBLIC_PROFILE_BASE}${assocId}` : '#';
+    const assocPhoto = item.association_photo_filename ? `${PROFILE_BASE}${item.association_photo_filename}` : PLACEHOLDER;
+
+    const card = document.createElement('article');
+    card.className = 'card shadow-sm mb-3 feed-card';
+    card.dataset.index = String(item.__idx);
+    card.innerHTML = `
+      <div class="card-body d-flex flex-row-reverse">
+        ${mediaHtml}
+        <div class="flex-grow-1 me-2">
+          <h5 class="card-title mb-1">
+            <a href="${item.url || '#'}" class="text-decoration-none text-dark-green">${item.title || 'Senza titolo'}</a>
+          </h5>
+          ${assocName && !isReport ? `
+            <p class="organizer mb-1 d-flex align-items-center gap-2">
+              <img src="${assocPhoto}" class="rounded-circle avatar-16" alt="Logo ${assocName}">
+              {{ _("organizzato da") }} <a href="${assocHref}" class="text-decoration-none text-dark-green">${assocName}</a>
+            </p>` : ''}
+          ${item.description ? `<p class="card-text clamp" data-clamp="3">${item.description}</p>` : ''}
+          <small class="text-muted d-block mb-2">${when}${when && loc ? ' – ' : ''}${loc}</small>
+          <div class="mt-1">
+            <span class="badge ${badgeType} me-1">${typeLabel}</span>
+            ${durationLabel ? `<span class="badge bg-info text-dark me-1">${durationLabel}</span>` : ''}
+            ${item.activity ? `<span class="badge bg-secondary me-1">${item.activity}</span>` : ''}
+          </div>
+          <button type="button" class="toggle-card d-none" aria-expanded="false">{{ _("Mostra altro") }}</button>
+        </div>
+      </div>
+    `;
+
+    // click card = evidenzia marker (ignora il click sul toggle)
+    card.addEventListener('click', (ev) => {
+      if (ev.target && ev.target.classList.contains('toggle-card')) return;
+      const gm = GMARKERS.find(m => m.dataIndex === item.__idx);
+      if (gm && window.google && MAP) {
+        MAP.panTo(gm.marker.getPosition());
+        MAP.setZoom(14);
+        if (CURRENT_INFO) CURRENT_INFO.close();
+        gm.infoWindow.open(MAP, gm.marker);
+        CURRENT_INFO = gm.infoWindow;
+      }
+    });
+    feed.appendChild(card);
+
+    // --- Mostra altro/meno SOLO per il testo ---
+    const btn  = card.querySelector('.toggle-card');
+    const text = card.querySelector('.clamp');
+
+    if (text && btn) {
+      const contentId = `feed-item-${item.__idx}-content`;
+      text.id = contentId;
+      btn.setAttribute('aria-controls', contentId);
+
+      const needsToggle = text.scrollHeight > text.clientHeight + 2;
+      if (needsToggle) {
+        btn.classList.remove('d-none');
+        btn.addEventListener('click', function(e){
+          e.stopPropagation();
+          const expanded = card.classList.toggle('expanded');
+          this.textContent = expanded ? '{{ _("Mostra meno") }}' : '{{ _("Mostra altro") }}';
+          this.setAttribute('aria-expanded', String(expanded));
+        });
+      }
+    }
+  });
+
+  /* --- MARKER (solo se google & MAP disponibili) --- */
+  clearMarkers();
+  if (!(window.google && MAP)) return;
+
+  list.forEach(item => {
+    if (!item.latitude || !item.longitude) return;
+    const pos = { lat: parseFloat(item.latitude), lng: parseFloat(item.longitude) };
+
+    const imgInfo = item.image_filename
+      ? `<div><img src="${STATIC_BASES[item.type]}${item.image_filename}" style="max-width:60px; max-height:60px; object-fit:cover; border-radius:6px; margin-bottom:6px;" alt="Immagine"></div>`
+      : '';
+
+    const isCampaign = item.type === 'campaign';
+    const isReport   = item.type === 'report';
+    const isPetition = item.type === 'petition';
+    const badgeType  = isCampaign ? 'badge-campaign'
+                    : (isPetition ? 'badge-petition'
+                    : (isReport ? 'badge-report' : 'badge-event'));
+    const typeLabel  = isCampaign ? '{{ _("Campagna") }}'
+                    : (isPetition ? '{{ _("Petizione") }}'
+                    : (isReport ? '{{ _("Segnalazione") }}' : '{{ _("Evento") }}'));
+
+    const rawDate = item.date || item.created_at || null;
+    const dateHtml = rawDate ? `<div class="small text-muted mb-1"><strong>{{ _("Data") }}:</strong> ${new Date(rawDate).toLocaleString("it-IT")}</div>` : '';
+    const locHtml  = item.location ? `<div class="small text-muted mb-1"><strong>{{ _("Luogo") }}:</strong> ${item.location}</div>` : '';
+    const descHtml = item.description ? `<div class="small mb-2">${item.description}</div>` : '';
+
+    const infoContent = `
+    <div style="max-width:260px; padding-top:4px;">
+      <h6 class="mb-1">
+        <a href="${item.url || '#'}" class="text-decoration-none text-dark-green">
+          ${item.title || ''}
+        </a>
+      </h6>
+      ${dateHtml}
+      ${locHtml}
+      ${descHtml}
+      <span class="badge ${badgeType}">${typeLabel}</span>
+      ${imgInfo}
+    </div>`;
+
+    const infoWindow = new google.maps.InfoWindow({ content: infoContent });
+    const marker = new google.maps.Marker({ position: pos, map: MAP, title: item.title || '', icon: iconFor(item.type) });
+    marker.addListener('click', () => { if (CURRENT_INFO) CURRENT_INFO.close(); infoWindow.open(MAP, marker); CURRENT_INFO = infoWindow; });
+    GMARKERS.push({ marker, infoWindow, dataIndex: item.__idx });
+  });
+}
+
+/* ---------- Filtri ---------- */
+function applyFilters(){
+  let base = [];
+  if (CURRENT_MODE === "events") {
+    base = (ORIGINAL_EVENTS||[]).map(e=>({...e,type:"event"}))
+          .concat((ORIGINAL_CAMPAIGNS||[]).map(c=>({...c,type:"campaign"})));
+  }
+  if (CURRENT_MODE === "reports") {
+    base = (ORIGINAL_REPORTS||[]).map(r=>({...r,type:"report"}))
+          .concat((ORIGINAL_PETITIONS||[]).map(p=>({...p,type:"petition"})));
+  }
+
+  // ---- Filtri semplici ----
+  const distInput = document.getElementById("distance");
+  const dFrom = document.getElementById("date_from").value;
+  const dTo   = document.getElementById("date_to").value;
+
+  let userPos = null;
+  if (navigator.geolocation && distInput.value) {
+    userPos = window.__USER_POSITION || null;
+  }
+
+  let filtered = base;
+
+  // --- Filtro ricerca testuale ---
+  const searchTerm = document.getElementById("search").value.toLowerCase().trim();
+  if (searchTerm) {
+    filtered = filtered.filter(it => {
+      return (it.title && it.title.toLowerCase().includes(searchTerm)) ||
+             (it.description && it.description.toLowerCase().includes(searchTerm)) ||
+             (it.location && it.location.toLowerCase().includes(searchTerm));
+    });
+  }
+
+  // Filtro periodo
+  if (dFrom || dTo) {
+    const fromDate = dFrom ? new Date(dFrom) : null;
+    const toDate   = dTo ? new Date(dTo)   : null;
+    filtered = filtered.filter(it => {
+      const rawDate = it.date || it.created_at || null;
+      if (!rawDate) return false;
+      const d = new Date(rawDate);
+      if (fromDate && d < fromDate) return false;
+      if (toDate   && d > toDate)   return false;
+      return true;
+    });
+  }
+
+  // Filtro distanza
+  if (userPos && distInput.value) {
+    const maxKm = parseFloat(distInput.value);
+    filtered = filtered.filter(it => {
+      if (!it.latitude || !it.longitude) return false;
+      const dx = (parseFloat(it.latitude)  - userPos.lat) * 111; // km approx
+      const dy = (parseFloat(it.longitude) - userPos.lng) * 85;  // km approx
+      const dist = Math.sqrt(dx*dx + dy*dy);
+      return dist <= maxKm;
+    });
+  }
+
+  render(filtered.map((x,i)=>({...x,__idx:i})));
+}
+
+/* ---------- Wiring UI ---------- */
+document.addEventListener('DOMContentLoaded', () => {
+  // Bottoni toggle modalità
+  const btnEvents  = document.getElementById('toggle-events');
+  const btnReports = document.getElementById('toggle-reports');
+  btnEvents.addEventListener('click', ()=>{
+    CURRENT_MODE="events";
+    btnEvents.classList.add('active'); btnReports.classList.remove('active');
+    applyFilters();
+  });
+  btnReports.addEventListener('click',()=>{
+    CURRENT_MODE="reports";
+    btnReports.classList.add('active'); btnEvents.classList.remove('active');
+    applyFilters();
+  });
+
+  // Pulsante "Usa posizione"
+  document.getElementById("use-location").addEventListener("click", ()=>{
+    if (navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(pos=>{
+        window.__USER_POSITION = {lat:pos.coords.latitude, lng:pos.coords.longitude};
+        document.getElementById("loc-status").textContent = "{{ _('Posizione: impostata ✔️') }}";
+      });
+    }
+  });
+
+  // Reset
+  document.getElementById("reset-filters-link").addEventListener("click", (e)=>{
+    e.preventDefault();
+    document.getElementById("distance").value = "";
+    document.getElementById("date_from").value = "";
+    document.getElementById("date_to").value = "";
+    window.__USER_POSITION = null;
+    document.getElementById("loc-status").textContent = "{{ _('Posizione: non impostata') }}";
+    applyFilters();
+  });
+
+  // Applica filtri
+  document.getElementById("apply-filters").addEventListener("click", ()=>{ applyFilters(); });
+
+  // Ricerca
+  document.getElementById("search-submit").addEventListener("click", ()=>{ applyFilters(); });
+  document.getElementById("search").addEventListener("keydown", (e)=>{
+    if (e.key === "Enter"){
+      e.preventDefault();
+      applyFilters();
+    }
+  });
+
+  // Primo render FEED (anche senza mappa)
+  applyFilters();
+});
+
+/* ---------- Google Map init ---------- */
+function initMap(){
+  MAP = new google.maps.Map(document.getElementById('map-full'), {
+    zoom: 12, center: {lat:41.1171,lng:16.8719}, mapTypeControl:false, streetViewControl:false
+  });
+  applyFilters();
+}
+window.initMap = initMap;
+</script>
+
+<style>
+/* ======= Ghost design tokens locali ======= */
+:root{
+  --brand-green: #0b5d4f;
+  --brand-green-dark: #08483f;
+  --brand-green-xdark: #063b34;
+  --ghost-border: #cfe8e4;
+  --ghost-border-hover: #7c9f99;
+  --ghost-bg: #ffffff;
+  --ghost-bg-hover: #f3fbf9;
+}
+
+/* Link indietro */
+.back-link{ color: var(--brand-green); }
+.back-link:hover{ color: var(--brand-green-dark); }
+
+/* ======= Segmented Ghost ======= */
+.segmented-ghost{
+  display: inline-flex;
+  border: 1px solid var(--ghost-border);
+  border-radius: 12px;
+  background: var(--ghost-bg);
+  overflow: hidden;
+}
+.btn-ghost-segment{
+  padding: .45rem .8rem;
+  border: 0;
+  background: transparent;
+  color: var(--brand-green);
+  font-weight: 600;
+  line-height: 1.2;
+}
+.btn-ghost-segment + .btn-ghost-segment{ border-left: 1px solid var(--ghost-border); }
+.btn-ghost-segment:hover{ background: var(--ghost-bg-hover); color: var(--brand-green-dark); }
+.btn-ghost-segment.active{
+  background: var(--ghost-bg-hover);
+  color: var(--brand-green-dark);
+}
+
+/* ======= Search moderna (pill) ======= */
+.search-inputgroup{
+  display:flex; align-items:center; gap:.4rem;
+  background: #fff;
+  border: 1px solid var(--ghost-border);
+  border-radius: 999px;
+  padding: .25rem .25rem .25rem .6rem;
+}
+.search-input{
+  border: none; outline: none; flex: 1 1 auto;
+  height: 36px; line-height: 36px; background: transparent;
+  font-size:.95rem;
+}
+.search-input::placeholder{ color:#7a8a8b; }
+.search-input:focus{ outline:none; }
+
+/* ======= Bottoni Ghost Brand ======= */
+.btn-ghost-brand{
+  display:inline-flex; align-items:center; justify-content:center;
+  gap:.4rem;
+  padding:.5rem .85rem;
+  border-radius:.8rem;
+  background: var(--ghost-bg);
+  color: var(--brand-green);
+  border:1px solid var(--ghost-border);
+  font-weight:600;
+  text-decoration:none;
+  line-height:1.2;
+}
+.btn-ghost-sm{ padding:.4rem .7rem; font-size:.875rem; }
+.btn-ghost-xs{ padding:.3rem .6rem; font-size:.82rem; }
+.btn-ghost-brand:hover, .btn-ghost-brand:focus{
+  background: var(--ghost-bg-hover);
+  color: var(--brand-green-dark);
+  border-color: var(--ghost-border-hover);
+  text-decoration:none;
+}
+
+/* ======= Input ghost generici ======= */
+.ghost-input{
+  width: 100%;
+  height: 36px;
+  background: #fff;
+  border: 1px solid var(--ghost-border);
+  border-radius: 10px;
+  padding: .25rem .6rem;
+  outline: none;
+}
+.ghost-input:focus{
+  border-color: var(--ghost-border-hover);
+  box-shadow: 0 0 0 2px rgba(168,214,207,.25);
+}
+
+/* Distanza: input + bottone in linea */
+.input-with-button{
+  display:flex; gap:.5rem; align-items:center;
+}
+
+/* Periodo: due input pill uguali */
+.date-range{ display:flex; gap:.5rem; }
+
+/* Link reset stile ghost */
+.btn-link-reset{
+  font-weight: 600;
+  color: var(--brand-green);
+  text-decoration: underline;
+}
+.btn-link-reset:hover{ color: var(--brand-green-dark); }
+
+/* Card feed */
+.thumb-wrap { flex-shrink:0; width:80px; margin-left:8px; }
+.thumb-wrap img { width:100%; height:80px; object-fit:cover; }
+.card { border-radius: 12px; }
+.feed-card .card-body { padding:.9rem 1rem; }
+.organizer { font-size:.9rem; color:#334155; }
+.text-dark-green { color: var(--brand-green)!important; }
+.text-dark-green:hover { color: var(--brand-green-dark)!important; }
+.avatar-16{ width:16px; height:16px; object-fit:cover; border:1px solid #e6eaf0; }
+
+/* Clamp testo a 3 righe */
+.feed-card:not(.expanded) .clamp{
+  display: -webkit-box; -webkit-box-orient: vertical;
+  overflow: hidden; line-clamp: 3; -webkit-line-clamp: 3;
+}
+@supports not (-webkit-line-clamp: 1){
+  .feed-card:not(.expanded) .clamp{ max-height: 4.8em; overflow: hidden; }
+}
+
+/* Toggle “Mostra altro/meno” */
+.toggle-card{
+  color: var(--brand-green);
+  font-size: .82rem;
+  margin-top: .25rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.toggle-card:hover{ color: var(--brand-green-dark); }
+.toggle-card:focus, .toggle-card:active{
+  background: none !important;
+  color: var(--brand-green) !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Badge colori */
+.badge-campaign { background-color: #F8B400; color: #fff !important; }
+.badge-petition { background-color: #6f42c1; color: #fff !important; }
+.badge-report   { background-color: #dc3545; color: #fff !important; }
+.badge-event    { background-color: #198754; color: #fff !important; }
+</style>
+{% endblock %}

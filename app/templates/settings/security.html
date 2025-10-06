@@ -1,0 +1,314 @@
+{% extends 'layout/base.html' %}
+{% block title %}Impostazioni • Sicurezza{% endblock %}
+
+{% block content %}
+<header class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h2 class="mb-0">{{ _('Sicurezza') }}</h2>
+    <p class="text-muted mb-0">{{ _('Gestisci password, 2FA e sessioni (solo UI, nessuna chiamata al server).') }}</p>
+  </div>
+</header>
+
+<div class="row g-4">
+
+  <!-- Change Password (frontend only) -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">{{ _('Cambia password') }}</h5>
+
+        <div class="mb-3 position-relative">
+          <label for="current_password" class="form-label">{{ _('Password attuale') }}</label>
+          <div class="input-group">
+            <input type="password" id="current_password" class="form-control" autocomplete="current-password" required>
+            <button class="btn btn-outline-secondary" type="button" data-toggle-visibility="#current_password" aria-label="Mostra/Nascondi password">
+              👁️
+            </button>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="new_password" class="form-label">{{ _('Nuova password') }}</label>
+          <div class="input-group">
+            <input type="password" id="new_password" class="form-control" autocomplete="new-password" required>
+            <button class="btn btn-outline-secondary" type="button" data-toggle-visibility="#new_password" aria-label="Mostra/Nascondi password">
+              👁️
+            </button>
+          </div>
+          <div class="form-text">{{ _('Minimo 8 caratteri, usa lettere, numeri e simboli.') }}</div>
+
+          <!-- Strength meter -->
+          <div class="mt-2" aria-live="polite">
+            <div class="progress" style="height: 8px;">
+              <div id="pwStrengthBar" class="progress-bar" role="progressbar" style="width: 0%;"></div>
+            </div>
+            <small id="pwStrengthText" class="text-muted">Forza: —</small>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label for="confirm_password" class="form-label">{{ _('Conferma nuova password') }}</label>
+          <input type="password" id="confirm_password" class="form-control" required>
+          <div id="pwMatchHelp" class="form-text"></div>
+        </div>
+      </div>
+      <div class="card-footer bg-transparent d-flex justify-content-end">
+        <button class="btn btn-primary" id="btnUpdatePassword" type="button">{{ _('Aggiorna password') }}</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Two-Factor Auth (frontend only) -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <h5 class="card-title">{{ _('Autenticazione a due fattori (2FA)') }}</h5>
+        <p class="text-muted mb-3">{{ _('UI dimostrativa. Nessuna attivazione reale.') }}</p>
+
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" id="toggle2FA">
+          <label class="form-check-label" for="toggle2FA">{{ _('Attiva 2FA') }}</label>
+        </div>
+
+        <div id="twoFASetup" class="d-none">
+          <div class="alert alert-info small">
+            {{ _('Scansiona il QR con un\'app di autenticazione (es. Google Authenticator) oppure inserisci la chiave manualmente.') }}
+          </div>
+
+          <div class="d-flex align-items-center gap-3 flex-wrap">
+            <!-- QR placeholder -->
+            <div class="border rounded p-3 text-center" style="width:150px;height:150px; display:flex;align-items:center;justify-content:center;">
+              <span class="text-muted">QR</span>
+            </div>
+
+            <div class="flex-grow-1">
+              <div class="mb-2">
+                <label class="form-label mb-1">{{ _('Chiave segreta') }}</label>
+                <div class="input-group">
+                  <input type="text" id="twoFASecret" class="form-control" value="JBSWY3DPEHPK3PXP" readonly>
+                  <button class="btn btn-outline-secondary" type="button" data-copy="#twoFASecret">{{ _('Copia') }}</button>
+                </div>
+              </div>
+              <div class="mb-2">
+                <label for="twoFACode" class="form-label mb-1">{{ _('Codice temporaneo') }}</label>
+                <input type="text" id="twoFACode" class="form-control" placeholder="{{ _('Inserisci codice a 6 cifre') }}">
+              </div>
+              <button type="button" class="btn btn-primary" id="btnVerify2FA">{{ _('Verifica codice') }}</button>
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <div class="d-flex flex-wrap gap-2 align-items-center">
+            <button class="btn btn-outline-primary" type="button" id="btnGenerateBackup">{{ _('Genera codici di backup') }}</button>
+            <button class="btn btn-outline-secondary" type="button" id="btnShowBackup" disabled>{{ _('Mostra codici') }}</button>
+            <button class="btn btn-outline-danger" type="button" id="btnDisable2FA">{{ _('Disattiva 2FA') }}</button>
+          </div>
+
+          <!-- Backup codes modal -->
+          <div class="modal fade" id="backupModal" tabindex="-1" aria-labelledby="backupModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-scrollable">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="backupModalLabel">{{ _('Codici di backup') }}</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ _('Chiudi') }}"></button>
+                </div>
+                <div class="modal-body">
+                  <p class="text-muted">{{ _('Salva questi codici in un luogo sicuro. Ogni codice è utilizzabile una sola volta.') }}</p>
+                  <pre class="bg-light p-3 rounded" id="backupCodes" style="user-select:all;">—</pre>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">{{ _('Chiudi') }}</button>
+                  <button type="button" class="btn btn-primary" id="btnCopyBackup">{{ _('Copia codici') }}</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /#twoFASetup -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Sessions (frontend only) -->
+  <div class="col-12">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+        <div>
+          <h5 class="card-title mb-1">{{ _('Sessioni attive') }}</h5>
+          <p class="text-muted mb-2">{{ _('UI dimostrativa: elenco dispositivi correnti.') }}</p>
+          <ul class="list-unstyled mb-0" id="sessionList" aria-live="polite">
+            <li>• Chrome su Windows · Bari · Ultimo accesso: adesso</li>
+            <li>• Safari su iPhone · Bari · Ultimo accesso: 2 ore fa</li>
+          </ul>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-danger" id="btnLogoutOthers" type="button">{{ _('Disconnetti altre sessioni') }}</button>
+          <button class="btn btn-outline-secondary" id="btnRefreshSessions" type="button">{{ _('Aggiorna elenco') }}</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Toast container -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
+  <div id="appToast" class="toast align-items-center text-bg-dark border-0" role="status" aria-live="polite" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body" id="toastBody">{{ _('Operazione completata.') }}</div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="{{ _('Chiudi') }}"></button>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+/* ===== Helpers UI ===== */
+function showToast(msg) {
+  const el = document.getElementById('appToast');
+  document.getElementById('toastBody').textContent = msg;
+  const t = new bootstrap.Toast(el, { delay: 2200 });
+  t.show();
+}
+
+document.querySelectorAll('[data-toggle-visibility]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const input = document.querySelector(btn.getAttribute('data-toggle-visibility'));
+    if (!input) return;
+    const isPw = input.type === 'password';
+    input.type = isPw ? 'text' : 'password';
+    btn.setAttribute('aria-pressed', String(isPw));
+  });
+});
+
+document.querySelectorAll('[data-copy]').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const target = document.querySelector(btn.getAttribute('data-copy'));
+    if (!target) return;
+    await navigator.clipboard.writeText(target.value || target.textContent || '');
+    showToast('Copiato negli appunti');
+  });
+});
+
+/* ===== Password strength (semplice euristica) ===== */
+const newPw = document.getElementById('new_password');
+const bar = document.getElementById('pwStrengthBar');
+const txt = document.getElementById('pwStrengthText');
+const confirmPw = document.getElementById('confirm_password');
+const matchHelp = document.getElementById('pwMatchHelp');
+
+function scorePassword(pw) {
+  let score = 0;
+  if (!pw) return 0;
+  const hasLower = /[a-z]/.test(pw);
+  const hasUpper = /[A-Z]/.test(pw);
+  const hasNum   = /\d/.test(pw);
+  const hasSym   = /[^A-Za-z0-9]/.test(pw);
+  const len      = pw.length;
+
+  score += hasLower + hasUpper + hasNum + hasSym;     // 0-4
+  score += Math.min(4, Math.floor(len / 3));          // 0-4
+  return Math.min(8, score);                          // 0-8
+}
+
+function renderStrength(score) {
+  const pct = (score / 8) * 100;
+  bar.style.width = pct + '%';
+  bar.classList.remove('bg-danger','bg-warning','bg-success');
+  let label = 'Debole';
+  if (score <= 3) { bar.classList.add('bg-danger'); label = 'Debole'; }
+  else if (score <= 5) { bar.classList.add('bg-warning'); label = 'Media'; }
+  else { bar.classList.add('bg-success'); label = 'Forte'; }
+  txt.textContent = 'Forza: ' + label;
+}
+
+if (newPw) {
+  newPw.addEventListener('input', () => renderStrength(scorePassword(newPw.value)));
+}
+
+if (confirmPw) {
+  const checkMatch = () => {
+    const ok = newPw.value && confirmPw.value && newPw.value === confirmPw.value;
+    matchHelp.textContent = ok ? 'Le password coincidono.' : (confirmPw.value ? 'Le password non coincidono.' : '');
+    matchHelp.classList.toggle('text-success', ok);
+    matchHelp.classList.toggle('text-danger', !ok && confirmPw.value.length > 0);
+  };
+  confirmPw.addEventListener('input', checkMatch);
+  newPw.addEventListener('input', checkMatch);
+}
+
+/* Fake submit */
+document.getElementById('btnUpdatePassword')?.addEventListener('click', () => {
+  // Solo feedback UI
+  showToast('Password aggiornata (simulazione).');
+});
+
+/* ===== 2FA UI ===== */
+const toggle2FA = document.getElementById('toggle2FA');
+const twoFASetup = document.getElementById('twoFASetup');
+const btnVerify2FA = document.getElementById('btnVerify2FA');
+const btnGenerateBackup = document.getElementById('btnGenerateBackup');
+const btnShowBackup = document.getElementById('btnShowBackup');
+const btnCopyBackup = document.getElementById('btnCopyBackup');
+const btnDisable2FA = document.getElementById('btnDisable2FA');
+const backupCodesEl = document.getElementById('backupCodes');
+
+let generatedCodes = [];
+
+function randomCode() {
+  // 8 cifre pseudo-casuali
+  return Math.floor(10000000 + Math.random() * 89999999).toString();
+}
+
+toggle2FA?.addEventListener('change', () => {
+  twoFASetup.classList.toggle('d-none', !toggle2FA.checked);
+  showToast(toggle2FA.checked ? '2FA attivata (UI).' : '2FA disattivata (UI).');
+});
+
+btnVerify2FA?.addEventListener('click', () => {
+  const code = document.getElementById('twoFACode').value.trim();
+  if (code.length === 6) showToast('Codice verificato (UI).');
+  else showToast('Inserisci un codice valido (6 cifre).');
+});
+
+btnGenerateBackup?.addEventListener('click', () => {
+  generatedCodes = Array.from({length: 10}, () => randomCode());
+  backupCodesEl.textContent = generatedCodes.join('\n');
+  btnShowBackup.disabled = false;
+  showToast('Codici generati (UI).');
+});
+
+btnShowBackup?.addEventListener('click', () => {
+  const m = new bootstrap.Modal(document.getElementById('backupModal'));
+  m.show();
+});
+
+btnCopyBackup?.addEventListener('click', async () => {
+  await navigator.clipboard.writeText(backupCodesEl.textContent);
+  showToast('Codici copiati.');
+});
+
+/* Disattiva 2FA (UI) */
+btnDisable2FA?.addEventListener('click', () => {
+  toggle2FA.checked = false;
+  twoFASetup.classList.add('d-none');
+  showToast('2FA disattivata (UI).');
+});
+
+/* ===== Sessions UI ===== */
+document.getElementById('btnLogoutOthers')?.addEventListener('click', () => {
+  showToast('Altre sessioni disconnesse (UI).');
+});
+document.getElementById('btnRefreshSessions')?.addEventListener('click', () => {
+  const list = document.getElementById('sessionList');
+  list.innerHTML = `
+    <li>• Chrome su Windows · Bari · Ultimo accesso: adesso</li>
+    <li>• Safari su iPhone · Bari · Ultimo accesso: pochi secondi fa</li>
+  `;
+  showToast('Elenco sessioni aggiornato (UI).');
+});
+</script>
+{% endblock %}

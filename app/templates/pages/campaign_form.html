@@ -1,0 +1,253 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}{{ 'Modifica' if edit else 'Nuova' }}{{ _('Campagna') }}{% endblock %}
+
+
+{% block content %}
+<div class="container mt-4">
+
+  <a href="{{ url_for('dashboard.dashboard_association') }}" class="btn btn-outline-secondary mb-3">
+    ← {{ _('Torna alla dashboard') }}
+  </a>
+
+    <h2 class="mb-4">{{ 'Modifica' if edit else 'Crea una nuova' }}{{ _(' campagna') }}</h2>
+
+  <form method="POST" enctype="multipart/form-data" novalidate>
+    {{ form.hidden_tag() }}
+
+    <!-- Titolo -->
+    <div class="mb-3">
+      {{ form.title.label(class="form-label") }}
+      {{ form.title(class="form-control", placeholder=(form.title.render_kw.placeholder if form.title.render_kw else "Titolo campagna")) }}
+      {% if form.title.errors %}
+        <div class="text-danger small">{{ form.title.errors[0] }}</div>
+      {% endif %}
+    </div>
+
+    <!-- Descrizione -->
+    <div class="mb-3">
+      {{ form.description.label(class="form-label") }}
+      {{ form.description(class="form-control", rows=5, placeholder=(form.description.render_kw.placeholder if form.description.render_kw else "Descrizione sintetica")) }}
+      {% if form.description.errors %}
+        <div class="text-danger small">{{ form.description.errors[0] }}</div>
+      {% endif %}
+    </div>
+
+    <!-- Durata: Temporanea / Perenne -->
+    <div class="mb-3">
+      <label class="form-label d-block">{{ _('Durata') }}</label>
+
+      {# Caso A: esiste form.duration (RadioField) #}
+      {% if form.duration %}
+        <div class="btn-group" role="group" aria-label="Durata campagna">
+          {% for val, label in form.duration.choices %}
+            <input
+              type="radio"
+              class="btn-check"
+              name="{{ form.duration.name }}"
+              id="duration-{{ val }}"
+              value="{{ val }}"
+              {% if (form.duration.data or 'temporary') == val %}checked{% endif %}
+            >
+            <label class="btn btn-outline-primary" for="duration-{{ val }}">{{ label }}</label>
+          {% endfor %}
+        </div>
+      {% else %}
+      {# Caso B: fallback se non hai ancora il campo nel form #}
+        <div class="btn-group" role="group" aria-label="Durata campagna">
+          <input type="radio" class="btn-check" name="duration" id="duration-temporary" value="temporary" checked>
+          <label class="btn btn-outline-primary" for="duration-temporary">{{ _('Temporanea') }}</label>
+
+          <input type="radio" class="btn-check" name="duration" id="duration-perennial" value="perennial">
+          <label class="btn btn-outline-primary" for="duration-perennial">{{ _('Perenne') }}</label>
+        </div>
+      {% endif %}
+
+      <div class="form-text">
+        {{ _('Temporanea: richiede inizio e fine (o fine obiettivo). • Perenne: solo inizio, può terminare in qualsiasi momento.') }}
+      </div>
+    </div>
+
+    <!-- Data/ora inizio -->
+    <div class="mb-3">
+      <label class="form-label" for="date-start">{{ _('Data/ora inizio') }}</label>
+      {{ form.date(class="form-control", id="date-start", type="datetime-local") }}
+      {% if form.date.errors %}
+        <div class="text-danger small">{{ form.date.errors[0] }}</div>
+      {% endif %}
+    </div>
+
+    <!-- Data/ora fine (solo per temporanee) -->
+    <div class="mb-3" id="end-date-wrapper">
+      {% if form.end_date %}
+        <label class="form-label" for="date-end">{{ _('Data/ora fine') }}</label>
+        {{ form.end_date(class="form-control", id="date-end", type="datetime-local") }}
+        {% if form.end_date.errors %}
+          <div class="text-danger small">{{ form.end_date.errors[0] }}</div>
+        {% endif %}
+      {% else %}
+        <label class="form-label" for="date-end">{{ _('Data ora fine') }}</label>
+        <input type="datetime-local" class="form-control" id="date-end" name="end_date">
+      {% endif %}
+      <div class="form-text">{{ _('Obbligatoria per campagne temporanee.') }}</div>
+    </div>
+
+    <!-- Obiettivo economico -->
+    <div class="mb-3">
+      {{ form.goal_amount.label(class="form-label") }}
+      {{ form.goal_amount(class="form-control", placeholder=(form.goal_amount.render_kw.placeholder if form.goal_amount.render_kw else "Es. 5.000")) }}
+      {% if form.goal_amount.errors %}
+        <div class="text-danger small">{{ form.goal_amount.errors[0] }}</div>
+      {% endif %}
+    </div>
+
+    <!-- Immagine -->
+    <div class="mb-3">
+      {{ form.image.label(class="form-label") }}
+      {{ form.image(class="form-control", id="imageInput") }}
+      {% if form.image.errors %}
+        <div class="text-danger small">{{ form.image.errors[0] }}</div>
+      {% endif %}
+
+      <!-- Anteprima -->
+      <div id="imagePreviewContainer" class="mt-3 d-none">
+        <label class="form-label">{{ _('Anteprima') }}</label><br>
+        <img id="imagePreview" src="#" alt="Anteprima immagine campagna" class="img-thumbnail" style="max-width: 200px;">
+      </div>
+    </div>
+
+    <!-- Luogo -->
+    <div class="mb-3">
+      {{ form.location.label(class="form-label") }}
+      {{ form.location(class="form-control", id="location", placeholder="{{ _('Es. Via Roma 12, Bari') }}") }}
+      {% if form.location.errors %}
+        <div class="text-danger small">{{ form.location.errors[0] }}</div>
+      {% endif %}
+    </div>
+
+    <!-- Mappa Google -->
+    <div class="mb-3">
+      <label class="form-label">{{ _('Seleziona posizione sulla mappa:') }}</label>
+      <div id="map" style="height: 300px; border-radius: 8px; border: 1px solid #ccc;"></div>
+    </div>
+
+    <!-- Coordinate nascoste -->
+    <input type="hidden" name="latitude" id="latitude">
+    <input type="hidden" name="longitude" id="longitude">
+
+    <!-- Pulsante invio -->
+    <div class="d-flex justify-content-end">
+      {{ form.submit(class="btn btn-success") }}
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Google Maps + Places API -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDcXFwnHjAn_WPunfH5oB2A13WTiDotRig&libraries=places&callback=initMap" async defer></script>
+
+<script>
+  let map, marker;
+
+  function currentDuration() {
+    const name = "{{ form.duration.name if form.duration else 'duration' }}";
+    const rb = document.querySelector(`input[name="${name}"]:checked`);
+    return rb ? rb.value : 'temporary';
+  }
+
+  function toggleEndDate() {
+    const wrapper = document.getElementById('end-date-wrapper');
+    const endInput = document.getElementById('date-end');
+    const isPerennial = currentDuration() === 'perennial';
+    if (isPerennial) {
+      wrapper.classList.add('d-none');
+      if (endInput) { endInput.value = ''; endInput.removeAttribute('required'); }
+    } else {
+      wrapper.classList.remove('d-none');
+      if (endInput) endInput.setAttribute('required', 'required');
+    }
+  }
+
+  function initMap() {
+    const defaultLatLng = { lat: 41.1171, lng: 16.8719 };
+
+    map = new google.maps.Map(document.getElementById("map"), {
+      center: defaultLatLng,
+      zoom: 12,
+    });
+
+    // Autocomplete collegato al campo location
+    const autocompleteInput = document.getElementById("location");
+    const autocomplete = new google.maps.places.Autocomplete(autocompleteInput, { types: ["geocode"] });
+
+    autocomplete.addListener("place_changed", function () {
+      const place = autocomplete.getPlace();
+      if (!place.geometry) return;
+
+      const lat = place.geometry.location.lat();
+      const lng = place.geometry.location.lng();
+
+      if (marker) marker.setMap(null);
+      marker = new google.maps.Marker({
+        position: { lat, lng },
+        map,
+        icon: "http://maps.google.com/mapfiles/ms/icons/green-dot.png"
+      });
+
+      map.setCenter({ lat, lng });
+      map.setZoom(14);
+
+      document.getElementById("latitude").value = lat;
+      document.getElementById("longitude").value = lng;
+    });
+
+    // Clic sulla mappa → aggiorna marker
+    map.addListener("click", function (e) {
+      const lat = e.latLng.lat();
+      const lng = e.latLng.lng();
+
+      if (marker) marker.setMap(null);
+      marker = new google.maps.Marker({
+        position: { lat, lng },
+        map,
+        icon: "http://maps.google.com/mapfiles/ms/icons/green-dot.png"
+      });
+
+      document.getElementById("latitude").value = lat;
+      document.getElementById("longitude").value = lng;
+    });
+  }
+
+  // Anteprima immagine + gestione durata
+  document.addEventListener("DOMContentLoaded", function () {
+    // anteprima
+    const imageInput = document.getElementById("imageInput");
+    const previewContainer = document.getElementById("imagePreviewContainer");
+    const previewImage = document.getElementById("imagePreview");
+
+    if (imageInput) {
+      imageInput.addEventListener("change", function () {
+        const file = this.files?.[0];
+        if (file && file.type.startsWith("image/")) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            previewImage.src = e.target.result;
+            previewContainer.classList.remove("d-none");
+          };
+          reader.readAsDataURL(file);
+        } else {
+          previewImage.src = "#";
+          previewContainer.classList.add("d-none");
+        }
+      });
+    }
+
+    // toggle end date al cambio radio
+    document.querySelectorAll('input[name="{{ form.duration.name if form.duration else "duration" }}"]').forEach(rb => {
+      rb.addEventListener('change', toggleEndDate);
+    });
+    toggleEndDate();
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,301 @@
+{% extends 'layout/base.html' %}
+
+{% block title %} {{ _('Modifica Evento') if edit else _('Nuovo Evento') }} {% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <a href="{{ url_for('events.my_events') }}" class="btn btn-outline-secondary mb-3">
+    ← {{ _('Torna alla lista eventi') }}
+  </a>
+
+  <h2 class="mb-4">{{ _('Modifica evento') if edit else _('Crea un nuovo evento') }}</h2>
+
+  <form method="POST" enctype="multipart/form-data" novalidate>
+    {{ form.hidden_tag() }}
+
+    <!-- Titolo -->
+    <div class="mb-3">
+      {{ form.title.label(class="form-label") }}
+      {{ form.title(class="form-control", placeholder="{{ _('Es. Giornata di pulizia del parco') }}") }}
+      {% if form.title.errors %}
+        <div class="text-danger small">{{ form.title.errors[0] }}</div>
+      {% endif %}
+    </div>
+
+    <!-- Descrizione -->
+    <div class="mb-3">
+      {{ form.description.label(class="form-label") }}
+      {{ form.description(class="form-control", rows=4, placeholder="{{ _('Descrizione dell\'attività') }}") }}
+      {% if form.description.errors %}
+        <div class="text-danger small">{{ form.description.errors[0] }}</div>
+      {% endif %}
+    </div>
+
+    <!-- Tipo & Attività (opzionali, plain HTML) -->
+    <div class="row g-3 mb-3">
+      <div class="col-md-6">
+        <label for="type" class="form-label">Tipo</label>
+        <select id="type" name="type" class="form-select">
+          {% set cur_type = (event.type if edit and event else request.form.get('type')) or 'general' %}
+          <option value="general" {{ 'selected' if cur_type=='general' else '' }}>{{ _('Generale') }}</option>
+          <option value="environment" {{ 'selected' if cur_type=='environment' else '' }}>{{ _('Ambiente') }}</option>
+          <option value="social" {{ 'selected' if cur_type=='social' else '' }}>{{ _('Sociale') }}</option>
+          <option value="health" {{ 'selected' if cur_type=='health' else '' }}>{{ _('Salute') }}</option>
+          <option value="education" {{ 'selected' if cur_type=='education' else '' }}>{{ _('Educazione') }}</option>
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label for="activity" class="form-label">{{ _('Attività (facoltativo)') }}</label>
+        <input id="activity" name="activity" type="text" class="form-control"
+               value="{{ (event.activity if edit and event else request.form.get('activity')) or '' }}"
+               placeholder="Es. distribuzione viveri, pulizia spiaggia…">
+      </div>
+    </div>
+
+    <!-- Skills (checkbox multiple, plain HTML) -->
+    <div class="mb-3">
+      <label class="form-label d-block">{{ _('Skills richieste (facoltative)') }}</label>
+      {% set selected_skills =
+          (event.skills if edit and event and event.skills else request.form.getlist('skills')) or [] %}
+      {% set SKILLS = [
+          ('fisica','Forza fisica'),
+          ('informatica','Competenze digitali'),
+          ('logistica','Logistica'),
+          ('relazione','Relazione con il pubblico'),
+          ('organizzazione','Organizzazione')
+      ] %}
+      <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-2">
+        {% for val, label in SKILLS %}
+        <div class="col">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="skill-{{ val }}" name="skills" value="{{ val }}"
+                   {% if val in selected_skills %}checked{% endif %}>
+            <label class="form-check-label" for="skill-{{ val }}">{{ label }}</label>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <div class="form-text">{{ _('Se non selezioni nulla, l’evento sarà aperto a tutti.') }}</div>
+    </div>
+
+    <!-- Durata evento: Temporaneo / Perenne -->
+    <div class="mb-3">
+      <label class="form-label d-block">{{ _('Durata') }}</label>
+      {% set cur_duration = (event.duration if edit and event else request.form.get('duration')) or 'temporary' %}
+      <div class="btn-group" role="group" aria-label="Durata evento">
+        <input type="radio" class="btn-check" name="duration" id="duration-temp" value="temporary"
+               {{ 'checked' if cur_duration=='temporary' else '' }}>
+        <label class="btn btn-outline-primary" for="duration-temp">{{ _('Temporaneo') }}</label>
+
+        <input type="radio" class="btn-check" name="duration" id="duration-per" value="perennial"
+               {{ 'checked' if cur_duration=='perennial' else '' }}>
+        <label class="btn btn-outline-primary" for="duration-per">{{ _('Perenne') }}</label>
+      </div>
+      <div class="form-text">{{ _('Se selezioni “Perenne”, “Data” è l’inizio e non serve una fine.') }}</div>
+    </div>
+
+    <!-- Data inizio -->
+    <div class="mb-3">
+      {{ form.date.label(class="form-label") }}
+      {{ form.date(class="form-control", type="datetime-local") }}
+      {% if form.date.errors %}
+        <div class="text-danger small">{{ form.date.errors[0] }}</div>
+      {% endif %}
+    </div>
+
+    <!-- Data fine (solo per temporanei, plain HTML) -->
+    <div class="mb-3" id="end-date-group">
+      <label for="end_date" class="form-label">{{ _('Fine (facoltativa)') }}</label>
+      <input type="datetime-local" id="end_date" name="end_date" class="form-control"
+             value="{{ (event.end_date|datetime('iso'))[:16] if edit and event and event.end_date else (request.form.get('end_date') or '') }}">
+      <div class="form-text">{{ _('Lascia vuoto se l’evento termina a obiettivo o in giornata.') }}</div>
+    </div>
+
+    <!-- Immagine -->
+    <div class="mb-3">
+      {{ form.image.label(class="form-label") }}
+      {{ form.image(class="form-control", id="imageInput") }}
+      {% if form.image.errors %}
+        <div class="text-danger small">{{ form.image.errors[0] }}</div>
+      {% endif %}
+
+      {% if edit and event.image_filename %}
+        <div class="mt-3">
+          <label class="form-label">{{ _('Immagine attuale:') }}</label><br>
+          <img src="{{ url_for('static', filename='uploads/events/' ~ event.image_filename) }}"
+               alt="Immagine evento"
+               class="img-thumbnail"
+               style="max-width: 200px;">
+        </div>
+      {% endif %}
+
+      <div id="imagePreviewContainer" class="mt-3 d-none">
+        <label class="form-label">{{ _('Anteprima nuova immagine:') }}</label><br>
+        <img id="imagePreview" src="#" alt="Anteprima immagine" class="img-thumbnail" style="max-width: 200px;">
+      </div>
+    </div>
+
+    <!-- Indirizzo -->
+    <div class="mb-3">
+      <label for="location-input" class="form-label">{{ _('Indirizzo') }}</label>
+      <input type="text" id="location-input" name="location" class="form-control"
+             value="{{ form.location.data or '' }}"
+             placeholder="Es. Via Sparano 120, Bari">
+      {% if form.location.errors %}
+        <div class="text-danger small">{{ form.location.errors[0] }}</div>
+      {% endif %}
+    </div>
+
+    <!-- Mappa -->
+    <div class="mb-3">
+      <label class="form-label">{{ _('Seleziona il punto sulla mappa') }}</label>
+      <div id="map" style="height: 400px; width: 100%; border-radius: 8px; border: 1px solid #ccc;"></div>
+    </div>
+
+    <!-- Coordinate nascoste -->
+    <input type="hidden" id="latitude" name="latitude" value="{{ form.latitude.data or '' }}">
+    <input type="hidden" id="longitude" name="longitude" value="{{ form.longitude.data or '' }}">
+
+    <!-- >>> CAPIENZA / POSTI MASSIMI <<< -->
+    {% set capacity_mode = (('unlimited' if (edit and event and not event.capacity_max) else 'limited') if edit else (request.form.get('capacity_mode') or 'unlimited')) %}
+    <div class="mb-3">
+      <label class="form-label d-block">{{ _('Capienza') }}</label>
+
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" id="capacity-unlimited" name="capacity_mode" value="unlimited"
+               {% if capacity_mode == 'unlimited' %}checked{% endif %}>
+        <label class="form-check-label" for="capacity-unlimited">{{ _('Evento aperto (nessun limite)') }}</label>
+      </div>
+
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" id="capacity-limited" name="capacity_mode" value="limited"
+               {% if capacity_mode == 'limited' %}checked{% endif %}>
+        <label class="form-check-label" for="capacity-limited">{{ _('Posti limitati') }}</label>
+      </div>
+
+      <div class="mt-2" id="capacity-number-wrap">
+        <label for="capacity_max" class="form-label">{{ _('Numero massimo di partecipanti') }}</label>
+        <input type="number" min="1" step="1" id="capacity_max" name="capacity_max" class="form-control"
+               value="{% if edit and event and event.capacity_max %}{{ event.capacity_max }}{% else %}{{ request.form.get('capacity_max') or '' }}{% endif %}"
+               placeholder="Es. 20">
+        <div class="form-text">{{ _('Quando i posti vengono esauriti, l’evento non sarà più prenotabile.') }}</div>
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="d-flex justify-content-end">
+      {{ form.submit(class="btn btn-success") }}
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Google Maps JS API -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDcXFwnHjAn_WPunfH5oB2A13WTiDotRig&libraries=places&callback=initMap" async defer></script>
+
+<script>
+  let map, marker;
+
+  function initMap() {
+    const latInput = document.getElementById("latitude");
+    const lngInput = document.getElementById("longitude");
+    const locationInput = document.getElementById("location-input");
+
+    const defaultLat = parseFloat(latInput.value) || 41.1171;
+    const defaultLng = parseFloat(lngInput.value) || 16.8719;
+    const initialPosition = { lat: defaultLat, lng: defaultLng };
+
+    map = new google.maps.Map(document.getElementById("map"), {
+      center: initialPosition,
+      zoom: 12,
+    });
+
+    if (latInput.value && lngInput.value) {
+      marker = new google.maps.Marker({ position: initialPosition, map: map });
+    }
+
+    map.addListener("click", function (e) {
+      const lat = e.latLng.lat();
+      const lng = e.latLng.lng();
+      latInput.value = lat;
+      lngInput.value = lng;
+
+      if (marker) marker.setMap(null);
+      marker = new google.maps.Marker({ position: { lat, lng }, map: map });
+    });
+
+    const autocomplete = new google.maps.places.Autocomplete(locationInput);
+    autocomplete.bindTo("bounds", map);
+
+    autocomplete.addListener("place_changed", function () {
+      const place = autocomplete.getPlace();
+      if (!place.geometry || !place.geometry.location) return;
+
+      const lat = place.geometry.location.lat();
+      const lng = place.geometry.location.lng();
+
+      latInput.value = lat;
+      lngInput.value = lng;
+
+      map.setCenter({ lat, lng });
+      map.setZoom(15);
+
+      if (marker) marker.setMap(null);
+      marker = new google.maps.Marker({ position: { lat, lng }, map: map });
+    });
+  }
+
+  // Anteprima immagine
+  document.addEventListener("DOMContentLoaded", () => {
+    const input = document.getElementById("imageInput");
+    const previewContainer = document.getElementById("imagePreviewContainer");
+    const preview = document.getElementById("imagePreview");
+
+    if (input) {
+      input.addEventListener("change", () => {
+        const file = input.files[0];
+        if (file && file.type.startsWith("image/")) {
+          const reader = new FileReader();
+          reader.onload = e => {
+            preview.src = e.target.result;
+            previewContainer.classList.remove("d-none");
+          };
+          reader.readAsDataURL(file);
+        } else {
+          preview.src = "";
+          previewContainer.classList.add("d-none");
+        }
+      });
+    }
+  });
+
+  // UI durata: mostra/nasconde fine
+  document.addEventListener('DOMContentLoaded', () => {
+    const temp = document.getElementById('duration-temp');
+    const per  = document.getElementById('duration-per');
+    const endGroup = document.getElementById('end-date-group');
+
+    function syncDuration() {
+      endGroup.style.display = per && per.checked ? 'none' : '';
+    }
+    temp?.addEventListener('change', syncDuration);
+    per?.addEventListener('change', syncDuration);
+    syncDuration();
+  });
+
+  // UI capienza: mostra/nasconde numero massimo
+  document.addEventListener('DOMContentLoaded', () => {
+    const unlimited = document.getElementById('capacity-unlimited');
+    const limited   = document.getElementById('capacity-limited');
+    const wrap      = document.getElementById('capacity-number-wrap');
+
+    function syncCapacity() {
+      wrap.style.display = (limited && limited.checked) ? '' : 'none';
+    }
+    unlimited?.addEventListener('change', syncCapacity);
+    limited?.addEventListener('change', syncCapacity);
+    syncCapacity();
+  });
+</script>
+{% endblock %}

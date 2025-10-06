@@ -1,0 +1,46 @@
+{% extends 'layout/base.html' %}
+{% block title %}Donazione completata{% endblock %}
+
+{% block content %}
+<div class="container my-5 text-center">
+  <h2 class="text-success" role="status" aria-live="polite">✅ {{ _('Grazie per la tua donazione!') }}</h2>
+  <p class="mt-2">
+    {{ _('Hai contribuito alla campagna') }}
+    <strong>{{ donation.campaign.title }}</strong>
+    {{ _('con') }} €{{ donation.amount }}.
+  </p>
+
+  {% if donation.pdf_filename %}
+    {# preferisci l'URL già calcolato nel controller; fallback alla route di download #}
+    {% set href_receipt = receipt_url or url_for('payments.download_receipt', filename=donation.pdf_filename) %}
+
+    <div class="mt-4 d-flex justify-content-center gap-2">
+      <a
+        href="{{ href_receipt }}"
+        class="btn btn-primary"
+        target="_blank"
+        rel="noopener"
+        aria-label="Apri la ricevuta della donazione in una nuova scheda"
+      >
+        📄 {{ _('Apri ricevuta PDF') }}
+      </a>
+      <a
+        href="{{ href_receipt }}"
+        class="btn btn-outline-secondary"
+        download
+        aria-label="Scarica la ricevuta della donazione in PDF"
+      >
+        ⬇️ {{ _('Scarica PDF') }}
+      </a>
+    </div>
+  {% else %}
+    <p class="text-muted mt-3">{{ _('La ricevuta non è al momento disponibile.') }}</p>
+  {% endif %}
+
+  <div class="mt-4">
+    <a href="{{ url_for('campaigns.campaign_detail', campaign_id=donation.campaign_id) }}" class="btn btn-link">
+      ← {{ _('Torna alla campagna') }}
+    </a>
+  </div>
+</div>
+{% endblock %}

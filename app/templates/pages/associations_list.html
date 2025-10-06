@@ -1,0 +1,81 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Associazioni iscritte{% endblock %}
+
+{% block content %}
+<h2 class="mb-4 text-center">{{ _('Associazioni iscritte') }}</h2>
+
+<div class="row">
+  {% for association in associations %}
+    <div class="col-sm-6 col-lg-4 mb-3">
+      <!-- 🔗 Card cliccabile -->
+      <a href="{{ url_for('public.public_profile', association_id=association.id) }}"
+         class="text-decoration-none text-dark">
+        <div class="card h-100 shadow-sm border-0 hover-card small-card">
+          <div class="card-body text-center p-3">
+
+            <!-- Foto profilo -->
+            {% if association.photo_filename %}
+              <img src="{{ url_for('dashboard.static', filename='uploads/profile-photo/' ~ association.photo_filename) }}"
+                   class="rounded-circle mb-2 shadow-sm profile-pic"
+                   width="70" height="70" alt="Logo {{ association.name }}">
+            {% else %}
+              <img src="{{ url_for('static', filename='img/avatar-placeholder.png') }}"
+                   class="rounded-circle mb-2 shadow-sm profile-pic"
+                   width="70" height="70" alt="Logo {{ association.name }}">
+            {% endif %}
+
+            <!-- Nome -->
+            <h6 class="mb-1 fw-bold">{{ association.name }}</h6>
+
+            <!-- Bio breve -->
+            {% if association.bio %}
+              <p class="card-text small text-muted mb-2">
+                {{ association.bio[:60] }}{% if association.bio|length > 60 %}...{% endif %}
+              </p>
+            {% endif %}
+
+            <!-- Numero followers -->
+            <div class="followers-count text-muted small">
+              👥 {{ association.followers.count() }}{% if association.followers.count() != 1 %}{% endif %}
+            </div>
+
+          </div>
+        </div>
+      </a>
+    </div>
+  {% else %}
+    <p class="text-muted text-center">{{ _('Nessuna associazione registrata al momento.') }}</p>
+  {% endfor %}
+</div>
+
+<style>
+  /* Hover effect */
+  .hover-card {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    border-radius: 10px;
+  }
+  .hover-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+
+  /* Schede più piccole, stile "events.html" */
+  .small-card {
+    max-width: 280px;
+    margin: 0 auto;
+  }
+
+  /* Foto profilo compatta */
+  .profile-pic {
+    object-fit: cover;
+    border: 2px solid #eee;
+  }
+
+  /* Testo followers, no pulsante */
+  .followers-count {
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+</style>
+{% endblock %}

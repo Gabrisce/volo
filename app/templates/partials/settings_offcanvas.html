@@ -1,0 +1,26 @@
+<!-- 🔧 Offcanvas Impostazioni -->
+<div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasSettings" aria-labelledby="offcanvasSettingsLabel">
+  <div class="offcanvas-header">
+    <h5 id="offcanvasSettingsLabel">{{ _('Impostazioni') }}</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Chiudi"></button>
+  </div>
+  <div class="offcanvas-body" style="font-size:.9rem;">
+    <ul class="list-unstyled">
+
+      <li class="mb-2"><strong>Profilo</strong></li>
+      <li><a href="{{ url_for('settings.edit_profile') }}">{{ _('Modifica dati personali') }}</a></li>
+      <hr>
+
+      <li class="mb-2"><strong>Preferenze</strong></li>
+      <li><a href="{{ url_for('settings.preferences') }}">{{ _('Lingua & Tema') }}</a></li>
+      <li><a href="{{ url_for('settings.preferences') }}">{{ _('Notifiche') }}</a></li>
+      <li><a href="{{ url_for('public.privacy') }}">{{ _('Privacy') }}</a></li>
+      <hr>
+
+      <li class="mb-2"><strong>Sicurezza</strong></li>
+      <li><a href="{{ url_for('settings.security') }}">{{ _('Cambio password') }}</a></li>
+      <li><a href="{{ url_for('settings.security') }}">{{ _('Verifica SPID/CIE') }}</a></li>
+      <li><a href="{{ url_for('settings.security') }}">{{ _('Attività recenti / dispositivi') }}</a></li>
+    </ul>
+  </div>
+</div>

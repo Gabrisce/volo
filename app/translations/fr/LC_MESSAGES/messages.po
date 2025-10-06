@@ -1,0 +1,1412 @@
+# French translations for PROJECT.
+# Copyright (C) 2025 ORGANIZATION
+# This file is distributed under the same license as the PROJECT project.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"POT-Creation-Date: 2025-09-28 23:35+0200\n"
+"PO-Revision-Date: 2025-09-29 13:20+0200\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language: fr\n"
+"Language-Team: fr <LL@li.org>\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.17.0\n"
+
+#: app/templates/layout/base.html:77
+msgid ""
+"Utilizziamo cookie tecnici necessari al funzionamento della Piattaforma "
+"e, previo consenso,\n"
+"      cookie analitici e di profilazione per migliorare i servizi. Per "
+"saperne di più consulta la"
+msgstr "Nous utilisons des cookies techniques nécessaires au fonctionnement de la Plateforme et, avec votre consentement, des cookies analytiques et de profilage pour améliorer les services. Pour en savoir plus, consultez la"
+
+#: app/templates/layout/base.html:82
+msgid "Accetta"
+msgstr "Accepter"
+
+#: app/templates/layout/base.html:83
+msgid "Rifiuta"
+msgstr "Refuser"
+
+#: app/templates/layout/base.html:84 app/templates/partials/navbar.html:65
+#: app/templates/partials/settings_offcanvas.html:4
+msgid "Impostazioni"
+msgstr "Paramètres"
+
+#: app/templates/layout/base.html:94
+msgid "Preferenze Cookie"
+msgstr "Préférences de cookies"
+
+#: app/templates/layout/base.html:95 app/templates/layout/base.html:114
+#: app/templates/pages/detail.html:246 app/templates/pages/detail.html:288
+#: app/templates/pages/detail.html:327 app/templates/pages/full_map.html:61
+#: app/templates/pages/home.html:120 app/templates/settings/security.html:114
+#: app/templates/settings/security.html:121
+#: app/templates/settings/security.html:160
+msgid "Chiudi"
+msgstr "Fermer"
+
+#: app/templates/layout/base.html:102
+msgid "Cookie analitici (statistiche anonime)"
+msgstr "Cookies analytiques (statistiques anonymes)"
+
+#: app/templates/layout/base.html:108
+msgid "Cookie di profilazione/marketing"
+msgstr "Cookies de profilage/marketing"
+
+#: app/templates/layout/base.html:115
+msgid "Salva preferenze"
+msgstr "Enregistrer les préférences"
+
+#: app/templates/pages/association_profile.html:25
+msgid "follower"
+msgstr "abonnés"
+
+#: app/templates/pages/association_profile.html:36
+msgid "Smetti di seguire"
+msgstr "Ne plus suivre"
+
+#: app/templates/pages/association_profile.html:40
+msgid "Segui"
+msgstr "Suivre"
+
+#: app/templates/pages/association_profile.html:68
+#: app/templates/pages/association_profile.html:182
+#: app/templates/pages/dashboard_association.html:52
+#: app/templates/pages/dashboard_association.html:234
+#: app/templates/pages/home.html:100 app/templates/pages/home.html:109
+msgid "Perenni"
+msgstr "Pérennes"
+
+#: app/templates/pages/association_profile.html:79
+#: app/templates/pages/association_profile.html:106
+#: app/templates/pages/dashboard_association.html:65
+#: app/templates/pages/dashboard_association.html:94
+#: app/templates/pages/my_campaigns.html:75
+#: app/templates/pages/my_events.html:73
+msgid "Luogo non specificato"
+msgstr "Lieu non spécifié"
+
+#: app/templates/pages/association_profile.html:79
+#: app/templates/pages/association_profile.html:193
+#: app/templates/pages/dashboard_association.html:65
+msgid "permanente"
+msgstr "permanent"
+
+#: app/templates/pages/association_profile.html:85
+#: app/templates/pages/dashboard_association.html:72
+msgid "Nessun evento perenne."
+msgstr "Aucun événement pérenne."
+
+#: app/templates/pages/association_profile.html:91
+#: app/templates/pages/dashboard_association.html:78
+#: app/templates/pages/home.html:110
+msgid "Temporanei"
+msgstr "Temporaires"
+
+#: app/templates/pages/association_profile.html:113
+#: app/templates/pages/dashboard_association.html:101
+msgid "Nessun evento temporaneo."
+msgstr "Aucun événement temporaire."
+
+#: app/templates/pages/association_profile.html:133
+#: app/templates/pages/dashboard_association.html:175
+#: app/templates/pages/home.html:238 app/templates/pages/home.html:307
+#: app/templates/pages/volunteer_profile.html:75
+msgid "Pubblicato il"
+msgstr "Publié le"
+
+#: app/templates/pages/association_profile.html:167
+#: app/templates/pages/dashboard_association.html:198
+#: app/templates/pages/dashboard_volunteer.html:228
+#: app/templates/pages/home.html:211 app/templates/pages/home.html:276
+#: app/templates/pages/home.html:323
+msgid "Mostra altro"
+msgstr "Afficher plus"
+
+#: app/templates/pages/association_profile.html:173
+#: app/templates/pages/dashboard_association.html:220
+msgid "Nessun post ancora pubblicato."
+msgstr "Aucune publication encore publiée."
+
+#: app/templates/pages/association_profile.html:193
+#: app/templates/pages/dashboard_association.html:247
+msgid "Obiettivo non indicato"
+msgstr "Objectif non indiqué"
+
+#: app/templates/pages/association_profile.html:199
+#: app/templates/pages/dashboard_association.html:254
+msgid "Nessuna campagna perenne."
+msgstr "Aucune campagne pérenne."
+
+#: app/templates/pages/association_profile.html:205
+#: app/templates/pages/dashboard_association.html:260
+#: app/templates/pages/home.html:101
+msgid "Temporanee"
+msgstr "Temporaires"
+
+#: app/templates/pages/association_profile.html:227
+#: app/templates/pages/dashboard_association.html:283
+msgid "Nessuna campagna temporanea."
+msgstr "Aucune campagne temporaire."
+
+#: app/templates/pages/associations_list.html:6
+msgid "Associazioni iscritte"
+msgstr "Associations inscrites"
+
+#: app/templates/pages/associations_list.html:48
+msgid "Nessuna associazione registrata al momento."
+msgstr "Aucune association enregistrée pour le moment."
+
+#: app/templates/pages/campaign_form.html:3
+#: app/templates/pages/dashboard_volunteer.html:79
+msgid "Campagna"
+msgstr "Campagne"
+
+#: app/templates/pages/campaign_form.html:10
+msgid "Torna alla dashboard"
+msgstr "Retour au tableau de bord"
+
+#: app/templates/pages/campaign_form.html:13
+msgid " campagna"
+msgstr " campagne"
+
+#: app/templates/pages/campaign_form.html:38
+#: app/templates/pages/event_form.html:83
+msgid "Durata"
+msgstr "Durée"
+
+#: app/templates/pages/campaign_form.html:59
+msgid "Temporanea"
+msgstr "Temporaire"
+
+#: app/templates/pages/campaign_form.html:62
+#: app/templates/pages/event_form.html:92
+msgid "Perenne"
+msgstr "Pérenne"
+
+#: app/templates/pages/campaign_form.html:67
+msgid ""
+"Temporanea: richiede inizio e fine (o fine obiettivo). • Perenne: solo "
+"inizio, può terminare in qualsiasi momento."
+msgstr "Temporaire : nécessite un début et une fin (ou fin de l’objectif). • Pérenne : uniquement un début, peut se terminer à tout moment."
+
+#: app/templates/pages/campaign_form.html:73
+msgid "Data/ora inizio"
+msgstr "Date/heure de début"
+
+#: app/templates/pages/campaign_form.html:83
+msgid "Data/ora fine"
+msgstr "Date/heure de fin"
+
+#: app/templates/pages/campaign_form.html:89
+msgid "Data ora fine"
+msgstr "Date/heure de fin"
+
+#: app/templates/pages/campaign_form.html:92
+msgid "Obbligatoria per campagne temporanee."
+msgstr "Obligatoire pour les campagnes temporaires."
+
+#: app/templates/pages/campaign_form.html:114
+msgid "Anteprima"
+msgstr "Aperçu"
+
+#: app/templates/pages/campaign_form.html:130
+msgid "Seleziona posizione sulla mappa:"
+msgstr "Sélectionnez l’emplacement sur la carte :"
+
+#: app/templates/pages/confirm_participation.html:10
+#: app/templates/pages/confirm_participation.html:54
+msgid "Conferma partecipazione"
+msgstr "Confirmer la participation"
+
+#: app/templates/pages/confirm_participation.html:19
+msgid "Organizzato da:"
+msgstr "Organisé par :"
+
+#: app/templates/pages/confirm_participation.html:39
+msgid "Assunzione di responsabilità"
+msgstr "Prise de responsabilité"
+
+#: app/templates/pages/confirm_participation.html:41
+msgid ""
+"Confermando, dichiari di voler partecipare a questo evento come "
+"volontario e ti impegni a rispettare orario e modalità indicate."
+msgstr "En confirmant, vous déclarez vouloir participer à cet événement en tant que bénévole et vous vous engagez à respecter l’horaire et les modalités indiqués."
+
+#: app/templates/pages/confirm_participation.html:44
+msgid ""
+"Se non potessi più partecipare, sei pregato di annullare la tua adesione "
+"al più presto per lasciare spazio ad altri volontari."
+msgstr "Si vous ne pouviez plus participer, veuillez annuler votre inscription dès que possible afin de laisser la place à d’autres bénévoles."
+
+#: app/templates/pages/confirm_participation.html:47
+msgid "Riceverai inoltre una"
+msgstr "Vous recevrez également une"
+
+#: app/templates/pages/confirm_participation.html:47
+msgid "notifica di promemoria 24 ore prima dell’evento"
+msgstr "notification de rappel 24 heures avant l’événement"
+
+#: app/templates/pages/confirm_participation.html:47
+msgid "con la possibilità di confermare nuovamente la tua presenza o cancellarla."
+msgstr "avec la possibilité de confirmer à nouveau votre présence ou de l’annuler."
+
+#: app/templates/pages/confirm_participation.html:57
+#: app/templates/pages/dashboard_association.html:156
+#: app/templates/pages/dashboard_volunteer.html:164
+#: app/templates/pages/dashboard_volunteer.html:184
+#: app/templates/pages/detail.html:252 app/templates/pages/detail.html:294
+#: app/templates/settings/edit_profile.html:26
+msgid "Annulla"
+msgstr "Annuler"
+
+#: app/templates/pages/create_report.html:5
+msgid "Effettua una segnalazione"
+msgstr "Effectuer un signalement"
+
+#: app/templates/pages/create_report.html:26
+#: app/templates/pages/petition_form.html:26
+msgid "Cerca un indirizzo o seleziona sulla mappa"
+msgstr "Cherchez une adresse ou sélectionnez sur la carte"
+
+#: app/templates/pages/create_report.html:31
+#: app/templates/pages/event_form.html:151
+#: app/templates/pages/petition_form.html:31
+msgid "Seleziona il punto sulla mappa"
+msgstr "Sélectionnez le point sur la carte"
+
+#: app/templates/pages/create_report.html:45
+msgid "Invia segnalazione"
+msgstr "Envoyer le signalement"
+
+#: app/templates/pages/dashboard_association.html:26
+msgid "Descrizione"
+msgstr "Description"
+
+#: app/templates/pages/dashboard_association.html:47
+msgid "Gestisci Eventi"
+msgstr "Gérer les événements"
+
+#: app/templates/pages/dashboard_association.html:110
+msgid "+ Nuovo post"
+msgstr "+ Nouveau post"
+
+#: app/templates/pages/dashboard_association.html:149
+#: app/templates/pages/dashboard_volunteer.html:157
+#: app/templates/pages/dashboard_volunteer.html:177
+msgid "Conferma eliminazione"
+msgstr "Confirmer la suppression"
+
+#: app/templates/pages/dashboard_association.html:153
+msgid "Sei sicuro di voler eliminare il post"
+msgstr "Êtes-vous sûr de vouloir supprimer le post"
+
+#: app/templates/pages/dashboard_association.html:158
+#: app/templates/pages/dashboard_volunteer.html:166
+#: app/templates/pages/dashboard_volunteer.html:186
+msgid "Elimina"
+msgstr "Supprimer"
+
+#: app/templates/pages/dashboard_association.html:171
+msgid "Titolo mancante"
+msgstr "Titre manquant"
+
+#: app/templates/pages/dashboard_association.html:229
+msgid "Gestisci Campagne"
+msgstr "Gérer les campagnes"
+
+#: app/templates/pages/dashboard_association.html:292
+msgid ""
+"  A breve potrai accedere a statistiche, donazioni e strumenti avanzati "
+"per la tua organizzazione. "
+msgstr "Bientôt, vous pourrez accéder à des statistiques, des dons et des outils avancés pour votre organisation."
+
+#: app/templates/pages/dashboard_volunteer.html:31
+msgid "seguite"
+msgstr "suivies"
+
+#: app/templates/pages/dashboard_volunteer.html:48
+msgid "Segnala!"
+msgstr "Signaler !"
+
+#: app/templates/pages/dashboard_volunteer.html:51
+msgid "Nuova Petizione"
+msgstr "Nouvelle pétition"
+
+#: app/templates/pages/dashboard_volunteer.html:65
+#: app/templates/pages/volunteer_profile.html:100
+msgid "Storico attività"
+msgstr "Historique des activités"
+
+#: app/templates/pages/dashboard_volunteer.html:97
+msgid "PDF non disponibile"
+msgstr "PDF non disponible"
+
+#: app/templates/pages/dashboard_volunteer.html:102
+msgid "Nessuna campagna nello storico."
+msgstr "Aucune campagne dans l’historique."
+
+#: app/templates/pages/dashboard_volunteer.html:161
+msgid "Sei sicuro di voler eliminare la segnalazione"
+msgstr "Êtes-vous sûr de vouloir supprimer le signalement"
+
+#: app/templates/pages/dashboard_volunteer.html:181
+msgid "Sei sicuro di voler eliminare la petizione"
+msgstr "Êtes-vous sûr de vouloir supprimer la pétition"
+
+#: app/templates/pages/dashboard_volunteer.html:234
+msgid "Non hai ancora effettuato segnalazioni o petizioni."
+msgstr "Vous n’avez pas encore effectué de signalements ou de pétitions."
+
+#: app/templates/pages/dashboard_volunteer.html:242
+msgid "Prossimi eventi"
+msgstr "Prochains événements"
+
+#: app/templates/pages/dashboard_volunteer.html:266
+msgid "Nessun evento futuro a cui partecipi."
+msgstr "Aucun événement futur auquel vous participez."
+
+#: app/templates/pages/detail.html:18 app/templates/pages/post.html:13
+#: app/templates/pages/post_form.html:8
+#: app/templates/pages/register_association.html:91
+#: app/templates/pages/register_association.html:145
+#: app/templates/pages/register_association.html:171
+#: app/templates/pages/register_volunteer.html:88
+#: app/templates/pages/register_volunteer.html:125
+#: app/templates/pages/register_volunteer.html:151
+msgid "Indietro"
+msgstr "Retour"
+
+#: app/templates/pages/detail.html:48
+msgid "Organizzato da"
+msgstr "Organisé par"
+
+#: app/templates/pages/detail.html:92 app/templates/pages/participants.html:23
+msgid "Evento al completo"
+msgstr "Événement complet"
+
+#: app/templates/pages/detail.html:94
+msgid "Disponibili:"
+msgstr "Disponibles :"
+
+#: app/templates/pages/detail.html:98 app/templates/pages/participants.html:26
+msgid "Posti: illimitati"
+msgstr "Places : illimitées"
+
+#: app/templates/pages/detail.html:143
+msgid "Condividi"
+msgstr "Partager"
+
+#: app/templates/pages/detail.html:198
+msgid "Hai già inviato una candidatura!"
+msgstr "Vous avez déjà envoyé une candidature !"
+
+#: app/templates/pages/detail.html:201
+msgid "Posti esauriti"
+msgstr "Places épuisées"
+
+#: app/templates/pages/detail.html:204
+msgid "Partecipa"
+msgstr "Participer"
+
+#: app/templates/pages/detail.html:210
+msgid "Accedi per candidarti"
+msgstr "Connectez-vous pour postuler"
+
+#: app/templates/pages/detail.html:222
+msgid "Hai già firmato questa petizione!"
+msgstr "Vous avez déjà signé cette pétition !"
+
+#: app/templates/pages/detail.html:226
+msgid "firme"
+msgstr "signatures"
+
+#: app/templates/pages/detail.html:229
+msgid "sponsor"
+msgstr "sponsors"
+
+#: app/templates/pages/detail.html:237
+msgid "Firma la petizione"
+msgstr "Signer la pétition"
+
+#: app/templates/pages/detail.html:245 app/templates/pages/detail.html:254
+msgid "Conferma firma"
+msgstr "Confirmer la signature"
+
+#: app/templates/pages/detail.html:249
+msgid "Sei sicuro di voler firmare questa petizione?"
+msgstr "Êtes-vous sûr de vouloir signer cette pétition ?"
+
+#: app/templates/pages/detail.html:266
+msgid "La tua associazione sostiene già questa petizione"
+msgstr "Votre association soutient déjà cette pétition"
+
+#: app/templates/pages/detail.html:269
+msgid "Firme"
+msgstr "Signatures"
+
+#: app/templates/pages/detail.html:272
+msgid "Sponsor"
+msgstr "Sponsors"
+
+#: app/templates/pages/detail.html:279
+msgid "Sostieni come Associazione"
+msgstr "Soutenir en tant qu’Association"
+
+#: app/templates/pages/detail.html:287 app/templates/pages/detail.html:296
+msgid "Conferma supporto"
+msgstr "Confirmer le soutien"
+
+#: app/templates/pages/detail.html:291
+msgid "Sei sicuro di voler sostenere questa petizione come associazione?"
+msgstr "Êtes-vous sûr de vouloir soutenir cette pétition en tant qu’association ?"
+
+#: app/templates/pages/detail.html:306
+msgid "Accedi per firmare o sostenere"
+msgstr "Connectez-vous pour signer ou soutenir"
+
+#: app/templates/pages/detail.html:324
+msgid "Link copiato! Incollalo su Instagram Stories o in un post."
+msgstr "Lien copié ! Collez-le dans une Story Instagram ou dans une publication."
+
+#: app/templates/pages/donation_form.html:6
+msgid "Dona a"
+msgstr "Faire un don à"
+
+#: app/templates/pages/donation_form.html:9
+msgid "Nome e cognome"
+msgstr "Nom et prénom"
+
+
+#: app/templates/pages/donation_form.html:10
+msgid "Es. Mario Rossi"
+msgstr "Ex. Mario Rossi"
+
+#: app/templates/pages/donation_form.html:14
+msgid "Email (per la ricevuta)"
+msgstr "Email (pour le reçu)"
+
+#: app/templates/pages/donation_form.html:19
+msgid "Importo (€)"
+msgstr "Montant (€)"
+
+#: app/templates/pages/donation_form.html:20
+msgid "Es. 10.00"
+msgstr "Ex. 10.00"
+
+#: app/templates/pages/donation_form.html:21
+msgid "L’importo sarà addebitato in euro su Stripe Checkout."
+msgstr "Le montant sera débité en euros via Stripe Checkout."
+
+#: app/templates/pages/donation_form.html:25
+msgid "Messaggio (facoltativo)"
+msgstr "Message (facultatif)"
+
+#: app/templates/pages/donation_form.html:26
+msgid "Un messaggio per l'associazione..."
+msgstr "Un message pour l’association..."
+
+#: app/templates/pages/donation_form.html:30
+msgid "Paga con carta (via Stripe)"
+msgstr "Payer par carte (via Stripe)"
+
+#: app/templates/pages/donation_success.html:6
+msgid "Grazie per la tua donazione!"
+msgstr "Merci pour votre don !"
+
+#: app/templates/pages/donation_success.html:8
+msgid "Hai contribuito alla campagna"
+msgstr "Vous avez contribué à la campagne"
+
+#: app/templates/pages/donation_success.html:10
+msgid "con"
+msgstr "avec"
+
+#: app/templates/pages/donation_success.html:25
+msgid "Apri ricevuta PDF"
+msgstr "Ouvrir le reçu PDF"
+
+#: app/templates/pages/donation_success.html:33
+msgid "Scarica PDF"
+msgstr "Télécharger le PDF"
+
+#: app/templates/pages/donation_success.html:37
+msgid "La ricevuta non è al momento disponibile."
+msgstr "Le reçu n’est pas disponible pour le moment."
+
+#: app/templates/pages/donation_success.html:42
+msgid "Torna alla campagna"
+msgstr "Retourner à la campagne"
+
+#: app/templates/pages/event_form.html:3
+msgid "Modifica Evento"
+msgstr "Modifier l’événement"
+
+#: app/templates/pages/event_form.html:3
+msgid "Nuovo Evento"
+msgstr "Nouvel événement"
+
+#: app/templates/pages/event_form.html:8
+msgid "Torna alla lista eventi"
+msgstr "Retour à la liste des événements"
+
+#: app/templates/pages/event_form.html:11
+msgid "Modifica evento"
+msgstr "Modifier l’événement"
+
+#: app/templates/pages/event_form.html:11
+msgid "Crea un nuovo evento"
+msgstr "Créer un nouvel événement"
+
+#: app/templates/pages/event_form.html:40
+msgid "Generale"
+msgstr "Général"
+
+#: app/templates/pages/event_form.html:41
+msgid "Ambiente"
+msgstr "Environnement"
+
+#: app/templates/pages/event_form.html:42
+msgid "Sociale"
+msgstr "Social"
+
+#: app/templates/pages/event_form.html:43
+msgid "Salute"
+msgstr "Santé"
+
+#: app/templates/pages/event_form.html:44
+msgid "Educazione"
+msgstr "Éducation"
+
+#: app/templates/pages/event_form.html:48
+msgid "Attività (facoltativo)"
+msgstr "Activité (facultatif)"
+
+#: app/templates/pages/event_form.html:57
+msgid "Skills richieste (facoltative)"
+msgstr "Compétences requises (facultatives)"
+
+#: app/templates/pages/event_form.html:78
+msgid "Se non selezioni nulla, l’evento sarà aperto a tutti."
+msgstr "Si vous ne sélectionnez rien, l’événement sera ouvert à tous."
+
+#: app/templates/pages/event_form.html:88
+msgid "Temporaneo"
+msgstr "Temporaire"
+
+#: app/templates/pages/event_form.html:94
+msgid "Se selezioni “Perenne”, “Data” è l’inizio e non serve una fine."
+msgstr "Si vous sélectionnez « Pérenne », « Date » correspond au début et aucune fin n’est nécessaire."
+
+#: app/templates/pages/event_form.html:108
+msgid "Fine (facoltativa)"
+msgstr "Fin (facultatif)"
+
+#: app/templates/pages/event_form.html:111
+msgid "Lascia vuoto se l’evento termina a obiettivo o in giornata."
+msgstr "Laissez vide si l’événement se termine à l’objectif ou dans la journée."
+
+#: app/templates/pages/event_form.html:124
+msgid "Immagine attuale:"
+msgstr "Image actuelle :"
+
+#: app/templates/pages/event_form.html:133
+msgid "Anteprima nuova immagine:"
+msgstr "Aperçu de la nouvelle image :"
+
+#: app/templates/pages/event_form.html:140
+msgid "Indirizzo"
+msgstr "Adresse"
+
+#: app/templates/pages/event_form.html:162
+msgid "Capienza"
+msgstr "Capacité"
+
+#: app/templates/pages/event_form.html:167
+msgid "Evento aperto (nessun limite)"
+msgstr "Événement ouvert (aucune limite)"
+
+#: app/templates/pages/event_form.html:173
+msgid "Posti limitati"
+msgstr "Places limitées"
+
+#: app/templates/pages/event_form.html:177
+msgid "Numero massimo di partecipanti"
+msgstr "Nombre maximum de participants"
+
+#: app/templates/pages/event_form.html:181
+msgid "Quando i posti vengono esauriti, l’evento non sarà più prenotabile."
+msgstr "Lorsque les places sont épuisées, l’événement ne pourra plus être réservé."
+
+#: app/templates/pages/followed_associations.html:10
+msgid "Associazioni seguite da"
+msgstr "Associations suivies par"
+
+#: app/templates/pages/followed_associations.html:12
+msgid "Le tue associazioni seguite"
+msgstr "Vos associations suivies"
+
+#: app/templates/pages/followed_associations.html:60
+msgid "non segue ancora nessuna associazione."
+msgstr "ne suit encore aucune association."
+
+#: app/templates/pages/followed_associations.html:64
+msgid "Non segui ancora nessuna associazione."
+msgstr "Vous ne suivez encore aucune association."
+
+#: app/templates/pages/full_map.html:9
+msgid "Home"
+msgstr "Accueil"
+
+#: app/templates/pages/full_map.html:12
+msgid "Eventi e Campagne"
+msgstr "Événements et Campagnes"
+
+#: app/templates/pages/full_map.html:13
+msgid "Segnalazioni e Petizioni"
+msgstr "Signalements et Pétitions"
+
+#: app/templates/pages/full_map.html:40
+msgid "Distanza (km)"
+msgstr "Distance (km)"
+
+#: app/templates/pages/full_map.html:43
+msgid "Usa posizione"
+msgstr "Utiliser la position"
+
+#: app/templates/pages/full_map.html:45
+msgid "Posizione: non impostata"
+msgstr "Position : non définie"
+
+#: app/templates/pages/full_map.html:50
+msgid "Periodo"
+msgstr "Période"
+
+#: app/templates/pages/full_map.html:62 app/templates/pages/home.html:121
+msgid "Applica"
+msgstr "Appliquer"
+
+#: app/templates/pages/full_map.html:73
+msgid "Eventi e campagne"
+msgstr "Événements et campagnes"
+
+#: app/templates/pages/full_map.html:75
+msgid "Nessun elemento corrisponde ai filtri."
+msgstr "Aucun élément ne correspond aux filtres."
+
+#: app/templates/pages/home.html:34 app/templates/pages/home.html:38
+#: app/templates/pages/home.html:39
+msgid "Cerca"
+msgstr "Rechercher"
+
+#: app/templates/pages/home.html:36
+msgid "Cerca per titolo, descrizione o luogo..."
+msgstr "Rechercher par titre, description ou lieu..."
+
+#: app/templates/pages/home.html:51
+msgid "Filtri"
+msgstr "Filtres"
+
+#: app/templates/pages/home.html:72
+msgid "Tipologia"
+msgstr "Typologie"
+
+#: app/templates/pages/home.html:75 app/templates/pages/home.html:106
+msgid "Eventi"
+msgstr "Événements"
+
+#: app/templates/pages/home.html:78 app/templates/pages/home.html:97
+msgid "Campagne"
+msgstr "Campagnes"
+
+#: app/templates/pages/home.html:81
+msgid "Post"
+msgstr "Publications"
+
+#: app/templates/pages/home.html:86
+msgid "Tipologia Associazione"
+msgstr "Type d’Association"
+
+#: app/templates/pages/home.html:88 app/templates/pages/home.html:99
+msgid "Tutte"
+msgstr "Toutes"
+
+#: app/templates/pages/home.html:108
+msgid "Tutti"
+msgstr "Tous"
+
+#: app/templates/pages/home.html:118
+msgid "Azzera"
+msgstr "Réinitialiser"
+
+#: app/templates/pages/home.html:131
+msgid "Associazioni trovate"
+msgstr "Associations trouvées"
+
+#: app/templates/pages/home.html:177 app/templates/pages/home.html:293
+msgid "organizzato da"
+msgstr "organisé par"
+
+#: app/templates/pages/home.html:331
+msgid "Nessun risultato trovato"
+msgstr "Aucun résultat trouvé"
+
+#: app/templates/pages/home.html:338
+msgid "Petizioni recenti"
+msgstr "Pétitions récentes"
+
+#: app/templates/pages/home.html:373
+msgid "Nessuna petizione attiva"
+msgstr "Aucune pétition active"
+
+#: app/templates/pages/login.html:13
+msgid "Inserisci le tue credenziali per continuare"
+msgstr "Entrez vos identifiants pour continuer"
+
+#: app/templates/pages/login.html:33
+msgid "Mostra password"
+msgstr "Afficher le mot de passe"
+
+#: app/templates/pages/login.html:43
+msgid "Ricordami"
+msgstr "Se souvenir de moi"
+
+#: app/templates/pages/login.html:45
+msgid "Password dimenticata?"
+msgstr "Mot de passe oublié ?"
+
+#: app/templates/pages/login.html:58
+msgid "Email di registrazione"
+msgstr "Email d’inscription"
+
+#: app/templates/pages/login.html:62
+msgid "Invia richiesta"
+msgstr "Envoyer la demande"
+
+#: app/templates/pages/login.html:65
+msgid "Torna al login"
+msgstr "Retour à la connexion"
+
+#: app/templates/pages/login.html:73
+msgid "Non hai un account?"
+msgstr "Vous n’avez pas de compte ?"
+
+#: app/templates/pages/login.html:74
+#: app/templates/pages/register_association.html:172
+#: app/templates/pages/register_volunteer.html:152
+msgid "Registrati"
+msgstr "S'inscrire"
+
+#: app/templates/pages/login.html:78
+msgid "Registrati come Volontario"
+msgstr "Inscrivez-vous comme Bénévole"
+
+#: app/templates/pages/login.html:79
+#: app/templates/pages/register_association.html:11
+msgid "Registrati come Associazione"
+msgstr "Inscrivez-vous comme Association"
+
+#: app/templates/pages/my_campaigns.html:5
+msgid "Le mie campagne"
+msgstr "Mes campagnes"
+
+#: app/templates/pages/my_campaigns.html:9
+msgid "Crea nuova campagna"
+msgstr "Créer une nouvelle campagne"
+
+#: app/templates/pages/my_campaigns.html:28
+#: app/templates/pages/my_events.html:32
+msgid "Nessuna immagine"
+msgstr "Aucune image"
+
+#: app/templates/pages/my_campaigns.html:107
+msgid "Non hai ancora pubblicato campagne."
+msgstr "Vous n’avez pas encore publié de campagnes."
+
+#: app/templates/pages/my_campaigns.html:108
+msgid "Avvia la prima campagna"
+msgstr "Lancez votre première campagne"
+
+#: app/templates/pages/my_events.html:5
+msgid "I miei eventi pubblicati"
+msgstr "Mes événements publiés"
+
+#: app/templates/pages/my_events.html:9
+msgid "Crea nuovo evento"
+msgstr "Créer un nouvel événement"
+
+#: app/templates/pages/my_events.html:115
+msgid "pubblicato eventi."
+msgstr "événements publiés."
+
+#: app/templates/pages/my_events.html:116
+msgid "Crea il primo evento"
+msgstr "Créer le premier événement"
+
+#: app/templates/pages/participants.html:8
+msgid "Partecipanti a "
+msgstr "Participants à "
+
+#: app/templates/pages/participants.html:9
+msgid "candidature"
+msgstr "candidatures"
+
+#: app/templates/pages/participants.html:53
+msgid "Accettato"
+msgstr "Accepté"
+
+#: app/templates/pages/participants.html:55
+msgid "Rifiutato"
+msgstr "Refusé"
+
+#: app/templates/pages/participants.html:57
+msgid "Annullato"
+msgstr "Annulé"
+
+#: app/templates/pages/participants.html:59
+msgid "In attesa"
+msgstr "En attente"
+
+#: app/templates/pages/participants.html:103
+msgid "Nessun volontario si è ancora candidato a questo evento."
+msgstr "Aucun volontaire ne s’est encore porté candidat pour cet événement."
+
+#: app/templates/pages/petition_form.html:5
+msgid "Crea una petizione"
+msgstr "Créer une pétition"
+
+#: app/templates/pages/post_form.html:11
+msgid "Modifica il post"
+msgstr "Modifier la publication"
+
+#: app/templates/pages/post_form.html:11
+msgid "Crea un nuovo post"
+msgstr "Créer une nouvelle publication"
+
+#: app/templates/pages/post_form.html:37
+msgid "Immagine attuale"
+msgstr "Image actuelle"
+
+#: app/templates/pages/post_form.html:44
+msgid "Rimuovi immagine"
+msgstr "Supprimer l’image"
+
+#: app/templates/pages/post_form.html:59
+msgid "Carica una nuova immagine per sostituire quella attuale (opzionale)."
+msgstr "Téléchargez une nouvelle image pour remplacer l’actuelle (optionnel)."
+
+#: app/templates/pages/post_form.html:69
+msgid "Salva modifiche"
+msgstr "Enregistrer les modifications"
+
+#: app/templates/pages/post_form.html:69
+msgid "Pubblica"
+msgstr "Publier"
+
+#: app/templates/pages/register_association.html:17
+msgid "Step 1 di 4"
+msgstr "Étape 1 sur 4"
+
+#: app/templates/pages/register_association.html:24
+msgid "Dati principali"
+msgstr "Données principales"
+
+#: app/templates/pages/register_association.html:51
+#: app/templates/pages/register_association.html:92
+#: app/templates/pages/register_association.html:146
+msgid "Avanti →"
+msgstr "Suivant →"
+
+#: app/templates/pages/register_association.html:57
+msgid "Credenziali e sede legale"
+msgstr "Identifiants et siège social"
+
+#: app/templates/pages/register_association.html:63
+#: app/templates/pages/register_volunteer.html:71
+msgid "Mostra"
+msgstr "Afficher"
+
+#: app/templates/pages/register_association.html:98
+msgid "Profilo e documenti"
+msgstr "Profil et documents"
+
+#: app/templates/pages/register_association.html:152
+msgid "Consensi"
+msgstr "Consentements"
+
+#: app/templates/pages/register_volunteer.html:11
+msgid "Registrati come volontario"
+msgstr "Inscrivez-vous comme bénévole"
+
+#: app/templates/pages/register_volunteer.html:24
+msgid "Dati personali"
+msgstr "Données personnelles"
+
+#: app/templates/pages/register_volunteer.html:49
+msgid "Contatti e credenziali"
+msgstr "Contacts et identifiants"
+
+#: app/templates/pages/register_volunteer.html:89
+#: app/templates/pages/register_volunteer.html:126
+msgid "Avanti"
+msgstr "Suivant"
+
+#: app/templates/pages/register_volunteer.html:95
+msgid "Profilo e disponibilità"
+msgstr "Profil et disponibilité"
+
+#: app/templates/pages/register_volunteer.html:132
+msgid "Consenso"
+msgstr "Consentement"
+
+#: app/templates/pages/volunteer_profile.html:25
+msgid "Segnalazioni effettuate"
+msgstr "Signalements effectués"
+
+#: app/templates/pages/volunteer_profile.html:34
+msgid "Associazione seguita"
+msgstr "Association suivie"
+
+
+#: app/templates/pages/volunteer_profile.html:36
+msgid "Associazioni seguite"
+msgstr "Associations suivies"
+
+#: app/templates/pages/volunteer_profile.html:91
+msgid "Nessuna segnalazione ancora effettuata."
+msgstr "Aucun signalement effectué pour le moment."
+
+#: app/templates/pages/volunteer_profile.html:130
+msgid "Nessuna partecipazione negli eventi passati."
+msgstr "Aucune participation aux événements passés."
+
+#: app/templates/partials/footer.html:5
+msgid "Chi siamo"
+msgstr "Qui sommes-nous"
+
+#: app/templates/partials/footer.html:6
+msgid "Contatti"
+msgstr "Contacts"
+
+#: app/templates/partials/footer.html:7
+msgid "Termini"
+msgstr "Conditions"
+
+#: app/templates/partials/footer.html:8
+#: app/templates/partials/settings_offcanvas.html:17
+msgid "Privacy"
+msgstr "Confidentialité"
+
+#: app/templates/partials/navbar.html:62
+msgid "Salvati"
+msgstr "Enregistrés"
+
+#: app/templates/partials/navbar.html:63
+msgid "Associazioni"
+msgstr "Associations"
+
+#: app/templates/partials/navbar.html:66
+msgid "Aiuto"
+msgstr "Aide"
+
+#: app/templates/partials/notifications.html:30
+msgid "Nessuna notifica"
+msgstr "Aucune notification"
+
+#: app/templates/partials/settings_offcanvas.html:11
+msgid "Modifica dati personali"
+msgstr "Modifier les données personnelles"
+
+#: app/templates/partials/settings_offcanvas.html:15
+msgid "Lingua & Tema"
+msgstr "Langue et thème"
+
+#: app/templates/partials/settings_offcanvas.html:16
+#: app/templates/settings/preferences.html:163
+msgid "Notifiche"
+msgstr "Notifications"
+
+#: app/templates/partials/settings_offcanvas.html:21
+msgid "Cambio password"
+msgstr "Changer le mot de passe"
+
+#: app/templates/partials/settings_offcanvas.html:22
+msgid "Verifica SPID/CIE"
+msgstr "Vérifier SPID/CIE"
+
+#: app/templates/partials/settings_offcanvas.html:23
+msgid "Attività recenti / dispositivi"
+msgstr "Activité récente / appareils"
+
+#: app/templates/settings/edit_profile.html:4
+msgid "Modifica i tuoi dati personali"
+msgstr "Modifier vos données personnelles"
+
+#: app/templates/settings/preferences.html:2
+msgid "Impostazioni • Preferenze"
+msgstr "Paramètres • Préférences"
+
+#: app/templates/settings/preferences.html:7
+msgid "Preferenze"
+msgstr "Préférences"
+
+#: app/templates/settings/preferences.html:8
+msgid "Lingua, tema e notifiche."
+msgstr "Langue, thème et notifications."
+
+#: app/templates/settings/preferences.html:20
+msgid "Interfaccia"
+msgstr "Interface"
+
+#: app/templates/settings/preferences.html:27
+msgid "Lingua"
+msgstr "Langue"
+
+#: app/templates/settings/preferences.html:38
+msgid "Italiano"
+msgstr "Italien"
+
+#: app/templates/settings/preferences.html:52
+msgid "Inglese"
+msgstr "Anglais"
+
+#: app/templates/settings/preferences.html:67
+msgid "Spagnolo"
+msgstr "Espagnol"
+
+#: app/templates/settings/preferences.html:82
+msgid "Francese"
+msgstr "Français"
+
+#: app/templates/settings/preferences.html:97
+msgid "Ucraino"
+msgstr "Ukrainien"
+
+#: app/templates/settings/preferences.html:112
+msgid "Russo"
+msgstr "Russe"
+
+#: app/templates/settings/preferences.html:127
+msgid "Arabo"
+msgstr "Arabe"
+
+#: app/templates/settings/preferences.html:144
+msgid "Tema"
+msgstr "Thème"
+
+#: app/templates/settings/preferences.html:148
+msgid "Seleziona tema"
+msgstr "Sélectionner le thème"
+
+#: app/templates/settings/preferences.html:149
+msgid "Sistema"
+msgstr "Système"
+
+#: app/templates/settings/preferences.html:150
+msgid "Chiaro"
+msgstr "Clair"
+
+#: app/templates/settings/preferences.html:151
+msgid "Scuro"
+msgstr "Sombre"
+
+#: app/templates/settings/preferences.html:171
+#: app/templates/utilities/contatti.html:14
+#: app/templates/utilities/contatti.html:40
+msgid "Email"
+msgstr "E-mail"
+
+#: app/templates/settings/preferences.html:180
+msgid "Push (browser/app)"
+msgstr "Push (navigateur/app)"
+
+#: app/templates/settings/preferences.html:189
+msgid "Aggiornamenti piattaforma"
+msgstr "Mises à jour de la plateforme"
+
+#: app/templates/settings/security.html:7
+msgid "Sicurezza"
+msgstr "Sécurité"
+
+#: app/templates/settings/security.html:8
+msgid "Gestisci password, 2FA e sessioni (solo UI, nessuna chiamata al server)."
+msgstr "Gérer les mots de passe, 2FA et sessions (UI uniquement, sans appel serveur)."
+
+#: app/templates/settings/security.html:18
+msgid "Cambia password"
+msgstr "Changer le mot de passe"
+
+#: app/templates/settings/security.html:21
+msgid "Password attuale"
+msgstr "Mot de passe actuel"
+
+#: app/templates/settings/security.html:31
+msgid "Nuova password"
+msgstr "Nouveau mot de passe"
+
+#: app/templates/settings/security.html:38
+msgid "Minimo 8 caratteri, usa lettere, numeri e simboli."
+msgstr "Minimum 8 caractères, utilisez des lettres, des chiffres et des symboles."
+
+#: app/templates/settings/security.html:50
+msgid "Conferma nuova password"
+msgstr "Confirmer le nouveau mot de passe"
+
+#: app/templates/settings/security.html:56
+msgid "Aggiorna password"
+msgstr "Mettre à jour le mot de passe"
+
+#: app/templates/settings/security.html:65
+msgid "Autenticazione a due fattori (2FA)"
+msgstr "Authentification à deux facteurs (2FA)"
+
+#: app/templates/settings/security.html:66
+msgid "UI dimostrativa. Nessuna attivazione reale."
+msgstr "Interface de démonstration. Aucune activation réelle."
+
+#: app/templates/settings/security.html:70
+msgid "Attiva 2FA"
+msgstr "Activer 2FA"
+
+#: app/templates/settings/security.html:75
+msgid ""
+"Scansiona il QR con un'app di autenticazione (es. Google Authenticator) "
+"oppure inserisci la chiave manualmente."
+msgstr "Scannez le QR avec une application d’authentification (ex. Google Authenticator) ou entrez la clé manuellement."
+
+#: app/templates/settings/security.html:86
+msgid "Chiave segreta"
+msgstr "Clé secrète"
+
+#: app/templates/settings/security.html:89
+msgid "Copia"
+msgstr "Copier"
+
+#: app/templates/settings/security.html:93
+msgid "Codice temporaneo"
+msgstr "Code temporaire"
+
+#: app/templates/settings/security.html:94
+msgid "Inserisci codice a 6 cifre"
+msgstr "Entrez le code à 6 chiffres"
+
+#: app/templates/settings/security.html:96
+msgid "Verifica codice"
+msgstr "Vérifier le code"
+
+#: app/templates/settings/security.html:103
+msgid "Genera codici di backup"
+msgstr "Générer des codes de sauvegarde"
+
+#: app/templates/settings/security.html:104
+msgid "Mostra codici"
+msgstr "Afficher les codes"
+
+#: app/templates/settings/security.html:105
+msgid "Disattiva 2FA"
+msgstr "Désactiver 2FA"
+
+#: app/templates/settings/security.html:113
+msgid "Codici di backup"
+msgstr "Codes de sauvegarde"
+
+#: app/templates/settings/security.html:117
+msgid ""
+"Salva questi codici in un luogo sicuro. Ogni codice è utilizzabile una "
+"sola volta."
+msgstr "Enregistrez ces codes dans un endroit sûr. Chaque code ne peut être utilisé qu’une seule fois."
+
+#: app/templates/settings/security.html:122
+msgid "Copia codici"
+msgstr "Copier les codes"
+
+#: app/templates/settings/security.html:138
+msgid "Sessioni attive"
+msgstr "Sessions actives"
+
+#: app/templates/settings/security.html:139
+msgid "UI dimostrativa: elenco dispositivi correnti."
+msgstr "Interface de démonstration : liste des appareils actuels."
+
+#: app/templates/settings/security.html:146
+msgid "Disconnetti altre sessioni"
+msgstr "Déconnecter les autres sessions"
+
+#: app/templates/settings/security.html:147
+msgid "Aggiorna elenco"
+msgstr "Mettre à jour la liste"
+
+#: app/templates/settings/security.html:159
+msgid "Operazione completata."
+msgstr "Opération terminée."
+
+#: app/templates/utilities/chisiamo.html:10
+msgid "La nostra missione, i nostri valori e il nostro impegno"
+msgstr "Notre mission, nos valeurs et notre engagement"
+
+#: app/templates/utilities/chisiamo.html:16
+msgid ""
+"La nostra missione è facilitare l’incontro tra volontari, associazioni ed"
+" imprese sociali. Vogliamo rendere semplice e accessibile a tutti la "
+"partecipazione attiva, abbattendo le barriere geografiche e burocratiche "
+"grazie alla tecnologia."
+msgstr "Notre mission est de faciliter la rencontre entre bénévoles, associations et entreprises sociales. Nous voulons rendre la participation active simple et accessible à tous, en supprimant les barrières géographiques et bureaucratiques grâce à la technologie."
+
+#: app/templates/utilities/chisiamo.html:22
+msgid ""
+"La nostra visione è un mondo in cui ogni individuo possa esprimere il "
+"proprio potenziale e contribuire attivamente al bene comune. Vogliamo "
+"creare una comunità inclusiva e solidale, in cui le diversità siano "
+"valorizzate e le opportunità siano accessibili a tutti."
+msgstr "Notre vision est un monde où chaque individu peut exprimer son potentiel et contribuer activement au bien commun. Nous voulons créer une communauté inclusive et solidaire, où les diversités sont valorisées et les opportunités accessibles à tous."
+
+#: app/templates/utilities/chisiamo.html:26
+msgid "I nostri valori"
+msgstr "Nos valeurs"
+
+#: app/templates/utilities/chisiamo.html:28
+msgid "Trasparenza"
+msgstr "Transparence"
+
+#: app/templates/utilities/chisiamo.html:28
+msgid "tutte le iniziative sono verificabili e chiare;"
+msgstr "toutes les initiatives sont vérifiables et claires ;"
+
+#: app/templates/utilities/chisiamo.html:29
+msgid "Inclusione"
+msgstr "Inclusion"
+
+#: app/templates/utilities/chisiamo.html:29
+msgid "chiunque può trovare un modo per contribuire;"
+msgstr "chacun peut trouver une façon de contribuer ;"
+
+#: app/templates/utilities/chisiamo.html:30
+msgid "Sostenibilità"
+msgstr "Durabilité"
+
+#: app/templates/utilities/chisiamo.html:30
+msgid "promuoviamo progetti con impatto sociale e ambientale positivo;"
+msgstr "nous promouvons des projets avec un impact social et environnemental positif ;"
+
+#: app/templates/utilities/chisiamo.html:31
+msgid "Collaborazione"
+msgstr "Collaboration"
+
+#: app/templates/utilities/chisiamo.html:31
+msgid "mettiamo in rete realtà diverse per obiettivi comuni."
+msgstr "nous mettons en réseau des réalités différentes pour des objectifs communs."
+
+#: app/templates/utilities/chisiamo.html:35
+msgid "Come funziona"
+msgstr "Comment ça marche"
+
+#: app/templates/utilities/chisiamo.html:37
+msgid ""
+"Attraverso la nostra mappa interattiva puoi scoprire eventi e campagne\n"
+"        vicino a te o online, filtrare per interesse, competenze o "
+"tematiche,\n"
+"        e partecipare con pochi click.  \n"
+"        Le associazioni, dal canto loro, possono gestire in autonomia "
+"eventi, post e campagne,\n"
+"        raggiungendo più volontari e aumentando la visibilità delle "
+"proprie iniziative."
+msgstr "Grâce à notre carte interactive, vous pouvez découvrir des événements et des campagnes près de chez vous ou en ligne, filtrer par intérêt, compétences ou thématiques, et participer en quelques clics. Les associations, quant à elles, peuvent gérer de manière autonome événements, publications et campagnes, atteignant plus de bénévoles et augmentant la visibilité de leurs initiatives."
+
+#: app/templates/utilities/chisiamo.html:45
+msgid "Il nostro impegno"
+msgstr "Notre engagement"
+
+#: app/templates/utilities/chisiamo.html:47
+msgid "Siamo un progetto"
+msgstr "Nous sommes un projet"
+
+#: app/templates/utilities/chisiamo.html:47
+msgid "senza fini di lucro"
+msgstr "à but non lucratif"
+
+#: app/templates/utilities/chisiamo.html:48
+msgid ""
+"Tutto il lavoro di sviluppo e gestione è orientato a creare un bene "
+"comune digitale,\n"
+"        accessibile e sicuro, in conformità agli standard"
+msgstr "Tout le travail de développement et de gestion est orienté vers la création d’un bien commun numérique, accessible et sûr, en conformité avec les standards"
+
+#: app/templates/utilities/chisiamo.html:49
+msgid "WCAG AA"
+msgstr "WCAG AA"
+
+#: app/templates/utilities/chisiamo.html:49
+msgid ""
+"per l’accessibilità\n"
+"        e al"
+msgstr "pour l’accessibilité et au"
+
+#: app/templates/utilities/chisiamo.html:50
+msgid "GDPR"
+msgstr "RGPD"
+
+#: app/templates/utilities/chisiamo.html:50
+msgid "per la protezione dei dati."
+msgstr "pour la protection des données."
+
+#: app/templates/utilities/contatti.html:8
+msgid "Contattaci"
+msgstr "Contactez-nous"
+
+#: app/templates/utilities/contatti.html:10
+msgid "Siamo felici di ascoltarti. Ecco tutti i modi per raggiungerci."
+msgstr "Nous sommes ravis de vous écouter. Voici toutes les façons de nous contacter."
+
+#: app/templates/utilities/contatti.html:16
+msgid "Puoi scriverci a:"
+msgstr "Vous pouvez nous écrire à :"
+
+#: app/templates/utilities/contatti.html:17
+msgid "Rispondiamo generalmente entro 48 ore lavorative."
+msgstr "Nous répondons généralement sous 48 heures ouvrables."
+
+#: app/templates/utilities/contatti.html:21
+msgid "Seguici sui social"
+msgstr "Suivez-nous sur les réseaux sociaux"
+
+#: app/templates/utilities/contatti.html:23
+msgid "Facebook"
+msgstr "Facebook"
+
+#: app/templates/utilities/contatti.html:24
+msgid "Instagram"
+msgstr "Instagram"
+
+#: app/templates/utilities/contatti.html:25
+msgid "LinkedIn"
+msgstr "LinkedIn"
+
+#: app/templates/utilities/contatti.html:29
+msgid "Dove siamo"
+msgstr "Où nous trouver"
+
+#: app/templates/utilities/contatti.html:30
+msgid "Siamo basati a Bari, ma la Piattaforma è attiva in tutta Italia."
+msgstr "Nous sommes basés à Bari, mais la Plateforme est active dans toute l’Italie."
+
+#: app/templates/utilities/contatti.html:33
+msgid "Scrivici un messaggio"
+msgstr "Écrivez-nous un message"
+
+#: app/templates/utilities/contatti.html:36
+msgid "Nome"
+msgstr "Nom"
+
+#: app/templates/utilities/contatti.html:47
+msgid "Invia"
+msgstr "Envoyer"
+
+#~ msgid "Scegli la lingua"
+#~ msgstr "Choisir la langue"

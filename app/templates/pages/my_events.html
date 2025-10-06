@@ -1,0 +1,204 @@
+{% extends 'layout/base.html' %}
+{% block title %}I miei eventi{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">{{ _('I miei eventi pubblicati') }}</h2>
+
+<div class="mb-3 text-end">
+  <a href="{{ url_for('events.create_event') }}" class="btn btn-success">
+    ➕ {{ _('Crea nuovo evento') }}
+  </a>
+</div>
+
+{% if events %}
+  <div class="row">
+      {% for event in events %}
+      {% set eid = 'event-' ~ event.id %}
+      {% set total_seats    = event.capacity_max %}
+      {% set accepted_count = event.participants|selectattr("status","equalto","accepted")|list|length %}
+      {% set seats_left     = (total_seats - accepted_count) if total_seats is not none else None %}
+      {% set is_full        = (total_seats is not none and seats_left <= 0) %}
+      <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 shadow-sm border-0">
+
+         <!-- Immagine evento -->
+{% if event.image_filename %}
+  <img src="{{ url_for('events.static', filename='uploads/events/' ~ event.image_filename) }}"
+       class="card-img-top" alt="Immagine evento"
+       style="object-fit: cover; height: 180px;">
+{% else %}
+  <div class="d-flex align-items-center justify-content-center bg-light"
+       style="height: 180px;">
+    <span class="text-muted">{{ _('Nessuna immagine') }}</span>
+  </div>
+{% endif %}
+
+
+          <div class="card-body position-relative d-flex flex-column">
+            <!-- Azioni card -->
+            <div class="post-actions">
+              <a href="{{ url_for('events.edit_event', event_id=event.id) }}"
+                 class="icon-btn" title="Modifica" aria-label="Modifica evento">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M12 20h9" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"
+                        stroke-width="2" stroke-linejoin="round"/>
+                </svg>
+              </a>
+              <form action="{{ url_for('events.delete_event', event_id=event.id) }}"
+                    method="POST" class="icon-btn-form"
+                    onsubmit="return confirm('Sei sicuro di voler eliminare questo evento?');">
+                <button type="submit" class="icon-btn danger"
+                        title="Elimina" aria-label="Elimina evento">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M3 6h18" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-width="2"/>
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"
+                          stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M10 11v6M14 11v6" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </button>
+              </form>
+            </div>
+
+            <h5 class="card-title pe-5">
+              <a href="{{ url_for('associations.detail', content_type='event', item_id=event.id) }}"
+                 class="text-decoration-none text-dark">
+                {{ event.title }}
+              </a>
+            </h5>
+
+            <p class="card-text mb-1">
+              <small class="text-muted">
+                📍 {{ event.location or _('Luogo non specificato') }}<br>
+                🗓️ {{ event.date.strftime('%d/%m/%Y %H:%M') }}
+              </small>
+            </p>
+
+            <!-- Descrizione collassabile -->
+            <div id="{{ eid }}-desc"
+                 class="event-body"
+                 data-collapsed="true"
+                 aria-expanded="false">
+              {{ event.description }}
+            </div>
+
+            <button class="event-toggle-link"
+                    type="button"
+                    aria-controls="{{ eid }}-desc"
+                    aria-expanded="false"
+                    data-target="#{{ eid }}-desc">
+              Mostra altro
+            </button>
+
+             <!-- Footer card: pulsante partecipanti -->
+                <div class="mt-auto d-flex justify-content-end align-items-center gap-2">
+              {% if is_full %}
+                <span class="badge bg-danger">
+                  {{ event.participants|length }} <a href="{{ url_for('events.participants', event_id=event.id) }}"> 👥 </a>
+                </span>
+              {% else %}
+                <span>
+                  {{ event.participants|length }} <a href="{{ url_for('events.participants', event_id=event.id) }}"> 👥 </a>
+                </span>
+              {% endif %}
+            </div>
+
+
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="alert alert-info">
+    Non hai ancora {{ _('pubblicato eventi.') }}
+    <a href="{{ url_for('events.create_event') }}">{{ _('Crea il primo evento') }}</a>!
+  </div>
+{% endif %}
+
+<style>
+  /* Azioni card */
+  .card .card-body{ position: relative; }
+  .post-actions{
+    position: absolute;
+    top: .6rem;
+    right: .6rem;
+    display: flex;
+    gap: .35rem;
+  }
+  .icon-btn{
+    width: 32px; height: 32px;
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    border: none; background: transparent;
+    border-radius: 8px;
+    color: #6c757d;
+    transition: background .15s ease, color .15s ease;
+  }
+  .icon-btn:hover{ background: rgba(0,0,0,.05); color: #0d6efd; }
+  .icon-btn.danger:hover{ color: #dc3545; }
+  .icon-btn svg{ width: 18px; height: 18px; }
+  .icon-btn-form{ display: inline-block; margin: 0; }
+
+  /* --- EVENTI COLLASSABILI --- */
+  .event-body{
+    --collapsed-height: 3.5rem;
+    position: relative;
+    max-height: var(--collapsed-height);
+    overflow: hidden;
+    transition: max-height .25s ease;
+  }
+  .event-body[data-collapsed="false"]{ max-height: none; }
+  .event-body[data-collapsed="true"]::after{
+    content: "";
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: 2rem;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), #fff 70%);
+  }
+
+  .event-toggle-link{
+    background: none;
+    border: none;
+    padding: 0;
+    margin-top: .25rem;
+    color: #6c757d;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .event-toggle-link:hover, .event-toggle-link:focus{
+    text-decoration: underline;
+    color: #5a6268;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toggles = document.querySelectorAll('.event-toggle-link');
+
+    toggles.forEach(btn => {
+      const targetSel = btn.getAttribute('data-target');
+      const target = document.querySelector(targetSel);
+
+      const needsToggle = target && target.scrollHeight > target.clientHeight + 6;
+      if (!needsToggle) {
+        btn.style.display = 'none';
+        if (target){
+          target.setAttribute('data-collapsed', 'false');
+          target.setAttribute('aria-expanded', 'true');
+        }
+        return;
+      }
+
+      btn.addEventListener('click', () => {
+        const isCollapsed = target.getAttribute('data-collapsed') !== 'false';
+        target.setAttribute('data-collapsed', String(!isCollapsed));
+        target.setAttribute('aria-expanded', String(isCollapsed));
+        btn.setAttribute('aria-expanded', String(isCollapsed));
+        btn.textContent = isCollapsed ? 'Mostra meno' : 'Mostra altro';
+      });
+    });
+  });
+</script>
+{% endblock %}

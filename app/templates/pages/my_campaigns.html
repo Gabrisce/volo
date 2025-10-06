@@ -1,0 +1,196 @@
+{% extends 'layout/base.html' %}
+{% block title %}Le mie campagne{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">{{ _('Le mie campagne') }}</h2>
+
+<div class="mb-3 text-end">
+  <a href="{{ url_for('campaigns.create_campaign') }}" class="btn btn-success">
+    ➕ {{ _('Crea nuova campagna') }}
+  </a>
+</div>
+
+{% if campaigns %}
+  <div class="row">
+    {% for campaign in campaigns %}
+      {% set cid = 'campaign-' ~ campaign.id %}
+      <div class="col-md-6 col-lg-4 mb-4">
+        <div class="card h-100 shadow-sm border-0">
+
+          <!-- Immagine campagna -->
+          {% if campaign.image_filename %}
+            <img src="{{ url_for('campaigns.static', filename='uploads/campaigns/' ~ campaign.image_filename) }}"
+                 class="card-img-top" alt="Immagine campagna"
+                 style="object-fit: cover; height: 180px;">
+          {% else %}
+            <div class="d-flex align-items-center justify-content-center bg-light"
+                 style="height: 180px;">
+              <span class="text-muted">{{ _('Nessuna immagine') }}</span>
+            </div>
+          {% endif %}
+
+          <div class="card-body position-relative d-flex flex-column">
+            <!-- Azioni card -->
+            <div class="post-actions">
+              <a href="{{ url_for('campaigns.edit_campaign', campaign_id=campaign.id) }}"
+                 class="icon-btn" title="Modifica" aria-label="Modifica campagna">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M12 20h9" stroke-width="2" stroke-linecap="round"/>
+                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"
+                        stroke-width="2" stroke-linejoin="round"/>
+                </svg>
+              </a>
+              <form action="{{ url_for('campaigns.delete_campaign', campaign_id=campaign.id) }}"
+                    method="POST" class="icon-btn-form"
+                    onsubmit="return confirm('Sei sicuro di voler eliminare questa campagna?');">
+                <button type="submit" class="icon-btn danger"
+                        title="Elimina" aria-label="Elimina campagna">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M3 6h18" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-width="2"/>
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"
+                          stroke-width="2" stroke-linejoin="round"/>
+                    <path d="M10 11v6M14 11v6" stroke-width="2" stroke-linecap="round"/>
+                  </svg>
+                </button>
+              </form>
+            </div>
+
+            <!-- Titolo -->
+            <h5 class="card-title pe-5">
+              <a href="{{ url_for('associations.detail', content_type='campaign', item_id=campaign.id) }}"
+                 class="text-decoration-none text-dark">
+                {{ campaign.title }}
+              </a>
+            </h5>
+
+            <!-- Info principali -->
+            <p class="card-text mb-1">
+              <small class="text-muted">
+                {% if campaign.date %}
+                  📅 Inizio: {{ campaign.date.strftime('%d/%m/%Y') }}
+                  {% if campaign.end_date %} – Fine: {{ campaign.end_date.strftime('%d/%m/%Y') }}{% endif %}
+                  <br>
+                {% endif %}
+                📍 {{ campaign.location or _('Luogo non specificato') }}
+              </small>
+            </p>
+
+            {% if campaign.goal_amount %}
+              <p class="card-text mb-1">
+                <small class="text-muted">🎯 Obiettivo: €{{ campaign.goal_amount }}</small>
+              </p>
+            {% endif %}
+
+            <!-- Descrizione collassabile -->
+            <div id="{{ cid }}-desc"
+                 class="event-body"
+                 data-collapsed="true"
+                 aria-expanded="false">
+              {{ campaign.description }}
+            </div>
+
+            <button class="event-toggle-link"
+                    type="button"
+                    aria-controls="{{ cid }}-desc"
+                    aria-expanded="false"
+                    data-target="#{{ cid }}-desc">
+              Mostra altro
+            </button>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="alert alert-info">
+    {{ _('Non hai ancora pubblicato campagne.') }}
+    <a href="{{ url_for('campaigns.create_campaign') }}">{{ _('Avvia la prima campagna') }}</a>!
+  </div>
+{% endif %}
+
+<style>
+  /* Azioni card */
+  .card .card-body{ position: relative; }
+  .post-actions{
+    position: absolute;
+    top: .6rem;
+    right: .6rem;
+    display: flex;
+    gap: .35rem;
+  }
+  .icon-btn{
+    width: 32px; height: 32px;
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    border: none; background: transparent;
+    border-radius: 8px;
+    color: #6c757d;
+    transition: background .15s ease, color .15s ease;
+  }
+  .icon-btn:hover{ background: rgba(0,0,0,.05); color: #0d6efd; }
+  .icon-btn.danger:hover{ color: #dc3545; }
+  .icon-btn svg{ width: 18px; height: 18px; }
+  .icon-btn-form{ display: inline-block; margin: 0; }
+
+  /* --- DESCRIZIONE COLLASSABILE --- */
+  .event-body{
+    --collapsed-height: 3.5rem;
+    position: relative;
+    max-height: var(--collapsed-height);
+    overflow: hidden;
+    transition: max-height .25s ease;
+  }
+  .event-body[data-collapsed="false"]{ max-height: none; }
+  .event-body[data-collapsed="true"]::after{
+    content: "";
+    position: absolute; left: 0; right: 0; bottom: 0;
+    height: 2rem;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), #fff 70%);
+  }
+
+  .event-toggle-link{
+    background: none;
+    border: none;
+    padding: 0;
+    margin-top: .25rem;
+    color: #6c757d;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .event-toggle-link:hover, .event-toggle-link:focus{
+    text-decoration: underline;
+    color: #5a6268;
+  }
+</style>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const toggles = document.querySelectorAll('.event-toggle-link');
+
+    toggles.forEach(btn => {
+      const targetSel = btn.getAttribute('data-target');
+      const target = document.querySelector(targetSel);
+
+      const needsToggle = target && target.scrollHeight > target.clientHeight + 6;
+      if (!needsToggle) {
+        btn.style.display = 'none';
+        if (target){
+          target.setAttribute('data-collapsed', 'false');
+          target.setAttribute('aria-expanded', 'true');
+        }
+        return;
+      }
+
+      btn.addEventListener('click', () => {
+        const isCollapsed = target.getAttribute('data-collapsed') !== 'false';
+        target.setAttribute('data-collapsed', String(!isCollapsed));
+        target.setAttribute('aria-expanded', String(isCollapsed));
+        btn.setAttribute('aria-expanded', String(isCollapsed));
+        btn.textContent = isCollapsed ? 'Mostra meno' : 'Mostra altro';
+      });
+    });
+  });
+</script>
+{% endblock %}

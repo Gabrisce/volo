@@ -1,0 +1,147 @@
+<div id="notifications-panel" class="notifications-panel d-none">
+  <div class="notifications-header d-flex justify-content-between align-items-center">
+    <span>Notifiche</span>
+    <button id="notifications-close" class="btn-close" aria-label="Chiudi"></button>
+  </div>
+
+  <div id="notifications-list" class="notifications-list">
+    {% if current_user.is_authenticated and current_user.notifications is defined and current_user.notifications %}
+      {% for n in current_user.notifications|sort(attribute='created_at', reverse=True) %}
+        {% set actor = n.actor if n.actor is defined else None %}
+
+        {% if n.url %}
+          <a href="{{ n.url }}"
+             class="notification-item d-flex align-items-start gap-2 {% if not n.is_read %}fw-bold{% endif %} text-decoration-none text-dark">
+            <div class="flex-grow-1">
+              <div>{{ n.message }}</div>
+              <small class="text-muted d-block timeago" data-timestamp="{{ n.created_at.isoformat() }}"></small>
+            </div>
+          </a>
+        {% else %}
+          <div class="notification-item d-flex align-items-start gap-2 {% if not n.is_read %}fw-bold{% endif %}">
+            <div class="flex-grow-1">
+              <div>{{ n.message }}</div>
+              <small class="text-muted d-block timeago" data-timestamp="{{ n.created_at.isoformat() }}"></small>
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
+    {% else %}
+      <p class="text-muted p-3 mb-0">{{ _('Nessuna notifica') }}</p>
+    {% endif %}
+  </div>
+</div>
+
+<style>
+/* === Pannello Notifiche === */
+.notifications-panel {
+  position: fixed;
+  top: 60px;
+  right: 20px;
+  width: 320px;
+  max-height: 400px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  z-index: 2100;
+  display: flex;
+  flex-direction: column;
+}
+.notifications-header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #eee;
+  font-weight: 600;
+}
+.notifications-list {
+  overflow-y: auto;
+  max-height: 340px;
+}
+.notification-item {
+  display: flex;
+  align-items: start;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f1f1f1;
+  font-size: 0.9rem;
+  border-radius: 0;
+}
+.notification-item:hover {
+  background-color: #f8f9fa;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const notifToggle = document.getElementById('notifications-toggle');
+  const notifPanel = document.getElementById('notifications-panel');
+  const notifClose = document.getElementById('notifications-close');
+  const notifBadge = document.getElementById('notif-badge');
+
+  function markAllNotificationsRead() {
+    fetch("/notifications/mark_all_read", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Requested-With": "XMLHttpRequest"
+      }
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "ok" && notifBadge) {
+          notifBadge.remove();
+        }
+      })
+      .catch(err => console.error("Errore aggiornamento notifiche:", err));
+  }
+
+  notifToggle?.addEventListener('click', (e) => {
+    e.preventDefault();
+    const wasHidden = notifPanel.classList.contains('d-none');
+    notifPanel.classList.toggle('d-none');
+    if (wasHidden) {
+      markAllNotificationsRead();
+    }
+  });
+
+  notifClose?.addEventListener('click', () => {
+    notifPanel.classList.add('d-none');
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!notifPanel.contains(e.target) && !notifToggle.contains(e.target)) {
+      notifPanel.classList.add('d-none');
+    }
+  });
+
+  // Calcola "tempo fa"
+  function timeAgo(timestamp) {
+    if (!timestamp) return "";
+    const now = new Date();
+    const date = new Date(timestamp);
+    const seconds = Math.floor((now - date) / 1000);
+
+    if (seconds < 60) return `${seconds}s fa`;
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m fa`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h fa`;
+    const days = Math.floor(hours / 24);
+    if (days < 30) return `${days}g fa`;
+    const months = Math.floor(days / 30);
+    if (months < 12) return `${months} mesi fa`;
+    const years = Math.floor(months / 12);
+    return `${years}a fa`;
+  }
+
+  function updateTimes() {
+    document.querySelectorAll('.timeago').forEach(el => {
+      const ts = el.getAttribute('data-timestamp');
+      el.textContent = timeAgo(ts);
+    });
+  }
+
+  updateTimes();
+  setInterval(updateTimes, 60000);
+});
+</script>

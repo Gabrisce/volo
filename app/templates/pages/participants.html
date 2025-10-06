@@ -1,0 +1,151 @@
+{% extends 'layout/base.html' %}
+{% block title %}Partecipanti - {{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <!-- Header evento -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 class="mb-0">{{ _('Partecipanti a ') }} <strong>{{ event.title }}</strong></h3>
+    <span class="fs-6">👥 {{ participations|length }} {{ _('candidature') }}</span>
+  </div>
+
+  <!-- ℹ️ Info capienza -->
+  {% set total_seats    = event.capacity_max %}
+  {% set accepted_count = event.participants|selectattr("status","equalto","accepted")|list|length %}
+  {% set seats_left     = (total_seats - accepted_count) if total_seats is not none else None %}
+  {% set is_full        = (total_seats is not none and seats_left <= 0) %}
+
+  <div class="alert {% if is_full %}alert-danger{% else %}alert-info{% endif %}">
+    {% if total_seats is not none %}
+      <i class="bi bi-people-fill me-1"></i>
+      Posti: {{ accepted_count }}/{{ total_seats }}
+      {% if is_full %}
+        — <strong>{{ _('Evento al completo') }}</strong>
+      {% endif %}
+    {% else %}
+      <i class="bi bi-people-fill me-1"></i> {{ _('Posti: illimitati') }}
+    {% endif %}
+  </div>
+
+  <!-- 📋 Lista partecipanti -->
+  {% if participations %}
+    <div class="participants-list list-group" style="max-height:65vh; overflow-y:auto;">
+      {% for part in participations %}
+        <div class="list-group-item d-flex justify-content-between align-items-center p-3"
+             data-volunteer-id="{{ part.volunteer.id }}">
+          <div class="d-flex align-items-center">
+            <img
+              src="{% if part.volunteer.photo_filename %}
+                       {{ url_for('dashboard.static', filename='uploads/profile-photo/' ~ part.volunteer.photo_filename) }}
+                     {% else %}
+                       {{ url_for('static', filename='img/avatar-placeholder.png') }}
+                     {% endif %}"
+              alt="Foto {{ part.volunteer.name }}"
+              class="rounded-circle me-3"
+              style="width:46px; height:46px; object-fit:cover;">
+            <div>
+              <a href="{{ url_for('volunteers.public_profile', volunteer_id=part.volunteer.id) }}"
+                 class="fw-semibold text-dark-green text-decoration-none">
+                {{ part.volunteer.name }}
+              </a>
+              <div class="small">
+                {% if part.status == 'accepted' %}
+                  <span class="text-success">✔️ {{ _('Accettato') }}</span>
+                {% elif part.status == 'rejected' %}
+                  <span class="text-danger">❌ {{ _('Rifiutato') }}</span>
+                {% elif part.status == 'cancelled' %}
+                  <span class="text-muted">⚪ {{ _('Annullato') }}</span>
+                {% else %}
+                  <span class="text-warning">⏳ {{ _('In attesa') }}</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Azioni -->
+          <div class="d-flex align-items-center gap-2">
+            {% if part.status != 'accepted' and not is_full %}
+              <form method="post"
+                    action="{{ url_for('events.update_participation', event_id=event.id, part_id=part.id, action='accept') }}">
+                <button class="btn btn-sm btn-outline-success" title="Accetta" aria-label="Accetta">
+                  <i class="bi bi-check-lg"></i>
+                </button>
+              </form>
+            {% endif %}
+
+            {% if part.status != 'rejected' %}
+              <form method="post"
+                    action="{{ url_for('events.update_participation', event_id=event.id, part_id=part.id, action='reject') }}">
+                <button class="btn btn-sm btn-outline-danger" title="Rifiuta" aria-label="Rifiuta">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </form>
+            {% endif %}
+
+            <!-- 💬 Chat -->
+            <button type="button"
+        class="btn btn-sm btn-outline-primary chat-btn"
+        data-volunteer-id="{{ part.volunteer.id }}"
+        data-volunteer-name="{{ part.volunteer.name|e }}"
+        data-volunteer-photo="{% if part.volunteer.photo_filename %}
+                                 {{ url_for('dashboard.static', filename='uploads/profile-photo/' ~ part.volunteer.photo_filename) }}
+                               {% else %}
+                                 {{ url_for('static', filename='img/avatar-placeholder.png') }}
+                               {% endif %}">
+  <img src="{{ url_for('static', filename='img/icon_chat.png') }}" alt="Chat" style="width:20px; height:20px;">
+</button>
+
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="text-muted">{{ _('Nessun volontario si è ancora candidato a questo evento.') }}</p>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+  .participants-list {
+    border-radius: 8px;
+  }
+  .list-group-item {
+    border-radius: 8px !important;
+  }
+  .text-dark-green { color: #006400 !important; }
+  .text-dark-green:hover { color: #004d00 !important; }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+  const chatButtons = document.querySelectorAll(".chat-btn");
+  
+  chatButtons.forEach(button => {
+    button.addEventListener("click", async () => {
+      const volunteerId = button.dataset.volunteerId;
+      const volunteerName = button.dataset.volunteerName;
+      const volunteerPhoto = button.dataset.volunteerPhoto;
+
+      try {
+        const res = await fetch(`/public/api/start_chat/${volunteerId}`, {
+          method: "POST",
+          headers: { "X-Requested-With": "XMLHttpRequest" }
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          openChatWindow(volunteerId, volunteerName, volunteerPhoto);
+        } else {
+          alert(data.error || "Errore nell'avvio della chat.");
+        }
+      } catch (err) {
+        console.error("Error starting the chat:", err);
+      }
+    });
+  });
+});
+</script>
+{% endblock %}

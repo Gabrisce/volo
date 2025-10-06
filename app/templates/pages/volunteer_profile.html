@@ -1,0 +1,270 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Profilo Volontario{% endblock %}
+{% block container_class %}container-xxl{% endblock %}
+
+{% block content %}
+
+<!-- ===== HERO PROFILO PUBBLICO ===== -->
+<section class="text-center mb-4">
+  <div class="d-inline-flex align-items-center justify-content-center position-relative">
+    <img
+      src="{% if volunteer.photo_filename %}
+              {{ url_for('dashboard.static', filename='uploads/profile-photo/' ~ volunteer.photo_filename) }}
+            {% else %}
+              {{ url_for('static', filename='img/default-profile.png') }}
+            {% endif %}"
+      class="profile-photo ring-click"
+      alt="Foto profilo {{ volunteer.name }}"
+      onclick="toggleFullscreen(this)">
+
+  </div>
+
+  <h2 class="fw-bold mt-2 mb-1">{{ volunteer.name }}</h2>
+
+  {% if volunteer.bio %}
+    <p class="text-body-secondary mb-2" style="max-width:720px;margin:0 auto;">{{ volunteer.bio }}</p>
+  {% endif %}
+
+  <div class="d-flex flex-column align-items-center mt-2">
+
+  <!-- 👥 Follower -->
+  <a href="{{ url_for('public.volunteer_followed_associations', volunteer_id=volunteer.id) }}"
+     class="text-decoration-none fw-bold text-muted mb-2">
+    👥 {{ followed_associations_count }}
+    {% if followed_associations_count == 1 %}
+      {{ _('Follower') }}
+    {% else %}
+      {{ _('Follower') }}
+    {% endif %}
+  </a>
+
+  <!-- 💬 Chat -->
+  {% if current_user.is_authenticated and current_user.id != volunteer.id %}
+    <a href="#"
+       id="start-chat-link"
+       data-user-id="{{ volunteer.id }}"
+       data-user-name="{{ volunteer.name }}"
+       data-user-photo="{% if volunteer.photo_filename %}
+                           {{ url_for('dashboard.static', filename='uploads/profile-photo/' ~ volunteer.photo_filename) }}
+                         {% else %}
+                           {{ url_for('static', filename='img/default-profile.png') }}
+                         {% endif %}"
+       class="d-inline-flex align-items-center text-decoration-none">
+      <img src="{{ url_for('static', filename='img/icon_chat.png') }}"
+           alt="Chat" width="30" height="30" class="me-1" />
+    </a>
+  {% endif %}
+</div>
+
+</section>
+
+<hr class="soft-divider">
+
+<!-- ===== LAYOUT DUE COLONNE ===== -->
+<div class="row g-4">
+
+  <!-- CENTRO/SINISTRA: Segnalazioni -->
+  <div class="col-lg-7 col-xl-8">
+    <section aria-labelledby="reports-title" class="card shadow-sm">
+      <div class="panel-header">
+        <h2 id="reports-title" class="h6 mb-0">{{ _('Segnalazioni pubbliche') }}</h2>
+      </div>
+
+      <div class="card-body">
+        <div class="feed-container" style="max-height: 70vh; overflow-y: auto; padding-right:6px;">
+          {% if reports %}
+            {% for report in reports %}
+              <article class="card shadow-sm mb-3 feed-card">
+                <div class="card-body position-relative">
+                  <h5 class="card-title mb-1">
+                    <a href="{{ url_for('public.detail', content_type='report', item_id=report.id) }}"
+                       class="text-decoration-none text-dark">{{ report.title or _('Titolo mancante') }}</a>
+                  </h5>
+
+                  <small class="text-muted d-block mb-2">
+                    {{ _('Pubblicato il') }} {{ report.created_at.strftime('%d/%m/%Y %H:%M') }}
+                  </small>
+
+                  {% if report.description %}
+                    <p class="card-text clamp" data-clamp="4">{{ report.description }}</p>
+                  {% endif %}
+
+                  {% if report.image_filename %}
+                    <div class="media-wrap clamp-media mb-2">
+                      <img src="{{ url_for('reports.static', filename='uploads/reports/' ~ report.image_filename) }}"
+                           class="img-fluid rounded" alt="Immagine segnalazione">
+                    </div>
+                  {% endif %}
+
+                  <button type="button" class="toggle-card d-none">{{ _('Mostra altro') }}</button>
+                </div>
+              </article>
+            {% endfor %}
+          {% else %}
+            <p class="text-muted mb-0">{{ _('Nessuna segnalazione ancora effettuata.') }}</p>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- DESTRA: Storico partecipazioni -->
+  <div class="col-lg-5 col-xl-4">
+    <section aria-labelledby="history-title" class="card shadow-sm panel-sticky">
+      <div class="panel-header">
+        <h2 id="history-title" class="h6 mb-0">{{ _('Storico attività') }}</h2>
+      </div>
+
+      <div class="card-body">
+        <ul class="list-unstyled m-0">
+          {% if participations and participations|length > 0 %}
+            {% for p in participations %}
+              <li class="list-item">
+                <div class="d-flex justify-content-between align-items-start gap-2">
+                  <div class="min-w-0">
+                    <a href="{{ url_for('events.event_detail', event_id=p.event.id) }}"
+                       class="item-title text-decoration-none">
+                      {{ p.event.title }}
+                    </a>
+                    <div class="small text-muted mt-1">
+                      {{ p.event.date.strftime('%d/%m/%Y') }}
+                      {% if p.event.location %} · 📍 {{ p.event.location }}{% endif %}
+                    </div>
+                  </div>
+                  <div class="status-dot"
+                       title="{{ p.status }}"
+                       data-status="{{ p.status|lower }}"></div>
+                </div>
+              </li>
+            {% endfor %}
+          {% else %}
+            <li class="text-muted py-2">{{ _('Nessuna partecipazione negli eventi passati.') }}</li>
+          {% endif %}
+        </ul>
+      </div>
+    </section>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Clamp/expand per descrizioni lunghe (come su Home/Dashboard)
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.feed-card').forEach(function(card){
+      const text = card.querySelector('.clamp');
+      const media = card.querySelector('.clamp-media');
+      const btn   = card.querySelector('.toggle-card');
+      let needsToggle = false;
+
+      if (text && (text.innerText || '').trim().length > 300) needsToggle = true;
+      if (media) needsToggle = true;
+
+      if (needsToggle && btn) {
+        btn.classList.remove('d-none');
+        btn.addEventListener('click', function(){
+          card.classList.toggle('expanded');
+          btn.textContent = card.classList.contains('expanded') ? 'Mostra meno' : 'Mostra altro';
+        });
+      }
+    });
+  });
+
+  // Zoom immagine (riuso della logica già vista)
+  function toggleFullscreen(img) {
+    let existing = document.getElementById("img-overlay");
+    if (existing) { existing.remove(); return; }
+    let overlay = document.createElement("div");
+    overlay.id = "img-overlay";
+    Object.assign(overlay.style, {
+      position: "fixed", inset: 0, background: "rgba(0,0,0,.8)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      zIndex: 9999, cursor: "zoom-out"
+    });
+    let bigImg = document.createElement("img");
+    Object.assign(bigImg.style, {
+      maxWidth: "90%", maxHeight: "90%", borderRadius: "10px",
+      boxShadow: "0 4px 20px rgba(0,0,0,.5)"
+    });
+    bigImg.src = img.src;
+    overlay.appendChild(bigImg);
+    overlay.addEventListener("click", () => overlay.remove());
+    document.body.appendChild(overlay);
+  }
+</script>
+
+<style>
+  /* Divider soft e card radius coerenti */
+  .soft-divider { border: 0; border-top: 1px solid #eef2f7; margin: .5rem 0 1rem; }
+  .card { border-radius: 12px; }
+
+  /* Foto profilo con ring brand */
+  .profile-photo{
+    width:150px; height:150px; object-fit:cover;
+    border-radius:50%;
+    box-shadow: 0 2px 10px rgba(0,0,0,.08);
+    border: 4px solid #fff;
+    outline: 2px solid rgba(1,159,149,.25);
+  }
+  .ring-click{ cursor: pointer; }
+
+  /* Chip coerenti */
+  .chip-link{
+    display:inline-block;
+    background:#f7f9fb;
+    border:1px solid #dfe6ee;
+    color:#2b3a42; text-decoration:none;
+    border-radius:999px; padding:.3rem .7rem; font-weight:600;
+  }
+  .chip-link:hover{ background:#f2f6fb; }
+
+  /* Panel header chiaro + sticky per lo storico */
+  .panel-sticky{ position: sticky; top: 84px; overflow: hidden; }
+  @media (min-width: 1400px){ .panel-sticky{ top: 92px; } }
+  .panel-header{
+    padding:.75rem 1rem;
+    background: linear-gradient(180deg, #ffffff, #f8fafc);
+    border-bottom: 1px solid #eef2f7;
+  }
+
+  /* Lista storico (riuso pattern) */
+  .list-item{
+    padding:.55rem .35rem;
+    border-bottom:1px dashed #edf1f6;
+  }
+  .list-item:last-child{ border-bottom:0; }
+  .item-title{ color:#0f172a; font-weight:600; }
+  .item-title:hover{ text-decoration: underline; text-underline-offset: 2px; }
+
+  /* Feed clamp come altrove */
+  .feed-card .card-body{ padding:.9rem 1rem; }
+  .feed-card:not(.expanded) .clamp{
+    display:-webkit-box; -webkit-box-orient:vertical; overflow:hidden;
+    line-clamp:3; -webkit-line-clamp:3;
+  }
+  @supports not (-webkit-line-clamp: 1){
+    .feed-card:not(.expanded) .clamp{ max-height:4.8em; overflow:hidden; }
+  }
+  .feed-card:not(.expanded) .clamp-media{ max-height:10px; overflow:hidden; }
+  .feed-card.expanded .clamp{ line-clamp:initial; -webkit-line-clamp:initial; max-height:none; }
+  .feed-card.expanded .clamp-media{ max-height:none; }
+
+  .toggle-card{
+    color:#006400; font-size:.85rem; margin-top:.25rem;
+    background:none; border:none; padding:0; cursor:pointer; text-decoration:underline;
+  }
+  .toggle-card:hover{ color:#004d00; }
+
+  /* Stato partecipazione con dot */
+  .status-dot{
+    width:12px; height:12px; border-radius:50%;
+    border:1px solid #e6eaf0; margin-top:.35rem;
+  }
+  .status-dot[data-status="accepted"]{ background:#16a34a; }  /* verde */
+  .status-dot[data-status="rejected"]{ background:#dc2626; }  /* rosso  */
+  .status-dot[data-status="pending"]{  background:#f59e0b; }  /* giallo */
+</style>
+{% endblock %}

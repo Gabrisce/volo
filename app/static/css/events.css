@@ -1,0 +1,22 @@
+body {
+    background-color: #f0f4f8;
+}
+
+#map {
+    border: 2px solid #0072ce;
+    border-radius: 8px;
+}
+
+#event-list li:hover {
+    cursor: pointer;
+    background-color: #e6f2fc;
+}
+.card {
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+#map-mini {
+  border-radius: 6px;
+}
+

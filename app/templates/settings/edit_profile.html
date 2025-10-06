@@ -1,0 +1,28 @@
+{% extends 'layout/base.html' %}
+{% block title %}Modifica Profilo{% endblock %}
+{% block content %}
+<h2 class="mb-4">{{ _('Modifica i tuoi dati personali') }}</h2>
+
+<form method="POST" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+
+    <div class="mb-3">
+        {{ form.name.label }} {{ form.name(class="form-control") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.age.label }} {{ form.age(class="form-control") }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.bio.label }} {{ form.bio(class="form-control", rows=4) }}
+    </div>
+
+    <div class="mb-3">
+        {{ form.photo.label }} {{ form.photo(class="form-control") }}
+    </div>
+
+    <button type="submit" class="btn btn-primary">{{ form.submit.label }}</button>
+    <a href="{{ url_for('dashboard.dashboard') }}" class="btn btn-secondary">{{ _('Annulla') }}</a>
+</form>
+{% endblock %}
