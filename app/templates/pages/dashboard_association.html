@@ -6,7 +6,6 @@
 
 <!-- ====== HEADER ASSOCIAZIONE ====== -->
 <div class="row align-items-start mb-4 gy-3">
-
   <!-- Logo -->
   <div class="col-lg-2 text-center">
     {% if current_user.photo_filename %}
@@ -34,249 +33,300 @@
           <p class="mb-2 text-body-secondary">{{ current_user.bio }}</p>
         {% endif %}
 
-        <!-- Follower -->
         {% set followers_count =
              (current_user.followers.count() if current_user.followers is defined
               else (current_user.followers_count if current_user.followers_count is defined else 0)) %}
         <div class="d-flex flex-wrap gap-2 mt-1">
           <a href="{{ url_for('public.public_profile', association_id=current_user.id) }}#followers"
-             class="chip-link text-decoration-none"
-             aria-label="{{ _('Vedi follower') }}">
+             class="chip-link text-decoration-none" aria-label="{{ _('Vedi follower') }}">
             👥 {{ followers_count }} {{ _('Follower') }}
           </a>
         </div>
       </div>
 
       <a href="{{ url_for('settings.edit_profile') }}"
-         class="icon-btn ghost"
-         title="{{ _('Modifica profilo') }}"
-         aria-label="{{ _('Modifica profilo') }}">
+         class="icon-btn ghost" title="{{ _('Modifica profilo') }}" aria-label="{{ _('Modifica profilo') }}">
         <i class="bi bi-gear-fill"></i>
       </a>
     </div>
   </div>
 
-  <!-- Azioni rapide -->
-  <div class="col-lg-3 text-lg-end text-center">
-    <a href="{{ url_for('events.my_events') }}" class="btn-ghost-brand me-2 mb-2" aria-label="{{ _('Gestisci Eventi') }}">
-      <i class="bi bi-calendar-event me-1"></i>{{ _('Gestisci Eventi') }}
-    </a>
-    <a href="{{ url_for('campaigns.my_campaigns') }}" class="btn-ghost-brand mb-2" aria-label="{{ _('Gestisci Campagne') }}">
-      <i class="bi bi-bullseye me-1"></i>{{ _('Gestisci Campagne') }}
-    </a>
-  </div>
+
 </div>
 
 <hr class="soft-divider">
 
-<!-- ====== LAYOUT A TRE COLONNE ====== -->
-<div class="row g-4">
-
-<!-- 💰 COLONNA SINISTRA: DONAZIONI RICEVUTE -->
-<div class="col-xl-3 col-lg-4">
-  <section class="card shadow-sm panel-sticky">
-    <div class="panel-header">
-      <h6 class="mb-0">{{ _('Donazioni ricevute') }}</h6>
+{# ====== VETRINA ORIZZONTALE A PANNELLI ====== #}
+<section class="showcase">
+  <!-- Nav pills -->
+  <div class="showcase-nav d-flex align-items-center justify-content-between mb-2">
+    <div class="nav-pills gap-2">
+      <button class="pill active" data-target="#slide-posts"><i class="bi bi-chat-text me-1"></i>{{ _('Post') }}</button>
+      <button class="pill" data-target="#slide-donations"><i class="bi bi-receipt me-1"></i>{{ _('Donazioni') }}</button>
+      <button class="pill" data-target="#slide-history"><i class="bi bi-clock-history me-1"></i>{{ _('Storico') }}</button>
+      <button class="pill" data-target="#slide-active"><i class="bi bi-lightning-charge me-1"></i>{{ _('Attivi') }}</button>
     </div>
 
-    <div class="card-body">
-      {% if donations and donations|length > 0 %}
-        <div class="scroll-box">
-          {% for d in donations %}
-            <div class="list-item">
-              <div class="d-flex justify-content-between align-items-start">
-                
-                <div class="min-w-0">
-                  <a href="{{ url_for('public.detail', content_type='campaign', item_id=d.campaign_id) }}"
-                     class="item-title text-decoration-none">
-                    {{ d.campaign.title if d.campaign else _('Campagna sconosciuta') }}
-                  </a>
-                  <div class="small text-muted">
-                    👤 
-                    {% if d.user %}
-                      {{ d.user.name }}
-                    {% elif d.full_name %}
-                      {{ d.full_name }}
-                    {% else %}
-                      {{ _('Donatore anonimo') }}
-                    {% endif %}
-                    · 💶 {{ '%.2f'|format(d.amount) }} €
-                    · {% if d.created_at %}
-                        {{ d.created_at.strftime('%d/%m/%Y') }}
-                      {% else %}
-                        <span class="text-muted">{{ _('Data non disponibile') }}</span>
-                      {% endif %}
-                  </div>
-                </div>
-
-                <div class="text-end">
-                  {% if d.pdf_filename %}
-                    <a href="{{ url_for('payments.download_receipt', filename=d.pdf_filename) }}"
-                       target="_blank"
-                       rel="noopener noreferrer"
-                       class="icon-btn ghost"
-                       title="{{ _('Apri ricevuta PDF') }}">
-                      <i class="bi bi-filetype-pdf text-danger"></i>
-                    </a>
-                  {% else %}
-                    <span class="small text-muted">{{ _('PDF non disponibile') }}</span>
-                  {% endif %}
-                </div>
-
-              </div>
-            </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <p class="text-muted small mb-0">{{ _('Nessuna donazione ricevuta finora.') }}</p>
-      {% endif %}
+    <div class="nav-arrows">
+      <button class="icon-btn ghost" id="showcasePrev" aria-label="{{ _('Vai a sinistra') }}">‹</button>
+      <button class="icon-btn ghost" id="showcaseNext" aria-label="{{ _('Vai a destra') }}">›</button>
     </div>
-  </section>
-</div>
+  </div>
 
+  <!-- Viewport -->
+  <div class="showcase-viewport">
+    <div class="showcase-track">
 
-  <!-- 📰 COLONNA CENTRALE: POST -->
-  <div class="col-xl-6 col-lg-4">
-    <section class="card shadow-sm">
-      <div class="panel-header d-flex align-items-center justify-content-between">
-        <h6 class="mb-0">{{ _('Post') }}</h6>
-        <a href="{{ url_for('posts.create_post') }}" class="btn-ghost-brand btn-ghost-sm rounded-pill" aria-label="{{ _('Crea un nuovo post') }}">
-          {{ _('+ Nuovo post') }}
-        </a>
-      </div>
+      <!-- 📰 POST (default attivo) -->
+      <article class="showcase-slide is-active" id="slide-posts">
+        <section class="card shadow-sm h-100">
+          <div class="panel-header d-flex align-items-center justify-content-between">
+            <h6 class="mb-0 d-flex align-items-center gap-2">
+              <i class="bi bi-chat-text"></i> {{ _('Post') }}
+            </h6>
+            <a href="{{ url_for('posts.create_post') }}" class="btn-ghost-brand btn-ghost-sm rounded-pill">
+              {{ _('+ Nuovo post') }}
+            </a>
+          </div>
+          <div class="card-body">
+            <div class="feed-container" style="max-height: var(--showcase-h); overflow-y: auto;">
+              {% if posts %}
+                {% for post in posts %}
+                  {% set pid = 'post-' ~ post.id %}
+                  <article class="card mb-3 shadow-sm post-card">
+                    <div class="card-body position-relative">
 
-      <div class="card-body">
-        <div class="feed-container" style="max-height: 70vh; overflow-y: auto;">
-          {% if posts %}
-            {% for post in posts %}
-              {% set pid = 'post-' ~ post.id %}
-              <article class="card mb-3 shadow-sm post-card">
-                <div class="card-body position-relative">
-
-                  <!-- Azioni -->
-                  <div class="post-actions">
-                    <a href="{{ url_for('posts.edit_post', post_id=post.id) }}"
-                       class="icon-btn" title="{{ _('Modifica') }}">
-                      <i class="bi bi-pencil-square"></i>
-                    </a>
-                    <button type="button" class="icon-btn danger"
-                            title="{{ _('Elimina') }}"
-                            data-bs-toggle="modal" data-bs-target="#confirmDeleteModal-{{ post.id }}">
-                      <i class="bi bi-trash"></i>
-                    </button>
-
-                    <!-- Modale eliminazione -->
-                    <div class="modal fade" id="confirmDeleteModal-{{ post.id }}" tabindex="-1" aria-hidden="true">
-                      <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                          <div class="modal-header">
-                            <h5 class="modal-title">{{ _('Conferma eliminazione') }}</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                          </div>
-                          <div class="modal-body">
-                            {{ _('Eliminare il post') }} <strong>{{ post.title }}</strong>?
-                          </div>
-                          <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ _('Annulla') }}</button>
-                            <form action="{{ url_for('dashboard.delete_post', post_id=post.id) }}" method="POST" class="d-inline">
-                              <button type="submit" class="btn btn-danger btn-sm">{{ _('Elimina') }}</button>
-                            </form>
+                      <div class="post-actions">
+                        <a href="{{ url_for('posts.edit_post', post_id=post.id) }}" class="icon-btn" title="{{ _('Modifica') }}">
+                          <i class="bi bi-pencil-square"></i>
+                        </a>
+                        <button type="button" class="icon-btn danger" title="{{ _('Elimina') }}"
+                                data-bs-toggle="modal" data-bs-target="#confirmDeleteModal-{{ post.id }}">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                        <div class="modal fade" id="confirmDeleteModal-{{ post.id }}" tabindex="-1" aria-hidden="true">
+                          <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                              <div class="modal-header">
+                                <h5 class="modal-title">{{ _('Conferma eliminazione') }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                              </div>
+                              <div class="modal-body">
+                                {{ _('Eliminare il post') }} <strong>{{ post.title }}</strong>?
+                              </div>
+                              <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ _('Annulla') }}</button>
+                                <form action="{{ url_for('dashboard.delete_post', post_id=post.id) }}" method="POST" class="d-inline">
+                                  <button type="submit" class="btn btn-danger btn-sm">{{ _('Elimina') }}</button>
+                                </form>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
+
+                      <h5 class="card-title pe-5">
+                        <a href="{{ url_for('posts.post_detail', post_id=post.id) }}"
+                           class="text-decoration-none text-dark">{{ post.title or _('Titolo mancante') }}</a>
+                      </h5>
+                      <p class="card-text text-muted mb-2">
+                        {{ _('Pubblicato il') }} {{ post.created_at.strftime('%d/%m/%Y %H:%M') }}
+                      </p>
+
+                      <div id="{{ pid }}-content" class="post-body" data-collapsed="true" aria-expanded="false">
+                        {{ post.content }}
+                        {% if post.image_filename %}
+                          <img src="{{ url_for('posts.static', filename='uploads/posts/' ~ post.image_filename) }}"
+                               class="img-fluid mt-2 rounded" alt="Immagine post">
+                        {% endif %}
+                      </div>
+
+                      <div>
+                        <button class="post-toggle-link" type="button" data-target="#{{ pid }}-content">
+                          {{ _('Mostra altro') }}
+                        </button>
+                      </div>
+
+                      {% set applause_count = post.applause|length if post.applause is defined else 0 %}
+                      {% set user_has_applauded = current_user.is_authenticated and post.applause|selectattr('user_id','equalto',current_user.id)|list|length > 0 %}
+                      <div class="mt-2 d-flex align-items-center">
+                        <button type="button" class="applause-btn d-inline-flex align-items-center {% if user_has_applauded %}active{% endif %}"
+                                data-post-id="{{ post.id }}">
+                          <i class="bi bi-hand-thumbs-up-fill"></i>
+                          <span class="applause-count ms-1">{{ applause_count }}</span>
+                        </button>
+                      </div>
                     </div>
+                  </article>
+                {% endfor %}
+              {% else %}
+                <p class="text-muted mb-0">{{ _('Nessun post ancora pubblicato.') }}</p>
+              {% endif %}
+            </div>
+          </div>
+        </section>
+      </article>
+
+      <!-- 💰 DONAZIONI -->
+      <article class="showcase-slide" id="slide-donations">
+        <section class="card shadow-sm h-100">
+          <div class="panel-header">
+            <h6 class="mb-0 d-flex align-items-center gap-2">
+              <i class="bi bi-receipt"></i> {{ _('Donazioni ricevute') }}
+            </h6>
+          </div>
+          <div class="card-body p-0">
+            <div class="scroll-area p-3" style="max-height: var(--showcase-h); overflow-y:auto;">
+              {% if donations and donations|length > 0 %}
+                <ul class="list-unstyled m-0">
+                  {% for d in donations %}
+                    <li class="list-item py-2">
+                      <div class="list-grid">
+                        <div class="min-w-0">
+                          <a href="{{ url_for('public.detail', content_type='campaign', item_id=d.campaign_id) }}"
+                             class="item-title link-strong">
+                            {{ d.campaign.title if d.campaign else _('Campagna sconosciuta') }}
+                          </a>
+                          <div class="small text-muted mt-1">
+                            👤 {% if d.user %}{{ d.user.name }}{% elif d.full_name %}{{ d.full_name }}{% else %}{{ _('Donatore anonimo') }}{% endif %}
+                            · 💶 {{ '%.2f'|format(d.amount) }} €
+                            · {% if d.created_at %}{{ d.created_at.strftime('%d/%m/%Y') }}{% else %}<span class="text-muted">{{ _('Data non disponibile') }}</span>{% endif %}
+                          </div>
+                        </div>
+                        <div class="text-end">
+                          {% if d.pdf_filename %}
+                            <a href="{{ url_for('payments.download_receipt', filename=d.pdf_filename) }}"
+                               target="_blank" rel="noopener noreferrer"
+                               class="icon-btn ghost" title="{{ _('Apri ricevuta PDF') }}">
+                              <i class="bi bi-filetype-pdf text-danger"></i>
+                            </a>
+                          {% else %}
+                            <span class="small text-muted">{{ _('PDF n.d.') }}</span>
+                          {% endif %}
+                        </div>
+                      </div>
+                      <hr class="soft-divider my-2">
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <p class="text-muted small p-3 mb-0">{{ _('Nessuna donazione ricevuta finora.') }}</p>
+              {% endif %}
+            </div>
+          </div>
+        </section>
+      </article>
+
+      <!-- 🕓 STORICO -->
+<article class="showcase-slide" id="slide-history">
+  <section class="card shadow-sm h-100">
+    <div class="panel-header">
+      <h6 class="mb-0 d-flex align-items-center gap-2">
+        <i class="bi bi-clock-history"></i> {{ _('Storico attività') }}
+      </h6>
+    </div>
+    <div class="card-body p-0">
+      <div class="scroll-area p-3" style="max-height: var(--showcase-h); overflow-y:auto;">
+        {% if history_items and history_items|length > 0 %}
+          <ul class="list-unstyled m-0">
+            {% for item in history_items %}
+              <li class="list-item py-2">
+                {% if item.type == "event" %}
+                  <a href="{{ url_for('public.detail', content_type='event', item_id=item.event_id) }}"
+                     class="item-title link-strong">
+                    {{ item.title }}
+                  </a>
+                  <div class="small text-muted mt-1">
+                    📆 {{ item.date.strftime('%d/%m/%Y %H:%M') }}
+                    {% if item.location %} · 📍 {{ item.location }}{% endif %}
                   </div>
 
-                  <!-- Titolo e contenuto -->
-                  <h5 class="card-title pe-5">
-                    <a href="{{ url_for('posts.post_detail', post_id=post.id) }}"
-                       class="text-decoration-none text-dark">
-                      {{ post.title or _('Titolo mancante') }}
-                    </a>
-                  </h5>
-                  <p class="card-text text-muted mb-2">
-                    {{ _('Pubblicato il') }} {{ post.created_at.strftime('%d/%m/%Y %H:%M') }}
-                  </p>
+                {% elif item.type == "campaign" %}
+                  <a href="{{ url_for('public.detail', content_type='campaign', item_id=item.campaign_id) }}"
+                     class="item-title link-strong">
+                    {{ item.title }}
+                  </a>
+                  <div class="small text-muted mt-1">
+                    🏁 {{ _('Terminata il') }} {{ item.date.strftime('%d/%m/%Y') }}
+                    {% if item.goal %} · 🎯 {{ item.goal }}{% endif %}
+                  </div>
+                {% endif %}
+                <hr class="soft-divider my-2">
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted small p-3 mb-0">{{ _('Nessuna voce nello storico.') }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+</article>
 
-                  <div id="{{ pid }}-content" class="post-body" data-collapsed="true">
-                    {{ post.content }}
-                    {% if post.image_filename %}
-                      <img src="{{ url_for('posts.static', filename='uploads/posts/' ~ post.image_filename) }}"
-                           class="img-fluid mt-2 rounded" alt="Immagine post">
+
+      <!-- ⚡️ ATTIVI -->
+      <article class="showcase-slide" id="slide-active">
+        <section class="card shadow-sm h-100">
+          <div class="panel-header">
+            <h6 class="mb-0 d-flex align-items-center gap-2">
+              <i class="bi bi-lightning-charge"></i> {{ _('Eventi e Campagne attive') }}
+            </h6>
+           <!-- NUOVO: pulsanti gestione dentro la sezione -->
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <a href="{{ url_for('events.my_events') }}"
+                class="btn-ghost-brand btn-ghost-sm rounded-pill"
+                aria-label="{{ _('Gestisci Eventi') }}">
+                <i class="bi bi-calendar-event me-1"></i>{{ _('Gestisci Eventi') }}
+              </a>
+              <a href="{{ url_for('campaigns.my_campaigns') }}"
+                class="btn-ghost-brand btn-ghost-sm rounded-pill"
+                aria-label="{{ _('Gestisci Campagne') }}">
+                <i class="bi bi-bullseye me-1"></i>{{ _('Gestisci Campagne') }}
+              </a>
+            </div>
+          </div>
+          <div class="card-body p-0">
+            <div class="scroll-area p-3" style="max-height: var(--showcase-h); overflow-y:auto;">
+              {% set total_items = (my_events|length if my_events is defined else 0) + (my_campaigns|length if my_campaigns is defined else 0) %}
+              {% if total_items > 0 %}
+                <ul class="list-unstyled m-0">
+                  {% for e in my_events %}
+                    {% if (not e.end_date) or (e.end_date >= now) %}
+                      <li class="list-item py-2">
+                        <a href="{{ url_for('public.detail', content_type='event', item_id=e.id) }}" class="item-title link-strong">
+                          {{ e.title }}
+                        </a>
+                        <div class="small text-muted mt-1">
+                          📅 {{ e.date.strftime('%d/%m/%Y') if e.date else _('Data non definita') }}{% if e.location %} · 📍 {{ e.location }}{% endif %}
+                        </div>
+                        <hr class="soft-divider my-2">
+                      </li>
                     {% endif %}
-                  </div>
-
-                  <div>
-                    <button class="post-toggle-link" type="button" data-target="#{{ pid }}-content">
-                      {{ _('Mostra altro') }}
-                    </button>
-                  </div>
-
-                  <!-- Applausi -->
-                  {% set applause_count = post.applause|length if post.applause is defined else 0 %}
-                  {% set user_has_applauded = current_user.is_authenticated and post.applause|selectattr("user_id","equalto",current_user.id)|list|length > 0 %}
-                  <div class="mt-2 d-flex align-items-center">
-                    <button type="button"
-                            class="applause-btn d-inline-flex align-items-center {% if user_has_applauded %}active{% endif %}"
-                            data-post-id="{{ post.id }}">
-                      <i class="bi bi-hand-thumbs-up-fill"></i>
-                      <span class="applause-count ms-1">{{ applause_count }}</span>
-                    </button>
-                  </div>
-                </div>
-              </article>
-            {% endfor %}
-          {% else %}
-            <p class="text-muted mb-0">{{ _('Nessun post ancora pubblicato.') }}</p>
-          {% endif %}
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <!-- 📅 COLONNA DESTRA: EVENTI + CAMPAGNE ATTIVE -->
-  <div class="col-xl-3 col-lg-4">
-    <section class="card shadow-sm panel-sticky">
-      <div class="panel-header">
-        <h6 class="mb-0">{{ _('Eventi e Campagne attive') }}</h6>
-      </div>
-      <div class="card-body">
-        <div class="scroll-box">
-          {% set total_items = my_events|length + my_campaigns|length %}
-          {% if total_items > 0 %}
-            {% for e in my_events %}
-              {% if (not e.end_date) or (e.end_date >= now) %}
-                <div class="list-item">
-                  <a href="{{ url_for('public.detail', content_type='event', item_id=e.id) }}" class="item-title text-decoration-none">
-                    {{ e.title }}
-                  </a>
-                  <div class="small text-muted">
-                    📅 {{ e.date.strftime('%d/%m/%Y') if e.date else _('Data non definita') }}
-                    {% if e.location %} · 📍 {{ e.location }}{% endif %}
-                  </div>
-                </div>
+                  {% endfor %}
+                  {% for c in my_campaigns %}
+                    {% if (not c.end_date) or (c.end_date >= now) %}
+                      <li class="list-item py-2">
+                        <a href="{{ url_for('public.detail', content_type='campaign', item_id=c.id) }}" class="item-title link-strong">
+                          {{ c.title }}
+                        </a>
+                        <div class="small text-muted mt-1">🎯 {{ c.goal or _('Obiettivo non indicato') }}</div>
+                        <hr class="soft-divider my-2">
+                      </li>
+                    {% endif %}
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <p class="text-muted small p-3 mb-0">{{ _('Nessuna iniziativa attiva.') }}</p>
               {% endif %}
-            {% endfor %}
-            {% for c in my_campaigns %}
-              {% if (not c.end_date) or (c.end_date >= now) %}
-                <div class="list-item">
-                  <a href="{{ url_for('public.detail', content_type='campaign', item_id=c.id) }}" class="item-title text-decoration-none">
-                    {{ c.title }}
-                  </a>
-                  <div class="small text-muted">
-                    🎯 {{ c.goal or _('Obiettivo non indicato') }}
-                  </div>
-                </div>
-              {% endif %}
-            {% endfor %}
-          {% else %}
-            <p class="text-muted small mb-0">{{ _('Nessuna iniziativa attiva.') }}</p>
-          {% endif %}
-        </div>
-      </div>
-    </section>
+            </div>
+          </div>
+        </section>
+      </article>
+
+    </div>
   </div>
-</div>
+</section>
+
 
 <hr class="soft-divider">
 <div class="alert alert-warning mt-2 mb-0">
@@ -286,34 +336,247 @@
 {% endblock %}
 
 {% block scripts %}
+<style>
+/* --- Vetrina orizzontale (FULL-WIDTH) --- */
+:root { --showcase-h: 62vh; --panel-inner: 640px;}
+
+/* Larghezza massima dei contenuti interni (desktop) */
+
+@media (min-width: 992px){
+  /* Post: centra e limita la larghezza della colonna feed */
+  .card .feed-container{
+    max-width: var(--panel-inner);
+    margin-inline: auto;
+    width: 100%;
+  }
+  /* Ogni post-card si adatta alla larghezza massima */
+  .post-card{ width: 100%; }
+
+  /* Donazioni / Attivi: anche le liste diventano strette e centrate */
+  .card .scroll-area{
+    max-width: var(--panel-inner);
+    margin-inline: auto;
+    width: 100%;
+  }
+
+  /* Se usi .panel__body in alcune sezioni, centra pure quella */
+  .panel__body{
+    max-width: var(--panel-inner);
+    margin-inline: auto;
+    width: 100%;
+  }
+
+  /* (opzionale) accorcia la lunghezza di riga del testo dei post */
+  .post-card .post-body{
+    max-width: 72ch;
+  }
+}
+
+/* Mobile: tutto resta full width */
+
+
+/* La viewport mostra una sola slide per volta e consente swipe/scroll */
+.showcase-viewport{
+  width: 100%;
+  overflow-x: auto;              /* swipe con mouse/touch */
+  overflow-y: visible;
+  scroll-snap-type: x mandatory; /* scatta di una slide per volta */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* La traccia: una colonna = 100% della viewport */
+.showcase-track{
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;       /* ogni slide LARGA 100% */
+  gap: 0;                        /* niente gap: evita “tagli” laterali */
+  padding: 0;                    /* padding interno alle card, non qui */
+}
+
+/* Ogni slide riempie tutta la viewport */
+.showcase-slide{
+  min-width: 100%;
+  scroll-snap-align: start;
+  /* niente transizioni di width: non servono più */
+}
+.showcase-slide .card{ height:100%; }
+
+/* pill (tabs) */
+.showcase .pill{
+  border: 1px solid rgba(0,0,0,.08);
+  background: #fff;
+  padding:.35rem .7rem;
+  border-radius: 999px;
+  font-weight:600;
+  font-size:.95rem;
+}
+.showcase .pill.active{
+  background: var(--bs-light);
+  border-color: var(--bs-primary);
+  color: var(--bs-primary);
+}
+
+/* frecce */
+.showcase .nav-arrows .icon-btn{ font-size:1.2rem; line-height:1; }
+
+/* Mobile: identico comportamento (già full-width) */
+@media (max-width: 767.98px){
+  .showcase .nav-arrows{ display:none; } /* opzionale */
+}
+
+/* === Card look per righe di Donazioni e Attivi ======================= */
+:root{
+  --tile-radius: 14px;
+  --tile-border: rgba(0,0,0,.08);
+  --tile-shadow: 0 1px 2px rgba(16,24,40,.04), 0 2px 8px rgba(16,24,40,.06);
+}
+
+/* Contenitori “liste” dentro le colonne laterali */
+.card .scroll-area > ul{
+  display: grid;
+  gap: .75rem;            /* spazio tra le card */
+  padding: 0;
+}
+
+/* Ogni elemento lista diventa una mini-card */
+.card .scroll-area .list-item{
+  background: #fff;
+  border: 1px solid var(--tile-border);
+  border-radius: var(--tile-radius);
+  box-shadow: var(--tile-shadow);
+  padding: .85rem 1rem;
+}
+
+/* Titolo + meta su due righe ben distinte */
+.card .scroll-area .list-item .item-title{
+  display: inline-block;
+  font-weight: 600;
+  margin-bottom: .25rem;
+  text-decoration: none;
+}
+
+/* Icona PDF allineata a destra quando presente */
+.card .scroll-area .list-item .icon-btn{
+  align-self: start;
+}
+
+/* Se in markup avevi <hr class="soft-divider"> tra le righe, nascondilo */
+.card .scroll-area .soft-divider{ display: none; }
+
+/* Stessa larghezza “snella” e centrata delle altre sezioni (desktop) */
+@media (min-width: 992px){
+  .card .scroll-area{
+    max-width: var(--panel-inner, 860px); /* usa il valore che hai già impostato */
+    margin-inline: auto;
+    width: 100%;
+  }
+}
+
+/* header del pannello “Attivi”: pulsanti ben allineati anche su mobile */
+.panel-header .btn-ghost-sm { white-space: nowrap; }
+@media (max-width: 575.98px){
+  .panel-header .d-flex.flex-wrap { gap: .5rem .5rem; }
+}
+
+
+</style>
+
 <script>
+document.addEventListener('DOMContentLoaded', () => {
+  const viewport = document.querySelector('.dash-viewport');
+  const track = document.querySelector('.dash-track');
+  const tabs = document.querySelectorAll('[data-pane-btn]');
+
+  function setActive(i){
+    if (!track) return;
+    track.style.setProperty('--active', i);
+    tabs.forEach((b,idx) => b.classList.toggle('is-active', idx === i));
+  }
+
+  tabs.forEach((btn, idx) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      setActive(idx);
+    });
+  });
+
+  // opzionale: imposta “Post” all’avvio
+  setActive(0);
+});
+
+  (function(){
+  const viewport = document.querySelector('.showcase-viewport');
+  const slides = [...document.querySelectorAll('.showcase-slide')];
+  const pills  = [...document.querySelectorAll('.showcase .pill')];
+  const prev   = document.getElementById('showcasePrev');
+  const next   = document.getElementById('showcaseNext');
+
+  function setActive(el){
+    slides.forEach(s => s.classList.toggle('is-active', s===el));
+    const id = '#' + el.id;
+    pills.forEach(p => p.classList.toggle('active', p.dataset.target === id));
+    el.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+  }
+
+  // click su pill
+  pills.forEach(p => p.addEventListener('click', () => {
+    const target = document.querySelector(p.dataset.target);
+    if(target) setActive(target);
+  }));
+
+  // click sul pannello: lo attivo
+  slides.forEach(s => s.addEventListener('click', (e) => {
+    // evita che click su link dentro la carta cambi la slide
+    const a = e.target.closest('a,button');
+    if (a && a.getAttribute('href')) return;
+    setActive(s);
+  }));
+
+  // frecce
+  function move(dir){
+    const idx = slides.findIndex(s => s.classList.contains('is-active'));
+    let ni = Math.min(slides.length-1, Math.max(0, idx + dir));
+    setActive(slides[ni]);
+  }
+  if (prev) prev.addEventListener('click', () => move(-1));
+  if (next) next.addEventListener('click', () => move(+1));
+
+  // tastiera
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') move(-1);
+    if (e.key === 'ArrowRight') move(+1);
+  });
+})();
+  // Toggle "Mostra altro / meno" nei post
   document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.post-toggle-link').forEach(btn => {
       const target = document.querySelector(btn.getAttribute('data-target'));
       if (!target) return;
       btn.addEventListener('click', () => {
-        target.classList.toggle('expanded');
-        btn.textContent = target.classList.contains('expanded')
-          ? '{{ _("Mostra meno") }}'
-          : '{{ _("Mostra altro") }}';
+        const isCollapsed = target.getAttribute('data-collapsed') !== 'false';
+        target.setAttribute('data-collapsed', String(!isCollapsed));
+        target.setAttribute('aria-expanded', String(!isCollapsed));
+        btn.textContent = isCollapsed ? '{{ _("Mostra meno") }}' : '{{ _("Mostra altro") }}';
       });
     });
   });
 
+  // Zoom/logo fullscreen
   function toggleFullscreen(img) {
     const overlay = document.createElement("div");
     Object.assign(overlay.style, {
       position: "fixed", inset: 0, background: "rgba(0,0,0,.8)",
       display: "flex", alignItems: "center", justifyContent: "center",
-      zIndex: 9999
+      zIndex: 9999, cursor:"zoom-out"
     });
     const bigImg = document.createElement("img");
-    Object.assign(bigImg.style, { maxWidth: "90%", maxHeight: "90%", borderRadius: "10px" });
+    Object.assign(bigImg.style, { maxWidth: "90%", maxHeight: "90%", borderRadius: "10px", boxShadow: "0 4px 20px rgba(0,0,0,.5)" });
     bigImg.src = img.src;
     overlay.appendChild(bigImg);
     overlay.addEventListener("click", () => overlay.remove());
     document.body.appendChild(overlay);
   }
 </script>
+
 <script src="{{ url_for('static', filename='js/applause.js') }}"></script>
 {% endblock %}

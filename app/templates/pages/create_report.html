@@ -2,7 +2,8 @@
 {% block title %}Nuova Segnalazione{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">{{ _('Effettua una segnalazione') }}</h2>
+<h1 class="h4">{{ report and _('Modifica segnalazione') or _('Nuova segnalazione') }}</h1>
+
 
 <form method="POST" enctype="multipart/form-data">
     {{ form.hidden_tag() }}
@@ -42,7 +43,9 @@
         {{ form.image(class="form-control") }}
     </div>
 
-    <button type="submit" class="btn btn-primary">{{ _('Invia segnalazione') }}</button>
+<button class="btn btn-primary">
+  {{ report and _('Salva modifiche') or _('Pubblica') }}
+</button>
 </form>
 
 <script>

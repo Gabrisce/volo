@@ -68,7 +68,7 @@ h4, h5, h6 { font-weight: 600; color: var(--color-primary-dark); }
 .feed-card .title { margin: 0 0 4px; font-size: 1.05rem; font-weight: 700; }
 .feed-card .meta { color: var(--color-text-muted); font-size: .9rem; }
 /* === FOOTER === */ .site-footer { background-color: var(--color-navbar-bg); color: white; font-size: 0.85rem; border-top: 1px solid rgba(255, 255, 255, 0.05); }
-.site-footer.footer-compact { height: 100px; background-color: var(--color-navbar-bg); color: white; font-size: 0.85rem; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+.site-footer.footer-compact { height: 30px; background-color: var(--color-navbar-bg); color: white; font-size: 0.85rem; border-top: 1px solid rgba(255, 255, 255, 0.05); }
 .footer-logo { height: 66px; filter: brightness(0) invert(1); }
 .site-footer a { color: white; text-decoration: none; margin: 0 0.4rem; font-weight: 500; font-size: 0.85rem; }
 .site-footer a:hover { color: var(--color-navbar-hover); }
@@ -307,7 +307,12 @@ h4, h5, h6 { font-weight: 600; color: var(--color-primary-dark); }
 .btn-link-reset:focus-visible { box-shadow: var(--ring); }
 .feed-card.highlight { outline: 3px solid var(--color-primary); transition: outline .2s ease; }
 /* Migliora rendering testo/icone su display moderni */ html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-/* NEW: Overall layout */ .login-page { --green-50: #e7f7e8e6; --green-100: #caf9cde6; --green-200: #b3e0b6e6; --green-300: #9fe2a4e6; --green-400: #61b867e6; --green-500: #48c350e6; --green-600: #3aa441e6; --green-700: #26842de6; --green-focus: #3db045e6; --button-green: var(--green-500); --button-green-hover: var(--green-600); --button-green-disabled: #38a03fe6; min-height: 100vh; padding: clamp(1.5rem, 4vw, 4rem) 1.5rem; }
+/* NEW: Overall layout */ 
+.login-page { background: url("../img/background.png") center center / cover no-repeat fixed;--green-50: #e7f7e8e6; --green-100: #caf9cde6; --green-200: #b3e0b6e6; --green-300: #9fe2a4e6; --green-400: #61b867e6; --green-500: #48c350e6; --green-600: #3aa441e6; --green-700: #26842de6; --green-focus: #3db045e6; --button-green: var(--green-500); --button-green-hover: var(--green-600); --button-green-disabled: #38a03fe6; min-height: 100%; padding: clamp(1.5rem, 4vw, 4rem) 1.5rem;  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+ }
 .login-body .navbar, .login-body .site-footer { display: none !important; }
 .login-shell { width: min(1020px, 100%); }
 .login-card { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); border-radius: 24px; overflow: hidden; background: rgba(255, 255, 255, 0.92); border: 1px solid rgba(255, 255, 255, 0.6); box-shadow: 0 25px 45px -20px rgba(17, 24, 39, 0.25); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
