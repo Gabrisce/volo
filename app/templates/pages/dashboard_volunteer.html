@@ -4,25 +4,20 @@
 {% block container_class %}container-xxl{% endblock %}
 
 {% block content %}
+<div class="v-dashboard"><!-- WRAPPER PER ISOLARE CSS/JS -->
 
 <!-- ====== HEADER PROFILO ====== -->
 <div class="row align-items-center mb-4 gy-3">
-  <!-- Foto profilo -->
   <div class="col-md-2 text-center">
     {% if current_user.photo_filename and current_user.photo_filename|length > 0 %}
       <img src="{{ url_for('dashboard.static', filename='uploads/profile-photo/' ~ current_user.photo_filename) }}"
-           class="profile-photo ring-click"
-           alt="Foto profilo"
-           onclick="toggleFullscreen(this)">
+           class="profile-photo ring-click" alt="Foto profilo" onclick="toggleFullscreen(this)">
     {% else %}
       <img src="{{ url_for('static', filename='img/avatar-placeholder.png') }}"
-           class="profile-photo ring-click"
-           alt="Foto profilo"
-           onclick="toggleFullscreen(this)">
+           class="profile-photo ring-click" alt="Foto profilo" onclick="toggleFullscreen(this)">
     {% endif %}
   </div>
 
-  <!-- Dati anagrafici + Pulsanti a destra -->
   <div class="col-md-10">
     <div class="d-flex justify-content-between align-items-start flex-wrap">
       <div>
@@ -31,28 +26,13 @@
           <a href="{{ url_for('public.followed_associations') }}" class="chip-link">
             👥 {{ current_user.followed_associations.count() }} {{ _('seguite') }}
           </a>
-          <a href="{{ url_for('settings.edit_profile') }}"
-             title="{{ _('Modifica profilo') }}"
-             aria-label="{{ _('Modifica profilo') }}">
-          <i class="bi bi-gear-fill"></i>
+          <a href="{{ url_for('settings.edit_profile') }}" title="{{ _('Modifica profilo') }}" aria-label="{{ _('Modifica profilo') }}">
+            <i class="bi bi-gear-fill"></i>
+          </a>
         </p>
         {% if current_user.bio %}
           <p class="mb-0 text-body-secondary">{{ current_user.bio }}</p>
         {% endif %}
-      </div>
-
-
-      <div class="d-flex flex-column align-items-end">
-        <a href="{{ url_for('petitions.create_petition') }}"
-           class="btn-ghost-brand me-0 mb-2"
-           aria-label="{{ _('Gestisci Eventi') }}">
-          <i class="bi bi-pencil-square me-1"></i>{{ _('Nuova Petizione') }}
-        </a>
-        <a href="{{ url_for('reports.create_report') }}"
-           class="btn-ghost-brand"
-           aria-label="{{ _('Crea report') }}">
-          <i class="bi bi-geo-alt-fill me-1"></i>{{ _('Segnala!') }}
-        </a>
       </div>
     </div>
   </div>
@@ -60,267 +40,421 @@
 
 <hr class="soft-divider">
 
-<!-- ====== LAYOUT A TRE COLONNE ====== -->
-<div class="row g-4">
+{# ====== VETRINA ORIZZONTALE (VOLONTARIO) ====== #}
+<section class="showcase">
 
-  <!-- SINISTRA: Storico attività -->
-  <div class="col-lg-3">
-  <section aria-labelledby="history-title" class="card shadow-sm panel-sticky">
-    <div class="panel-header">
-      <h2 id="history-title" class="h6 mb-0">{{ _('Storico attività') }}</h2>
+  <!-- Nav pills -->
+  <div class="showcase-nav d-flex align-items-center justify-content-between mb-2">
+    <div class="nav-pills gap-2">
+      <button class="pill active" data-target="#slide-activities">
+        <i class="bi bi-megaphone me-1"></i>{{ _('Segnalazioni & Petizioni') }}
+      </button>
+      <button class="pill" data-target="#slide-history">
+        <i class="bi bi-clock-history me-1"></i>{{ _('Storico attività') }}
+      </button>
+      <button class="pill" data-target="#slide-upcoming">
+        <i class="bi bi-calendar-event me-1"></i>{{ _('Eventi in arrivo') }}
+      </button>
     </div>
-    <div class="card-body">
-      <div class="scroll-area">
-        <ul class="list-unstyled m-0">
-          {% if history_items and history_items|length > 0 %}
-            {% for item in history_items %}
-              <li class="list-item">
-                <div class="list-grid">
-                  <div class="min-w-0">
-
-                    {% if item.type == "donation" %}
-                      <a href="{{ url_for('campaigns.campaign_detail', campaign_id=item.campaign_id) }}"
-                         class="item-title link-strong">
-                        {{ item.title }}
-                      </a>
-                      <span class="badge-soft warning">{{ _('Campagna') }}</span>
-                      <div class="small text-muted mt-1">
-                        {{ item.date.strftime('%d/%m/%Y') }}
-                        {% if item.amount %} — {{ '%.2f'|format(item.amount) }} € {% endif %}
-                      </div>
-
-                    {% elif item.type == "event" %}
-                      <a href="{{ url_for('events.event_detail', event_id=item.event_id) }}"
-                         class="item-title link-strong">
-                        {{ item.title }}
-                      </a>
-                      <span class="badge-soft success">{{ _('Evento') }}</span>
-                      <div class="small text-muted mt-1">
-                        {{ item.date.strftime('%d/%m/%Y %H:%M') }}
-                        {% if item.location %} — {{ item.location }} {% endif %}
-                      </div>
-                    {% endif %}
-                  </div>
-
-                  <div class="text-end">
-                    {% if item.type == "donation" and item.pdf_filename %}
-                      <a href="{{ url_for('payments.download_receipt', filename=item.pdf_filename) }}"
-                         target="_blank" rel="noopener noreferrer"
-                         class="icon-btn ghost" aria-label="Apri ricevuta PDF" title="Apri ricevuta PDF">
-                        <i class="bi bi-filetype-pdf text-danger"></i>
-                      </a>
-                    {% elif item.type == "donation" %}
-                      <span class="small text-muted d-inline-block mt-1">{{ _('PDF non disponibile') }}</span>
-                    {% endif %}
-                  </div>
-                </div>
-              </li>
-            {% endfor %}
-          {% else %}
-            <li class="text-muted py-2">{{ _('Nessuna attività nello storico.') }}</li>
-          {% endif %}
-        </ul>
-      </div>
+    <div class="nav-arrows">
+      <button class="icon-btn ghost" id="showcasePrev" aria-label="{{ _('Vai a sinistra') }}">‹</button>
+      <button class="icon-btn ghost" id="showcaseNext" aria-label="{{ _('Vai a destra') }}">›</button>
     </div>
-  </section>
-</div>
+  </div>
 
+  <!-- Viewport -->
+  <div class="showcase-viewport">
+    <div class="showcase-track">
 
-  <!-- CENTRO: Segnalazioni e Petizioni -->
-  <div class="col-lg-6">
-    {% if activities %}
-      <div class="feed-container" style="max-height: 520px; overflow-y: auto; padding-right: 6px;">
-        {% for item in activities %}
-          <article class="card shadow-sm mb-3 feed-card">
-            <div class="card-body position-relative">
-
-              <!-- Azioni (cestino) -->
-              <div class="report-actions" aria-label="Azioni contenuto">
-                {% if item.type == 'report' %}
-                  <button type="button" class="icon-btn danger"
-                          title="{{ _('Elimina') }}"
-                          data-bs-toggle="modal" data-bs-target="#confirmDeleteModal-report-{{ item.id }}">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                {% elif item.type == 'petition' %}
-                  <button type="button" class="icon-btn danger"
-                          title="{{ _('Elimina') }}"
-                          data-bs-toggle="modal" data-bs-target="#confirmDeleteModal-petition-{{ item.id }}">
-                    <i class="bi bi-trash"></i>
-                  </button>
-                {% endif %}
-              </div>
-
-              <!-- Modale conferma eliminazione -->
-              {% if item.type == 'report' %}
-                <div class="modal fade" id="confirmDeleteModal-report-{{ item.id }}" tabindex="-1" aria-hidden="true">
-                  <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <h5 class="modal-title">{{ _('Conferma eliminazione') }}</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                      </div>
-                      <div class="modal-body">
-                        {{ _('Sei sicuro di voler eliminare la segnalazione') }} <strong>{{ item.title }}</strong>?
-                      </div>
-                      <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ _('Annulla') }}</button>
-                        <form action="{{ url_for('reports.delete_report', report_id=item.id) }}" method="POST">
-                          <button type="submit" class="btn btn-danger btn-sm">{{ _('Elimina') }}</button>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              {% elif item.type == 'petition' %}
-                <div class="modal fade" id="confirmDeleteModal-petition-{{ item.id }}" tabindex="-1" aria-hidden="true">
-                  <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                      <div class="modal-header">
-                        <h5 class="modal-title">{{ _('Conferma eliminazione') }}</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                      </div>
-                      <div class="modal-body">
-                        {{ _('Sei sicuro di voler eliminare la petizione') }} <strong>{{ item.title }}</strong>?
-                      </div>
-                      <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ _('Annulla') }}</button>
-                        <form action="{{ url_for('petitions.delete_petition', petition_id=item.id) }}" method="POST">
-                          <button type="submit" class="btn btn-danger btn-sm">{{ _('Elimina') }}</button>
-                        </form>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              {% endif %}
-
-              <!-- Contenuto -->
-              <h5 class="card-title mb-1">
-                {% if item.type == 'report' %}
-                  <a href="{{ url_for('public.detail', content_type='report', item_id=item.id) }}"
-                     class="text-decoration-none text-dark">{{ item.title }}</a>
-                {% elif item.type == 'petition' %}
-                  <a href="{{ url_for('petitions.petition_detail', petition_id=item.id) }}"
-                     class="text-decoration-none text-dark">{{ item.title }}</a>
-                {% endif %}
-              </h5>
-
-              <small class="text-muted d-block mb-2">
-                🗓️ {{ item.created_at.strftime("%d/%m/%Y %H:%M") }}
-                {% if item.type == 'report' %}
-                  · 📍 {{ item.address if item.address else (item.latitude ~ ", " ~ item.longitude) }}
-                {% endif %}
-              </small>
-
-              {% if item.description %}
-                <p class="card-text clamp" data-clamp="4">{{ item.description }}</p>
-              {% endif %}
-
-              {% if item.image_filename %}
-                <div class="media-wrap clamp-media mb-2">
-                  {% if item.type == 'report' %}
-                    <img src="{{ url_for('reports.static', filename='uploads/reports/' ~ item.image_filename) }}"
-                         class="img-fluid rounded" alt="Immagine segnalazione">
-                  {% elif item.type == 'petition' %}
-                    <img src="{{ url_for('petitions.static', filename='uploads/petitions/' ~ item.image_filename) }}"
-                         class="img-fluid rounded" alt="Immagine petizione">
-                  {% endif %}
-                </div>
-              {% endif %}
-
-              <button type="button" class="toggle-card d-none">{{ _('Mostra altro') }}</button>
+      <!-- 🔔 SEGNALAZIONI & PETIZIONI (default) -->
+      <article class="showcase-slide is-active" id="slide-activities">
+        <section class="card shadow-sm h-100">
+          <div class="panel-header d-flex align-items-center justify-content-between">
+            <h6 class="mb-0 d-flex align-items-center gap-2">
+              <i class="bi bi-megaphone"></i> {{ _('Segnalazioni & Petizioni') }}
+            </h6>
+            <div class="d-flex gap-2">
+              <a href="{{ url_for('reports.create_report') }}" class="btn-ghost-brand btn-ghost-sm rounded-pill">
+                {{ _('+ Segnalazione') }}
+              </a>
+              <a href="{{ url_for('petitions.create_petition') }}" class="btn-ghost-brand btn-ghost-sm rounded-pill">
+                {{ _('+ Petizione') }}
+              </a>
             </div>
-          </article>
-        {% endfor %}
-      </div>
-    {% else %}
-      <div class="alert alert-light mb-0">{{ _('Non hai ancora effettuato segnalazioni o petizioni.') }}</div>
-    {% endif %}
-  </div>
+          </div>
 
-  <!-- DESTRA: Prossimi eventi -->
-  <div class="col-lg-3">
-    <section aria-labelledby="upcoming-title" class="card shadow-sm panel-sticky">
-      <div class="panel-header">
-        <h2 id="upcoming-title" class="h6 mb-0">{{ _('Prossimi eventi') }}</h2>
-      </div>
-      <div class="card-body">
-        <ul class="list-unstyled mb-0">
-          {% if participations %}
-            {% for p in participations %}
-              <li class="list-item">
-                <div class="d-flex justify-content-between align-items-start gap-2">
-                  <div class="min-w-0">
-                    <a href="{{ url_for('events.event_detail', event_id=p.event.id) }}" class="item-title">
-                      {{ p.event.title }}
-                    </a>
-                    <div class="small text-muted">
-                      📅 {{ p.event.date.strftime("%d/%m/%Y %H:%M") }}
-                      {% if p.event.location %} · 📍 {{ p.event.location }}{% endif %}
+          {% if activities %}
+          <div class="card-body">
+            <div class="feed-container" style="max-height: var(--v-showcase-h); overflow-y:auto;">
+              {% for item in activities %}
+              <article class="card shadow-sm mb-3 feed-card">
+                <div class="card-body position-relative">
+
+                  <!-- Azioni -->
+                  <div class="report-actions d-flex gap-1">
+                    {% if item.type == 'report' %}
+                      <a href="{{ url_for('reports.edit_report', report_id=item.id) }}"
+                         class="icon-btn" title="{{ _('Modifica segnalazione') }}"
+                         aria-label="{{ _('Modifica segnalazione') }}">
+                        <i class="bi bi-pencil-square"></i>
+                      </a>
+                      <button type="button" class="icon-btn danger" title="{{ _('Elimina') }}"
+                              data-bs-toggle="modal" data-bs-target="#confirmDeleteModal-report-{{ item.id }}">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    {% elif item.type == 'petition' %}
+                      <a href="{{ url_for('petitions.edit_petition', petition_id=item.id) }}"
+                         class="icon-btn" title="{{ _('Modifica petizione') }}"
+                         aria-label="{{ _('Modifica petizione') }}">
+                        <i class="bi bi-pencil-square"></i>
+                      </a>
+                      <button type="button" class="icon-btn danger" title="{{ _('Elimina') }}"
+                              data-bs-toggle="modal" data-bs-target="#confirmDeleteModal-petition-{{ item.id }}">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    {% endif %}
+                  </div>
+
+                  <!-- Modali conferma -->
+                  {% if item.type == 'report' %}
+                  <div class="modal fade" id="confirmDeleteModal-report-{{ item.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h5 class="modal-title">{{ _('Conferma eliminazione') }}</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                          {{ _('Eliminare la segnalazione') }} <strong>{{ item.title }}</strong>?
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ _('Annulla') }}</button>
+                          <form action="{{ url_for('reports.delete_report', report_id=item.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-danger btn-sm">{{ _('Elimina') }}</button>
+                          </form>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div class="status-dot" data-status="{{ p.status }}"></div>
-                </div>
-              </li>
-            {% endfor %}
-          {% else %}
-            <li class="text-muted py-2">{{ _('Nessun evento futuro a cui partecipi.') }}</li>
-          {% endif %}
-        </ul>
-      </div>
-    </section>
-  </div>
+                  {% elif item.type == 'petition' %}
+                  <div class="modal fade" id="confirmDeleteModal-petition-{{ item.id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h5 class="modal-title">{{ _('Conferma eliminazione') }}</h5>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                          {{ _('Eliminare la petizione') }} <strong>{{ item.title }}</strong>?
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ _('Annulla') }}</button>
+                          <form action="{{ url_for('petitions.delete_petition', petition_id=item.id) }}" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-danger btn-sm">{{ _('Elimina') }}</button>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {% endif %}
 
-</div>
+                  <!-- Contenuto -->
+                  <h5 class="card-title mb-1">
+                    {% if item.type == 'report' %}
+                      <a href="{{ url_for('public.detail', content_type='report', item_id=item.id) }}"
+                         class="text-decoration-none text-dark">{{ item.title }}</a>
+                    {% else %}
+                      <a href="{{ url_for('petitions.petition_detail', petition_id=item.id) }}"
+                         class="text-decoration-none text-dark">{{ item.title }}</a>
+                    {% endif %}
+                  </h5>
+
+                  <small class="text-muted d-block mb-2">
+                    🗓️ {{ item.created_at.strftime("%d/%m/%Y %H:%M") }}
+                    {% if item.type == 'report' %}
+                      · 📍 {{ item.address if item.address else (item.latitude ~ ", " ~ item.longitude) }}
+                    {% endif %}
+                  </small>
+
+                  {% if item.description %}
+                    <p class="card-text clamp" data-clamp="4">{{ item.description }}</p>
+                  {% endif %}
+
+                  {% if item.image_filename %}
+                    <div class="media-wrap clamp-media mb-2">
+                      {% if item.type == 'report' %}
+                        <img src="{{ url_for('reports.static', filename='uploads/reports/' ~ item.image_filename) }}"
+                             class="img-fluid rounded" alt="Immagine segnalazione">
+                      {% else %}
+                        <img src="{{ url_for('petitions.static', filename='uploads/petitions/' ~ item.image_filename) }}"
+                             class="img-fluid rounded" alt="Immagine petizione">
+                      {% endif %}
+                    </div>
+                  {% endif %}
+
+                  <button type="button" class="toggle-card d-none">{{ _('Mostra altro') }}</button>
+                </div>
+              </article>
+              {% endfor %}
+            </div>
+          </div>
+          {% else %}
+            <div class="card-body">
+              <div class="alert alert-light mb-0 narrow-wrap">{{ _('Non hai ancora effettuato segnalazioni o petizioni.') }}</div>
+            </div>
+          {% endif %}
+        </section>
+      </article>
+
+      <!-- 🕒 STORICO ATTIVITÀ -->
+      <article class="showcase-slide" id="slide-history">
+        <section class="card shadow-sm h-100">
+          <div class="panel-header">
+            <h6 class="mb-0 d-flex align-items-center gap-2">
+              <i class="bi bi-clock-history"></i> {{ _('Storico attività') }}
+            </h6>
+          </div>
+          <div class="card-body p-0">
+            <div class="scroll-area p-3" style="max-height: var(--v-showcase-h); overflow-y:auto;">
+              <ul class="list-unstyled m-0">
+                {% if history_items and history_items|length > 0 %}
+                  {% for item in history_items %}
+                    <li class="list-item v-tile">
+                      <div class="list-grid">
+                        <div class="min-w-0">
+                          {% if item.type == "donation" %}
+                            <a href="{{ url_for('campaigns.campaign_detail', campaign_id=item.campaign_id) }}"
+                               class="item-title v-link-strong">{{ item.title }}</a>
+                            <span class="v-badge-soft v-badge-warning ms-1">{{ _('Campagna') }}</span>
+                            <div class="small text-muted mt-1">
+                              {{ item.date.strftime('%d/%m/%Y') }}
+                              {% if item.amount %} — {{ '%.2f'|format(item.amount) }} € {% endif %}
+                            </div>
+                          {% elif item.type == "event" %}
+                            <a href="{{ url_for('events.event_detail', event_id=item.event_id) }}"
+                               class="item-title v-link-strong">{{ item.title }}</a>
+                            <span class="v-badge-soft v-badge-success ms-1">{{ _('Evento') }}</span>
+                            <div class="small text-muted mt-1">
+                              {{ item.date.strftime('%d/%m/%Y %H:%M') }}
+                              {% if item.location %} — {{ item.location }} {% endif %}
+                            </div>
+                          {% endif %}
+                        </div>
+                        <div class="text-end">
+                          {% if item.type == "donation" and item.pdf_filename %}
+                            <a href="{{ url_for('payments.download_receipt', filename=item.pdf_filename) }}"
+                               target="_blank" rel="noopener" class="icon-btn ghost" title="{{ _('Apri ricevuta PDF') }}">
+                              <i class="bi bi-filetype-pdf text-danger"></i>
+                            </a>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </li>
+                  {% endfor %}
+                {% else %}
+                  <li class="text-muted small">{{ _('Nessuna attività nello storico.') }}</li>
+                {% endif %}
+              </ul>
+            </div>
+          </div>
+        </section>
+      </article>
+
+      <!-- 📅 EVENTI IN ARRIVO -->
+      <article class="showcase-slide" id="slide-upcoming">
+        <section class="card shadow-sm h-100">
+          <div class="panel-header">
+            <h6 class="mb-0 d-flex align-items-center gap-2">
+              <i class="bi bi-calendar-event"></i> {{ _('Eventi in arrivo') }}
+            </h6>
+          </div>
+          <div class="card-body p-0">
+            <div class="scroll-area p-3" style="max-height: var(--v-showcase-h); overflow-y:auto;">
+              <ul class="list-unstyled mb-0">
+                {% if participations %}
+                  {% for p in participations %}
+                    <li class="list-item v-tile">
+                      <div class="d-flex justify-content-between align-items-start gap-2">
+                        <div class="min-w-0">
+                          <a href="{{ url_for('events.event_detail', event_id=p.event.id) }}" class="item-title v-link-strong">
+                            {{ p.event.title }}
+                          </a>
+                          <div class="small text-muted mt-1">
+                            {{ p.event.date.strftime("%d/%m/%Y %H:%M") }}
+                            {% if p.event.location %} · 📍 {{ p.event.location }}{% endif %}
+                          </div>
+                        </div>
+                        <div class="v-status-dot" data-status="{{ p.status }}"></div>
+                      </div>
+                    </li>
+                  {% endfor %}
+                {% else %}
+                  <li class="text-muted small">{{ _('Nessun evento futuro a cui partecipi.') }}</li>
+                {% endif %}
+              </ul>
+            </div>
+          </div>
+        </section>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<hr class="soft-divider">
+
+</div><!-- /.v-dashboard -->
 {% endblock %}
 
 {% block scripts %}
+<style>
+/* ====== SCOPED VARS ====== */
+.v-dashboard{
+  --v-showcase-h: 62vh;
+  --v-panel-inner: 640px;
+  --v-tile-radius: 14px;
+  --v-tile-border: rgba(0,0,0,.08);
+  --v-tile-shadow: 0 1px 2px rgba(16,24,40,.04), 0 2px 8px rgba(16,24,40,.06);
+}
+
+/* contenuti interni stretti e centrati su desktop */
+@media (min-width: 992px){
+  .v-dashboard .card .feed-container,
+  .v-dashboard .card .scroll-area,
+  .v-dashboard .panel__body{
+    max-width: var(--v-panel-inner);
+    margin-inline: auto;
+    width: 100%;
+  }
+  .v-dashboard .post-card .post-body{ max-width: 72ch; }
+}
+
+/* viewport = una slide per schermo, con snap */
+.v-dashboard .showcase-viewport{
+  width:100%; overflow-x:auto; overflow-y:visible;
+  scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+}
+/* ogni slide è larga 100% */
+.v-dashboard .showcase-track{ display:grid; grid-auto-flow:column; grid-auto-columns:100%; gap:0; padding:0; }
+.v-dashboard .showcase-slide{ min-width:100%; scroll-snap-align:start; }
+.v-dashboard .showcase-slide .card{ height:100%; }
+
+/* pills (scoped) */
+.v-dashboard .showcase .pill{
+  border:1px solid rgba(0,0,0,.08); background:#fff; padding:.35rem .7rem;
+  border-radius:999px; font-weight:600; font-size:.95rem;
+}
+.v-dashboard .showcase .pill.active{ background:var(--bs-light); border-color:var(--bs-primary); color:var(--bs-primary); }
+
+/* frecce */
+.v-dashboard .showcase .nav-arrows .icon-btn{ font-size:1.2rem; line-height:1; }
+@media (max-width: 767.98px){ .v-dashboard .showcase .nav-arrows{ display:none; } }
+
+/* tiles uniformi per liste (scoped) */
+.v-dashboard .v-tile{
+  background:#fff; border:1px solid var(--v-tile-border);
+  border-radius:var(--v-tile-radius); box-shadow:var(--v-tile-shadow);
+  padding:.85rem 1rem;
+}
+.v-dashboard .list-grid{ display:grid; grid-template-columns:1fr auto; gap:.5rem 1rem; align-items:start; }
+.v-dashboard .v-link-strong{ font-weight:600; text-decoration:none; }
+.v-dashboard .v-link-strong:hover{ text-decoration:underline; }
+.v-dashboard .v-badge-soft{ font-size:.72rem; padding:.15rem .5rem; border-radius:999px; display:inline-block; }
+.v-dashboard .v-badge-success{ background:rgba(16,185,129,.12); color:#0f5132; }
+.v-dashboard .v-badge-warning{ background:rgba(245,158,11,.12); color:#7c4a03; }
+.v-dashboard .v-status-dot{ width:10px; height:10px; border-radius:50%; margin-top:.35rem; }
+.v-dashboard .v-status-dot[data-status="confirmed"]{ background:#16a34a; }
+.v-dashboard .v-status-dot[data-status="pending"]{ background:#f59e0b; }
+.v-dashboard .v-status-dot[data-status="declined"]{ background:#ef4444; }
+
+/* divider rimane globale perché già usato altrove, ma se crea conflitti, scoprlo: */
+/* .v-dashboard .soft-divider{ border:0; height:1px; background:rgba(0,0,0,.06); } */
+</style>
+
 <script>
-  // Clamp/expand come nella home
-  document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.feed-card').forEach(function(card){
-      const text = card.querySelector('.clamp');
-      const media = card.querySelector('.clamp-media');
-      const btn   = card.querySelector('.toggle-card');
+/* --- logica vetrina: pills/frecce/keyboard (SCOPED) --- */
+(function(){
+  const root   = document.querySelector('.v-dashboard');
+  if(!root) return;
 
-      let needsToggle = false;
-      if (text && (text.innerText || '').trim().length > 300) needsToggle = true;
-      if (media) needsToggle = true;
+  const slides = [...root.querySelectorAll('.showcase-slide')];
+  const pills  = [...root.querySelectorAll('.showcase .pill')];
+  const prev   = root.querySelector('#showcasePrev');
+  const next   = root.querySelector('#showcaseNext');
 
-      if (needsToggle && btn) {
-        btn.classList.remove('d-none');
-        btn.addEventListener('click', function(){
-          card.classList.toggle('expanded');
-          btn.textContent = card.classList.contains('expanded') ? 'Mostra meno' : 'Mostra altro';
-        });
-      }
-    });
+  function setActive(el){
+    slides.forEach(s => s.classList.toggle('is-active', s===el));
+    const id = '#' + el.id;
+    pills.forEach(p => p.classList.toggle('active', p.dataset.target === id));
+    el.scrollIntoView({behavior:'smooth', inline:'start', block:'nearest'});
+  }
+
+  pills.forEach(p => p.addEventListener('click', () => {
+    const target = root.querySelector(p.dataset.target);
+    if(target) setActive(target);
+  }));
+
+  function move(dir){
+    const idx = slides.findIndex(s => s.classList.contains('is-active'));
+    const ni = Math.min(slides.length-1, Math.max(0, idx + dir));
+    setActive(slides[ni]);
+  }
+  if (prev) prev.addEventListener('click', () => move(-1));
+  if (next) next.addEventListener('click', () => move(+1));
+  document.addEventListener('keydown', (e) => {
+    if (!root.contains(document.activeElement)) return; // reagisci solo se focus è nell'area
+    if (e.key === 'ArrowLeft') move(-1);
+    if (e.key === 'ArrowRight') move(+1);
   });
 
-  // Fullscreen foto profilo
-  function toggleFullscreen(img) {
-    let existing = document.getElementById("img-overlay");
-    if (existing) { existing.remove(); return; }
+  // slide iniziale
+  const initial = root.querySelector('#slide-activities');
+  if (initial) setActive(initial);
+})();
 
-    let overlay = document.createElement("div");
-    overlay.id = "img-overlay";
-    Object.assign(overlay.style, {
-      position: "fixed", inset: 0, background: "rgba(0,0,0,.8)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      zIndex: 9999, cursor: "zoom-out"
-    });
+/* clamp “mostra altro/meno” (SCOPED) */
+document.addEventListener('DOMContentLoaded', function () {
+  const root = document.querySelector('.v-dashboard');
+  if(!root) return;
+  root.querySelectorAll('.feed-card').forEach(function(card){
+    const text = card.querySelector('.clamp');
+    const media = card.querySelector('.clamp-media');
+    const btn   = card.querySelector('.toggle-card');
 
-    let bigImg = document.createElement("img");
-    Object.assign(bigImg.style, {
-      maxWidth: "90%", maxHeight: "90%", borderRadius: "10px",
-      boxShadow: "0 4px 20px rgba(0,0,0,.5)"
-    });
-    bigImg.src = img.src;
+    let needsToggle = false;
+    if (text && (text.innerText || '').trim().length > 300) needsToggle = true;
+    if (media) needsToggle = true;
 
-    overlay.appendChild(bigImg);
-    overlay.addEventListener("click", () => overlay.remove());
-    document.body.appendChild(overlay);
-  }
+    if (needsToggle && btn) {
+      btn.classList.remove('d-none');
+      btn.addEventListener('click', function(){
+        card.classList.toggle('expanded');
+        btn.textContent = card.classList.contains('expanded') ? '{{ _("Mostra meno") }}' : '{{ _("Mostra altro") }}';
+      });
+    }
+  });
+});
+
+/* fullscreen foto profilo (non confligge, ma lo scopo) */
+function toggleFullscreen(img) {
+  let existing = document.getElementById("img-overlay");
+  if (existing) { existing.remove(); return; }
+  let overlay = document.createElement("div");
+  overlay.id = "img-overlay";
+  Object.assign(overlay.style, {
+    position: "fixed", inset: 0, background: "rgba(0,0,0,.8)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    zIndex: 9999, cursor: "zoom-out"
+  });
+  let bigImg = document.createElement("img");
+  Object.assign(bigImg.style, {
+    maxWidth: "90%", maxHeight: "90%", borderRadius: "10px",
+    boxShadow: "0 4px 20px rgba(0,0,0,.5)"
+  });
+  bigImg.src = img.src;
+  overlay.appendChild(bigImg);
+  overlay.addEventListener("click", () => overlay.remove());
+  document.body.appendChild(overlay);
+}
 </script>
-
 {% endblock %}

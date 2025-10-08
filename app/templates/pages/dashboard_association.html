@@ -51,15 +51,7 @@
     </div>
   </div>
 
-  <!-- Azioni rapide -->
-  <div class="col-lg-3 text-lg-end text-center">
-    <a href="{{ url_for('events.my_events') }}" class="btn-ghost-brand me-2 mb-2" aria-label="{{ _('Gestisci Eventi') }}">
-      <i class="bi bi-calendar-event me-1"></i>{{ _('Gestisci Eventi') }}
-    </a>
-    <a href="{{ url_for('campaigns.my_campaigns') }}" class="btn-ghost-brand mb-2" aria-label="{{ _('Gestisci Campagne') }}">
-      <i class="bi bi-bullseye me-1"></i>{{ _('Gestisci Campagne') }}
-    </a>
-  </div>
+
 </div>
 
 <hr class="soft-divider">
@@ -226,41 +218,51 @@
       </article>
 
       <!-- 🕓 STORICO -->
-      <article class="showcase-slide" id="slide-history">
-        <section class="card shadow-sm h-100">
-          <div class="panel-header">
-            <h6 class="mb-0 d-flex align-items-center gap-2">
-              <i class="bi bi-clock-history"></i> {{ _('Storico attività') }}
-            </h6>
-          </div>
-          <div class="card-body p-0">
-            <div class="scroll-area p-3" style="max-height: var(--showcase-h); overflow-y:auto;">
-              {% if history_items and history_items|length > 0 %}
-                <ul class="list-unstyled m-0">
-                  {% for item in history_items %}
-                    <li class="list-item py-2">
-                      {% if item.type == "event" %}
-                        <a href="{{ url_for('events.event_detail', event_id=item.event_id) }}" class="item-title link-strong">
-                          {{ item.title }}
-                        </a>
-                        <div class="small text-muted mt-1">📆 {{ item.date.strftime('%d/%m/%Y %H:%M') }}{% if item.location %} · 📍 {{ item.location }}{% endif %}</div>
-                      {% elif item.type == "donation" %}
-                        <a href="{{ url_for('campaigns.campaign_detail', campaign_id=item.campaign_id) }}" class="item-title link-strong">
-                          {{ item.title }}
-                        </a>
-                        <div class="small text-muted mt-1">💶 {{ '%.2f'|format(item.amount) }} € · {{ item.date.strftime('%d/%m/%Y') }}</div>
-                      {% endif %}
-                      <hr class="soft-divider my-2">
-                    </li>
-                  {% endfor %}
-                </ul>
-              {% else %}
-                <p class="text-muted small p-3 mb-0">{{ _('Nessuna attività nello storico.') }}</p>
-              {% endif %}
-            </div>
-          </div>
-        </section>
-      </article>
+<article class="showcase-slide" id="slide-history">
+  <section class="card shadow-sm h-100">
+    <div class="panel-header">
+      <h6 class="mb-0 d-flex align-items-center gap-2">
+        <i class="bi bi-clock-history"></i> {{ _('Storico attività') }}
+      </h6>
+    </div>
+    <div class="card-body p-0">
+      <div class="scroll-area p-3" style="max-height: var(--showcase-h); overflow-y:auto;">
+        {% if history_items and history_items|length > 0 %}
+          <ul class="list-unstyled m-0">
+            {% for item in history_items %}
+              <li class="list-item py-2">
+                {% if item.type == "event" %}
+                  <a href="{{ url_for('public.detail', content_type='event', item_id=item.event_id) }}"
+                     class="item-title link-strong">
+                    {{ item.title }}
+                  </a>
+                  <div class="small text-muted mt-1">
+                    📆 {{ item.date.strftime('%d/%m/%Y %H:%M') }}
+                    {% if item.location %} · 📍 {{ item.location }}{% endif %}
+                  </div>
+
+                {% elif item.type == "campaign" %}
+                  <a href="{{ url_for('public.detail', content_type='campaign', item_id=item.campaign_id) }}"
+                     class="item-title link-strong">
+                    {{ item.title }}
+                  </a>
+                  <div class="small text-muted mt-1">
+                    🏁 {{ _('Terminata il') }} {{ item.date.strftime('%d/%m/%Y') }}
+                    {% if item.goal %} · 🎯 {{ item.goal }}{% endif %}
+                  </div>
+                {% endif %}
+                <hr class="soft-divider my-2">
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p class="text-muted small p-3 mb-0">{{ _('Nessuna voce nello storico.') }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+</article>
+
 
       <!-- ⚡️ ATTIVI -->
       <article class="showcase-slide" id="slide-active">
@@ -269,6 +271,19 @@
             <h6 class="mb-0 d-flex align-items-center gap-2">
               <i class="bi bi-lightning-charge"></i> {{ _('Eventi e Campagne attive') }}
             </h6>
+           <!-- NUOVO: pulsanti gestione dentro la sezione -->
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <a href="{{ url_for('events.my_events') }}"
+                class="btn-ghost-brand btn-ghost-sm rounded-pill"
+                aria-label="{{ _('Gestisci Eventi') }}">
+                <i class="bi bi-calendar-event me-1"></i>{{ _('Gestisci Eventi') }}
+              </a>
+              <a href="{{ url_for('campaigns.my_campaigns') }}"
+                class="btn-ghost-brand btn-ghost-sm rounded-pill"
+                aria-label="{{ _('Gestisci Campagne') }}">
+                <i class="bi bi-bullseye me-1"></i>{{ _('Gestisci Campagne') }}
+              </a>
+            </div>
           </div>
           <div class="card-body p-0">
             <div class="scroll-area p-3" style="max-height: var(--showcase-h); overflow-y:auto;">
@@ -455,6 +470,12 @@
     margin-inline: auto;
     width: 100%;
   }
+}
+
+/* header del pannello “Attivi”: pulsanti ben allineati anche su mobile */
+.panel-header .btn-ghost-sm { white-space: nowrap; }
+@media (max-width: 575.98px){
+  .panel-header .d-flex.flex-wrap { gap: .5rem .5rem; }
 }
 
 

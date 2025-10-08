@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from flask import Blueprint, render_template, redirect, url_for, flash, abort
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
@@ -136,7 +136,8 @@ def dashboard_volunteer():
     )
 
 
-# 🏢 Dashboard associazione
+# app/blueprints/dashboard/routes.py  (estratto)
+
 @dashboard_bp.route("/association")
 @login_required
 def dashboard_association():
@@ -144,7 +145,6 @@ def dashboard_association():
         abort(403)
 
     from datetime import datetime
-    from app.database.models.donation import Donation
 
     # 📌 Post dell’associazione
     posts = (
@@ -167,7 +167,7 @@ def dashboard_association():
         .all()
     )
 
-    # 💰 Donazioni ricevute per campagne dell’associazione
+    # 💰 Donazioni ricevute (restano nella tab Donazioni, non nello Storico)
     donations = (
         Donation.query.join(Campaign, Donation.campaign_id == Campaign.id)
         .filter(Campaign.association_id == current_user.id)
@@ -175,16 +175,64 @@ def dashboard_association():
         .all()
     )
 
+    # ===== Storico: Eventi già iniziati + Campagne terminate =====
+    now = datetime.utcnow()
+
+   # Evento TERMINATO:
+    # - se c'è end_date  -> end_date < now
+    # - se non c'è end_date -> considera terminato se la start date è passata di almeno 1 giorno
+    #   (puoi cambiare la tolleranza a piacere, es. a poche ore)
+    finished_events = [
+        e for e in my_events
+        if (
+            getattr(e, "end_date", None) and e.end_date < now
+        ) or (
+            not getattr(e, "end_date", None)
+            and getattr(e, "date", None)
+            and e.date < (now - timedelta(days=1))
+        )
+    ]
+
+    # Campagna TERMINATA: end_date esiste ed è < now
+    ended_campaigns = [
+        c for c in my_campaigns
+        if getattr(c, "end_date", None) and c.end_date < now
+    ]
+
+    history_items = []
+
+    for e in finished_events:
+        # usa la data di fine se disponibile, altrimenti la start date per ordinare/mostrare
+        display_date = getattr(e, "end_date", None) or getattr(e, "date", None) or now
+        history_items.append({
+            "type": "event",
+            "title": e.title,
+            "date": display_date,
+            "event_id": e.id,
+            "location": getattr(e, "location", None),
+        })
+
+    for c in ended_campaigns:
+        history_items.append({
+            "type": "campaign",
+            "title": c.title,
+            "date": c.end_date,     # data di fine campagna
+            "campaign_id": c.id,
+            "goal": getattr(c, "goal", None),
+        })
+
+    # ordina per data desc
+    history_items.sort(key=lambda x: x["date"], reverse=True)
+
     return render_template(
         "pages/dashboard_association.html",
         posts=posts,
         my_events=my_events,
         my_campaigns=my_campaigns,
         donations=donations,
-        now=datetime.utcnow()
+        history_items=history_items,
+        now=now,
     )
-
-
 
 # 🛠️ Modifica profilo
 @dashboard_bp.route("/modify", methods=["GET", "POST"])

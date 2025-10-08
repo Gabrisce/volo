@@ -13,7 +13,13 @@
   <!-- Toggle contenuti mappa (ghost segmented) -->
   <div class="segmented-ghost" role="group" aria-label="Selettore contenuti mappa">
     <button type="button" class="btn-ghost-segment active" id="toggle-events">{{ _('Eventi e Campagne') }}</button>
-    <button type="button" class="btn-ghost-segment" id="toggle-reports">{{ _('Segnalazioni e Petizioni') }}</button>
+    <button type="button" class="btn-ghost-segment" id="toggle-reports">
+      {% if current_user.user_type == 'association' %}
+        {{ _('Segnalazioni e Petizioni') }}
+      {% else %}
+        {{ _('Petizioni') }}
+      {% endif %}
+    </button>
   </div>
 </div>
 
@@ -123,12 +129,15 @@ function safeParse(jsonStr, fallback){
   }catch(e){ return fallback; }
 }
 
+const IS_ASSOC = `{{ '1' if current_user.user_type == 'association' else '0' }}` === '1';
+
 const ORIGINAL_EVENTS    = safeParse(`{{ events    | default([]) | tojson | safe }}`, []);
 const ORIGINAL_CAMPAIGNS = safeParse(`{{ campaigns | default([]) | tojson | safe }}`, []);
 const ORIGINAL_REPORTS   = safeParse(`{{ reports   | default([]) | tojson | safe }}`, []);
 const ORIGINAL_PETITIONS = safeParse(`{{ petitions | default([]) | tojson | safe }}`, []);
 
 let CURRENT_MODE = "events";
+
 
 /* ---------- Static bases ---------- */
 const STATIC_BASES = {
@@ -322,13 +331,21 @@ function render(list){
 /* ---------- Filtri ---------- */
 function applyFilters(){
   let base = [];
+
   if (CURRENT_MODE === "events") {
     base = (ORIGINAL_EVENTS||[]).map(e=>({...e,type:"event"}))
-          .concat((ORIGINAL_CAMPAIGNS||[]).map(c=>({...c,type:"campaign"})));
+        .concat((ORIGINAL_CAMPAIGNS||[]).map(c=>({...c,type:"campaign"})));
   }
+
   if (CURRENT_MODE === "reports") {
-    base = (ORIGINAL_REPORTS||[]).map(r=>({...r,type:"report"}))
+    if (IS_ASSOC) {
+      // ✅ associazioni: segnalazioni + petizioni
+      base = (ORIGINAL_REPORTS||[]).map(r=>({...r,type:"report"}))
           .concat((ORIGINAL_PETITIONS||[]).map(p=>({...p,type:"petition"})));
+    } else {
+      // ✅ volontari: SOLO petizioni
+      base = (ORIGINAL_PETITIONS||[]).map(p=>({...p,type:"petition"}));
+    }
   }
 
   // ---- Filtri semplici ----
@@ -379,7 +396,7 @@ function applyFilters(){
     });
   }
 
-  render(filtered.map((x,i)=>({...x,__idx:i})));
+  render(base.map((x,i)=>({...x,__idx:i})));
 }
 
 /* ---------- Wiring UI ---------- */

@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from flask import Blueprint, render_template, url_for
-from flask_login import login_required
+from flask_login import login_required, current_user
 
 from app.database.models.event import Event
 from app.database.models.campaign import Campaign
@@ -116,7 +116,7 @@ def _serialize_petition_for_map(p: Petition) -> Dict[str, Any]:
 @full_map_bp.route("/", methods=["GET"])
 @login_required
 def full_map():
-    # Eventi e campagne: tieni il filtro con coordinate (sono sempre geolocalizzati)
+    # Eventi e campagne: sempre geolocalizzati
     events = Event.query.filter(
         Event.latitude.isnot(None), Event.longitude.isnot(None)
     ).all()
@@ -124,20 +124,23 @@ def full_map():
         Campaign.latitude.isnot(None), Campaign.longitude.isnot(None)
     ).all()
 
-    # Report: considerali geolocalizzati (come da UI) – se i campi si chiamano diversamente, usa l'altro filtro
-    reports_fieldset = _has_latlng_model_fields(Report)
-    if reports_fieldset == "latitude_longitude":
-        reports = Report.query.filter(
-            Report.latitude.isnot(None), Report.longitude.isnot(None)
-        ).all()
-    elif reports_fieldset == "latlng":
-        reports = Report.query.filter(
-            Report.lat.isnot(None), Report.lng.isnot(None)
-        ).all()
+    # --- REPORT: SOLO associazioni ---
+    if getattr(current_user, "user_type", None) == "association":
+        reports_fieldset = _has_latlng_model_fields(Report)
+        if reports_fieldset == "latitude_longitude":
+            reports = Report.query.filter(
+                Report.latitude.isnot(None), Report.longitude.isnot(None)
+            ).all()
+        elif reports_fieldset == "latlng":
+            reports = Report.query.filter(
+                Report.lat.isnot(None), Report.lng.isnot(None)
+            ).all()
+        else:
+            reports = []  # nessun campo coord nel modello
     else:
-        reports = []  # nessun campo coord nel modello
+        reports = []  # volontari: nessuna segnalazione
 
-    # Petizioni: DEVONO essere sempre localizzate → filtra per i campi che hai realmente
+    # --- PETIZIONI: SEMPRE visibili (ma devono essere geolocalizzate) ---
     petitions_fieldset = _has_latlng_model_fields(Petition)
     if petitions_fieldset == "latitude_longitude":
         petitions = Petition.query.filter(
@@ -148,7 +151,7 @@ def full_map():
             Petition.lat.isnot(None), Petition.lng.isnot(None)
         ).all()
     else:
-        petitions = []  # modello senza coord: così non ne passiamo nessuna (coerente col requisito)
+        petitions = []  # modello senza coord: non passiamo petizioni
 
     return render_template(
         "pages/full_map.html",
@@ -157,3 +160,4 @@ def full_map():
         reports=[_serialize_report_for_map(r) for r in reports],
         petitions=[_serialize_petition_for_map(p) for p in petitions],
     )
+

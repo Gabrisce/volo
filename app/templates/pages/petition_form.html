@@ -2,7 +2,8 @@
 {% block title %}Nuova Petizione{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">{{ _('Crea una petizione') }}</h2>
+<h1 class="h4">{{ petition and _('Modifica petizione') or _('Nuova petizione') }}</h1>
+
 
 <form method="POST" enctype="multipart/form-data">
     {# SOLO CSRF, niente hidden_tag (evitiamo duplicati) #}
@@ -44,7 +45,9 @@
         {{ form.image(class="form-control") }}
     </div>
 
-    <button type="submit" class="btn btn-success">{{ _('Pubblica') }}</button>
+<button class="btn btn-primary">
+  {{ report and _('Pubblica') or _('Salva modifiche') }}
+</button>
 </form>
 
 <script>
