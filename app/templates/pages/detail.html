@@ -135,51 +135,62 @@
       
 
 
-<!-- === SHARE DROPDOWN === -->
-<div class="dropdown share-dropdown-card text-end mt-3 me-3">
-  <a href="#" id="shareDropdown"
-   data-bs-toggle="dropdown" aria-expanded="false"
-   style="color:#006400; font-weight:600; text-decoration:none;">
-  <i class="bi bi-share me-1"></i> {{ _('Condividi') }}
-</a>
+<!-- === SHARE DROPDOWN (stile coerente con pulsante Elimina) === -->
+<div class="dropdown text-center mt-3 me-3">
+  <button type="button"
+          class="icon-btn ghost"
+          id="shareDropdown"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+          title="{{ _('Condividi') }}"
+          aria-label="{{ _('Condividi') }}">
+    <i class="bi bi-share"></i>
+  </button>
+
   <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="shareDropdown">
     <li>
-      <a class="dropdown-item" href="https://www.facebook.com/sharer/sharer.php?u={{ request.url|urlencode }}"
+      <a class="dropdown-item d-flex align-items-center"
+         href="https://www.facebook.com/sharer/sharer.php?u={{ request.url|urlencode }}"
          target="_blank" rel="noopener">
         <i class="bi bi-facebook me-2" style="color:#1877F2;"></i>
       </a>
     </li>
     <li>
-      <a class="dropdown-item" href="https://twitter.com/intent/tweet?url={{ request.url|urlencode }}&text={{ item.title|urlencode }}"
+      <a class="dropdown-item d-flex align-items-center"
+         href="https://twitter.com/intent/tweet?url={{ request.url|urlencode }}&text={{ item.title|urlencode }}"
          target="_blank" rel="noopener">
         <i class="bi bi-twitter-x me-2" style="color:#000000;"></i>
       </a>
     </li>
     <li>
-      <a class="dropdown-item" href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.url|urlencode }}"
+      <a class="dropdown-item d-flex align-items-center"
+         href="https://www.linkedin.com/sharing/share-offsite/?url={{ request.url|urlencode }}"
          target="_blank" rel="noopener">
         <i class="bi bi-linkedin me-2" style="color:#0A66C2;"></i>
       </a>
     </li>
     <li>
-      <a class="dropdown-item" href="https://api.whatsapp.com/send?text={{ item.title|urlencode }}%20{{ request.url|urlencode }}"
+      <a class="dropdown-item d-flex align-items-center"
+         href="https://api.whatsapp.com/send?text={{ item.title|urlencode }}%20{{ request.url|urlencode }}"
          target="_blank" rel="noopener">
         <i class="bi bi-whatsapp me-2" style="color:#25D366;"></i>
       </a>
     </li>
     <li>
-      <a class="dropdown-item" href="https://t.me/share/url?url={{ request.url|urlencode }}&text={{ item.title|urlencode }}"
+      <a class="dropdown-item d-flex align-items-center"
+         href="https://t.me/share/url?url={{ request.url|urlencode }}&text={{ item.title|urlencode }}"
          target="_blank" rel="noopener">
         <i class="bi bi-telegram me-2" style="color:#0088cc;"></i>
       </a>
     </li>
     <li>
-      <button class="dropdown-item text-danger" type="button" onclick="copyLink()">
-        <i class="bi bi-instagram me-2" style="color:#E4405F;"></i>
+      <button class="dropdown-item d-flex align-items-center text-danger" type="button" onclick="copyLink()">
+        <i class="bi bi-link-45deg me-2"></i> Copia link
       </button>
     </li>
   </ul>
 </div>
+
 
 
       <!-- 🎯 Azioni -->
@@ -191,26 +202,119 @@
           </a>
         {% endif %}
 
-        {% if type == 'event' %}
-          {% if current_user.is_authenticated and current_user.user_type == 'volunteer' %}
-            {% set part = item.participants|selectattr("volunteer_id","equalto",current_user.id)|first %}
-            {% if part %}
-              <span class="text-muted small">{{ _('Hai già inviato una candidatura!') }} ({{ part.status }})</span>
-            {% else %}
-              {% if is_full %}
-                <button class="btn btn-secondary btn-sm" disabled>{{ _('Posti esauriti') }}</button>
-              {% else %}
-                <a href="{{ url_for('events.apply', event_id=item.id) }}" class="btn btn-primary btn-sm">
-                  {{ _('Partecipa') }}
-                </a>
-              {% endif %}
-            {% endif %}
-          {% elif not current_user.is_authenticated %}
-            <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-sm">
-              <i class="bi bi-box-arrow-in-right me-1"></i> {{ _('Accedi per candidarti') }}
-            </a>
-          {% endif %}
-        {% endif %}
+{% if type == 'event' %}
+  {% if current_user.is_authenticated and current_user.user_type == 'volunteer' %}
+    {% set part = item.participants|selectattr("volunteer_id", "equalto", current_user.id)|first %}
+    {% if part %}
+
+      {# === Caso RIFIUTATO === #}
+      {% if part.status == "rejected" %}
+        <span class="text-danger small d-block mb-1">
+          La tua partecipazione è stata gentilmente declinata.
+        </span>
+
+      {# === Caso ACCETTATO === #}
+      {% elif part.status == "accepted" %}
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <span class="text-success small">
+            La tua candidatura è stata accettata! 🎉 Ti aspettiamo all'evento.
+          </span>
+
+          <!-- Bottone X rossa -->
+          <button type="button"
+                  class="icon-btn danger"
+                  title="Annulla partecipazione"
+                  aria-label="Annulla partecipazione"
+                  data-bs-toggle="modal"
+                  data-bs-target="#cancelModal-{{ item.id }}">
+            <i class="bi bi-x-circle"></i>
+          </button>
+        </div>
+
+        <!-- Modale di conferma -->
+        <div class="modal fade" id="cancelModal-{{ item.id }}" tabindex="-1" aria-labelledby="cancelModalLabel-{{ item.id }}" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header border-0">
+                <h5 class="modal-title" id="cancelModalLabel-{{ item.id }}">Conferma annullamento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+              </div>
+              <div class="modal-body text-start">
+                Sei sicuro di voler annullare la tua partecipazione a questo evento?
+              </div>
+              <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Annulla</button>
+                <form action="{{ url_for('events.cancel', event_id=item.id) }}" method="POST" class="d-inline">
+                  <button type="submit" class="btn btn-danger btn-sm">Conferma</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      {# === Caso IN ATTESA (PENDING) === #}
+      {% elif part.status == "pending" %}
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <span class="text-warning small">
+            Hai già inviato una candidatura, grazie per la pazienza!
+          </span>
+
+          <!-- Bottone X rossa -->
+          <button type="button"
+                  class="icon-btn danger"
+                  title="Ritira candidatura"
+                  aria-label="Ritira candidatura"
+                  data-bs-toggle="modal"
+                  data-bs-target="#withdrawModal-{{ item.id }}">
+            <i class="bi bi-x-circle"></i>
+          </button>
+        </div>
+
+        <!-- Modale di conferma -->
+        <div class="modal fade" id="withdrawModal-{{ item.id }}" tabindex="-1" aria-labelledby="withdrawModalLabel-{{ item.id }}" aria-hidden="true">
+          <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header border-0">
+                <h5 class="modal-title" id="withdrawModalLabel-{{ item.id }}">Conferma ritiro candidatura</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Chiudi"></button>
+              </div>
+              <div class="modal-body text-start">
+                Vuoi ritirare la tua candidatura per questo evento?
+              </div>
+              <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Torna indietro</button>
+                <form action="{{ url_for('events.cancel', event_id=item.id) }}" method="POST" class="d-inline">
+                  <button type="submit" class="btn btn-danger btn-sm">Conferma</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      {% else %}
+        <span class="text-muted small">
+          Hai già inviato una candidatura ({{ part.status }}).
+        </span>
+      {% endif %}
+
+    {% else %}
+      {# === Nessuna candidatura inviata ancora === #}
+      {% if is_full %}
+        <button class="btn btn-secondary btn-sm" disabled>{{ _('Posti esauriti') }}</button>
+      {% else %}
+        <a href="{{ url_for('events.apply', event_id=item.id) }}" class="btn btn-primary btn-sm">
+          {{ _('Partecipa') }}
+        </a>
+      {% endif %}
+    {% endif %}
+
+
+  {% elif not current_user.is_authenticated %}
+    <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-sm">
+      <i class="bi bi-box-arrow-in-right me-1"></i> {{ _('Accedi per candidarti') }}
+    </a>
+  {% endif %}
+{% endif %}
 
         {% if type == 'petition' %}
         <div class="text-center mt-4">
@@ -311,7 +415,32 @@
 {% endif %}
 
 
-      </footer>
+     </footer>
+
+{% if type == 'event' and current_user.is_authenticated and current_user.user_type == 'volunteer' %}
+  {% set part = item.participants|selectattr("volunteer_id", "equalto", current_user.id)|first %}
+  {% if part and related_campaigns and related_campaigns|length > 0 %}
+    <div class="mt-4 p-3 border rounded bg-light shadow-sm text-center mx-auto" style="max-width: 480px;">
+      <h6 class="mb-2 text-success fw-semibold">
+        💚 Vuoi anche sostenere {{ item.association.name }}?
+      </h6>
+      <p class="small text-muted mb-3">
+        Puoi contribuire alle campagne attive dell’associazione per dare un aiuto concreto.
+      </p>
+
+      <div class="d-flex flex-column align-items-stretch gap-2">
+        {% for c in related_campaigns %}
+          <a href="{{ url_for('public.detail', content_type='campaign', item_id=c.id) }}"
+             class="icon-btn ghost w-100 px-3 py-2 border rounded d-flex justify-content-between align-items-center text-start"
+             style="text-decoration:none;">
+            <span class="text-success fw-semibold"> 💰 {{ c.title }}</span>
+          </a>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+{% endif %}
+
     </div>
   </article>
 
@@ -321,7 +450,7 @@
        aria-live="assertive" aria-atomic="true" data-bs-delay="2000">
     <div class="d-flex">
       <div class="toast-body">
-        ✅ {{ _('Link copiato! Incollalo su Instagram Stories o in un post.') }}
+        ✅ {{ _('Link copiato! Incollalo in una storia o in un post.') }}
       </div>
       <button type="button" class="btn-close btn-close-white me-2 m-auto"
               data-bs-dismiss="toast" aria-label="{{ _('Chiudi') }}"></button>
@@ -332,59 +461,12 @@
 </div>
 {% endblock %}
 
-{% block styles %}
-<style>
-  .text-dark-green { color: #006400 !important; }
-  .text-dark-green:hover { color: #004d00 !important; }
-
-  /* 🔄 Contenitore immagine principale */
-  /* Contenitore immagine */
-.detail-image-wrapper {
-  width: 100%;    /* ✅ altezza fissa */
-  overflow: hidden;
-  border-radius: 12px;
-  margin: 0 auto 1.5rem auto; /* centrata */
-  background: #f1f1f1;
-}
-
-.detail-image {
-  width: 100%;
-  max-height: 320px;
-  object-fit: contain;
-  border-radius: 12px;
-}
-
-  .detail-content p { line-height: 1.6; font-size: 1rem; }
-
-  /* Posizionamento in basso a destra dentro la card */
-.share-dropdown-card {
-  position: absolute;
-  bottom: 15px;
-  right: 15px;
-}
-.detail-card {
-  position: relative; /* necessario per contenere il dropdown posizionato assoluto */
-}
-
-.detail-info span {
-  font-size: 0.95rem;
-  color: #444;
-}
-
-.badge {
-  font-size: 0.85rem;
-  padding: 0.4em 0.6em;
-  border-radius: 8px;
-}
-
-
-</style>
 
 
 
 
 
-{% endblock %}
+
 
 {% block scripts %}
 

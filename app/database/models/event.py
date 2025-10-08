@@ -1,4 +1,3 @@
-# app/database/models/events.py
 from datetime import datetime
 from app import db
 
@@ -36,8 +35,8 @@ class Event(db.Model):
     )
 
     # Taxonomy and filters
-    duration = db.Column(db.String(20), nullable=False, default="temporary", index=True)  
-    skills = db.Column(db.Text, nullable=False, default="[]")  
+    duration = db.Column(db.String(20), nullable=False, default="temporary", index=True)
+    skills = db.Column(db.Text, nullable=False, default="[]")
     activity = db.Column(db.String(50), nullable=True, index=True)
     type = db.Column(db.String(20), nullable=False, default="event", index=True)
 
@@ -48,10 +47,17 @@ class Event(db.Model):
     association_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
     association = db.relationship("User", back_populates="events")
 
-    __table_args__ = (
-        db.Index("ix_event_geo", "latitude", "longitude"),
-        db.Index("ix_event_duration_date", "duration", "date"),
+    # Participation relationship
+    participants = db.relationship(
+        "Participation",
+        back_populates="event",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
+
+    # ------------------------------------------------------------------
+    # Helper methods
+    # ------------------------------------------------------------------
 
     @property
     def is_limited(self) -> bool:
@@ -73,6 +79,26 @@ class Event(db.Model):
         """Return True if event reached maximum capacity."""
         return self.is_limited and self.seats_left() == 0
 
+    @property
+    def related_campaigns(self):
+        """Return active fundraising campaigns of the same association."""
+        from app.database.models.campaign import Campaign
+        now = datetime.utcnow()
+        return (
+            Campaign.query.filter(
+                Campaign.association_id == self.association_id,
+                (Campaign.end_date.is_(None)) | (Campaign.end_date >= now),
+            )
+            .order_by(Campaign.created_at.desc())
+            .limit(3)
+            .all()
+        )
+
     def __repr__(self) -> str:
         d = self.date.strftime("%Y-%m-%d %H:%M") if self.date else "N/A"
         return f"<Event id={self.id} title='{self.title}' date={d}>"
+
+
+# Useful composite indexes
+db.Index("ix_event_geo", Event.latitude, Event.longitude)
+db.Index("ix_event_duration_date", Event.duration, Event.date)

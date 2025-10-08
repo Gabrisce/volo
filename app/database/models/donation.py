@@ -30,8 +30,12 @@ class Donation(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
 
     # Linked campaign
-    campaign_id = db.Column(db.Integer, db.ForeignKey("campaign.id"), nullable=False, index=True)
-    campaign = db.relationship("Campaign", backref=db.backref("donations", lazy=True))
+    campaign_id = db.Column(
+db.Integer,
+    db.ForeignKey("campaign.id", ondelete="CASCADE"),
+    nullable=False  
+    )           
+    campaign = db.relationship("Campaign", back_populates="donations")
 
     def __repr__(self) -> str:
         return f"<Donation id={self.id} user_id={self.user_id} campaign_id={self.campaign_id} amount={self.amount}>"

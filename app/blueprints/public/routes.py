@@ -9,6 +9,7 @@ from app.database.models.event import Event
 from app.database.models.campaign import Campaign
 from app.database.models.report import Report   # 👈 aggiunto import
 from app.database.models.chat import Chat
+from datetime import datetime
 
 
 public_bp = Blueprint("public", __name__)
@@ -155,7 +156,7 @@ def detail(content_type, item_id):
     model_map = {
         "event": Event,
         "campaign": Campaign,
-        "report": Report,   # 👈 aggiunto supporto segnalazioni
+        "report": Report,
     }
 
     model = model_map.get(content_type)
@@ -164,9 +165,27 @@ def detail(content_type, item_id):
 
     item = model.query.get_or_404(item_id)
 
+    # 🔗 Campagne correlate solo se è un evento
+    related_campaigns = []
+    if content_type == "event":
+        related_campaigns = (
+            Campaign.query
+            .filter(
+                Campaign.association_id == item.association_id,
+                (Campaign.end_date.is_(None)) | (Campaign.end_date >= datetime.utcnow())
+            )
+            .order_by(Campaign.created_at.desc())
+            .limit(3)
+            .all()
+        )
+
     return render_template(
-        "pages/detail.html", item=item, type=content_type
+        "pages/detail.html",
+        item=item,
+        type=content_type,
+        related_campaigns=related_campaigns
     )
+
 
 
 # 💬 API: elenco conversazioni dell'utente corrente

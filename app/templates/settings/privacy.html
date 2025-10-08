@@ -2,78 +2,73 @@
 {% block title %}Impostazioni • Privacy{% endblock %}
 
 {% block content %}
-<header class="d-flex justify-content-between align-items-center mb-4">
-  <div>
-    <h2 class="mb-0">{{ _('Privacy') }}</h2>
-    <p class="text-muted mb-0">{{ _('Controlla la visibilità del profilo e i tuoi dati') }}</p>
-  </div>
-  <button class="btn btn-outline-secondary" type="button"
-          data-bs-toggle="offcanvas" data-bs-target="#offcanvasSettings"
-          aria-controls="offcanvasSettings">
-    {{ _('Apri menu impostazioni') }}
-  </button>
-</header>
+<div class="card-container text-start">
+  <h2 class="mb-1">{{ _('Privacy') }}</h2>
+  <p class="text-muted mb-4">{{ _('Controlla la visibilità del profilo e i tuoi dati') }}</p>
 
-<form method="POST" novalidate class="needs-validation mb-4">
-  {{ form.hidden_tag() if form is defined }}
+  <form method="POST" novalidate class="form-modern">
+    {{ form.hidden_tag() if form is defined }}
 
-  <div class="card border-0 shadow-sm">
-    <div class="card-body">
-      <h5 class="card-title">{{ _('Visibilità profilo') }}</h5>
+    <div class="form-section mb-4">
+      <h5 class="section-title">{{ _('Visibilità profilo') }}</h5>
 
-      <div class="form-check">
-        {% if form is defined %}
-          {{ form.profile_visibility_public(class="form-check-input", id="vis_public") }}
-        {% else %}
-          <input class="form-check-input" type="radio" id="vis_public" name="profile_visibility" value="public" checked>
-        {% endif %}
-        <label class="form-check-label" for="vis_public">{{ _('Pubblico (visibile a tutti)') }}</label>
-      </div>
+      <div class="radio-group mt-2">
+        <label class="radio-item">
+          {% if form is defined %}
+            {{ form.profile_visibility_public(class="form-check-input") }}
+          {% else %}
+            <input type="radio" name="profile_visibility" value="public" checked>
+          {% endif %}
+          <span>{{ _('Pubblico (visibile a tutti)') }}</span>
+        </label>
 
-      <div class="form-check">
-        {% if form is defined %}
-          {{ form.profile_visibility_volunteers(class="form-check-input", id="vis_volunteers") }}
-        {% else %}
-          <input class="form-check-input" type="radio" id="vis_volunteers" name="profile_visibility" value="volunteers">
-        {% endif %}
-        <label class="form-check-label" for="vis_volunteers">{{ _('Solo volontari/associazioni registrati') }}</label>
-      </div>
+        <label class="radio-item">
+          {% if form is defined %}
+            {{ form.profile_visibility_volunteers(class="form-check-input") }}
+          {% else %}
+            <input type="radio" name="profile_visibility" value="volunteers">
+          {% endif %}
+          <span>{{ _('Solo volontari/associazioni registrati') }}</span>
+        </label>
 
-      <div class="form-check mb-3">
-        {% if form is defined %}
-          {{ form.profile_visibility_private(class="form-check-input", id="vis_private") }}
-        {% else %}
-          <input class="form-check-input" type="radio" id="vis_private" name="profile_visibility" value="private">
-        {% endif %}
-        <label class="form-check-label" for="vis_private">{{ _('Privato (visibile solo a te)') }}</label>
-      </div>
-
-      <div class="form-check form-switch mb-2">
-        {% if form is defined %}
-          {{ form.show_email(class="form-check-input", id="show_email") }}
-        {% else %}
-          <input class="form-check-input" type="checkbox" id="show_email" name="show_email">
-        {% endif %}
-        <label class="form-check-label" for="show_email">{{ _('Mostra email sul profilo') }}</label>
-      </div>
-
-      <div class="form-check form-switch">
-        {% if form is defined %}
-          {{ form.show_phone(class="form-check-input", id="show_phone") }}
-        {% else %}
-          <input class="form-check-input" type="checkbox" id="show_phone" name="show_phone">
-        {% endif %}
-        <label class="form-check-label" for="show_phone">{{ _('Mostra telefono sul profilo') }}</label>
+        <label class="radio-item mb-0">
+          {% if form is defined %}
+            {{ form.profile_visibility_private(class="form-check-input") }}
+          {% else %}
+            <input type="radio" name="profile_visibility" value="private">
+          {% endif %}
+          <span>{{ _('Privato (visibile solo a te)') }}</span>
+        </label>
       </div>
     </div>
-    <div class="card-footer bg-transparent d-flex gap-2 justify-content-end">
-      <button type="submit" class="btn btn-primary">{{ _('Salva impostazioni privacy') }}</button>
-    </div>
-  </div>
-</form>
 
-<div class="row g-3">
-  <div class="col-md-6">
-    <form method="POST" action="{{ url_for('settings.request_export') }}">
-      {{ export_form.hidden_tag() if export_form is defined }}
-      <div class="card
+    <div class="form-section mb-4">
+      <h5 class="section-title">{{ _('Contatti visibili') }}</h5>
+
+      <label class="switch-item">
+        {% if form is defined %}
+          {{ form.show_email(class="form-check-input") }}
+        {% else %}
+          <input type="checkbox" name="show_email">
+        {% endif %}
+        <span>{{ _('Mostra email sul profilo') }}</span>
+      </label>
+
+      <label class="switch-item">
+        {% if form is defined %}
+          {{ form.show_phone(class="form-check-input") }}
+        {% else %}
+          <input type="checkbox" name="show_phone">
+        {% endif %}
+        <span>{{ _('Mostra telefono sul profilo') }}</span>
+      </label>
+    </div>
+
+    <div class="text-end">
+      <button type="submit" class="btn btn-primary px-4">
+        {{ _('Salva impostazioni privacy') }}
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
