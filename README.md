@@ -28,7 +28,6 @@ volo/
 ├── app/
 │   ├── __init__.py
 │   ├── models/
-│   ├── views/
 │   ├── forms/
 │   ├── templates/
 │   ├── static/

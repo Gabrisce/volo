@@ -184,10 +184,16 @@ def create_event():
 @events_bp.route("/edit/<int:event_id>", methods=["GET", "POST"])
 @login_required
 def edit_event(event_id: int):
+
     event: Event = Event.query.get_or_404(event_id)
 
     if current_user.user_type != "association" or event.association_id != current_user.id:
         abort(403)
+    
+    # 🕒 Blocca la modifica se evento già avvenuto
+    if event.date <= datetime.utcnow():
+        flash("Non puoi modificare un evento già svolto o in corso.", "warning")
+        return redirect(url_for("events.event_detail", event_id=event.id))
 
     form = EventForm(obj=event)
     if form.validate_on_submit():
@@ -203,22 +209,20 @@ def edit_event(event_id: int):
             image_file.save(str(image_path))
             event.image_filename = filename
 
-        # aggiorna i campi manualmente (escludendo latitude/longitude dal populate_obj)
+        # aggiorna i campi principali
         event.title = form.title.data
         event.description = form.description.data
         event.date = form.date.data
         event.location = form.location.data
-
-        # aggiorna coordinate solo se valorizzate
         event.latitude = float(lat) if lat and lat.strip() != "" else event.latitude
         event.longitude = float(lng) if lng and lng.strip() != "" else event.longitude
 
         # campi opzionali
-        duration = _get_duration_from_request(event.duration if _event_has_col("duration") else "temporary")  # type: ignore[attr-defined]
+        duration = _get_duration_from_request(event.duration if _event_has_col("duration") else "temporary")
         if duration is not None:
             event.duration = duration  # type: ignore[attr-defined]
 
-        ev_type = _get_type_from_request(event.type if _event_has_col("type") else "general")  # type: ignore[attr-defined]
+        ev_type = _get_type_from_request(event.type if _event_has_col("type") else "general")
         if ev_type is not None:
             event.type = ev_type  # type: ignore[attr-defined]
 
@@ -235,7 +239,7 @@ def edit_event(event_id: int):
         if _event_has_col("updated_at"):
             event.updated_at = datetime.utcnow()  # type: ignore[attr-defined]
 
-        # aggiorna capacity_max manualmente
+        # aggiorna capacity_max
         if hasattr(form, "capacity_mode") and hasattr(form, "capacity_max"):
             if form.capacity_mode.data == "limited":
                 event.capacity_max = form.capacity_max.data
@@ -243,10 +247,26 @@ def edit_event(event_id: int):
                 event.capacity_max = None
 
         db.session.commit()
+
+        # 🔔 Notifica volontari (accepted o pending)
+        participations = Participation.query.filter_by(event_id=event.id).all()
+        for p in participations:
+            if p.status in ("accepted", "pending"):
+                notif = Notification(
+                    user_id=p.volunteer_id,
+                    type="event_update",
+                    message=f"L’evento '{event.title}' è stato aggiornato dall’associazione {current_user.name}.",
+                    url=url_for("events.event_detail", event_id=event.id)
+                )
+                db.session.add(notif)
+
+        db.session.commit()
+
         flash("Evento aggiornato con successo!", "success")
         return redirect(url_for("events.my_events"))
 
     return render_template("pages/event_form.html", form=form, edit=True, event=event)
+
 
 
 
@@ -257,7 +277,8 @@ def apply(event_id: int):
         abort(403)
 
     event = Event.query.get_or_404(event_id)
-    return render_template("pages/confirm_participation.html", event=event)
+    related_campaigns = event.related_campaigns[:2]  # mostriamo max 2
+    return render_template("pages/confirm_participation.html", event=event, related_campaigns=related_campaigns)
 
 
 @events_bp.route("/my", methods=["GET"])
@@ -318,11 +339,35 @@ def api_events():
     return jsonify(payload)
 
 
+from datetime import datetime
+from flask_login import login_required, current_user
+from flask import render_template, abort, url_for, redirect, flash
+from app.database.models.event import Event
+from app.database.models.campaign import Campaign
+
 @events_bp.route("/<int:event_id>", methods=["GET"])
 @login_required
 def event_detail(event_id: int):
     event = Event.query.get_or_404(event_id)
-    return render_template("pages/detail.html", item=event, type="event")
+
+    # Campagne attive della stessa associazione
+    related_campaigns = (
+        Campaign.query
+        .filter(
+            Campaign.association_id == event.association_id,
+            (Campaign.end_date.is_(None)) | (Campaign.end_date >= datetime.utcnow())
+        )
+        .order_by(Campaign.created_at.desc())
+        .limit(3)
+        .all()
+    )
+
+    return render_template(
+        "pages/detail.html",
+        item=event,
+        type="event",
+        related_campaigns=related_campaigns
+    )
 
 
 @events_bp.route("/<int:event_id>/delete", methods=["POST"])
@@ -333,10 +378,31 @@ def delete_event(event_id: int):
     if current_user.user_type != "association" or event.association_id != current_user.id:
         abort(403)
 
+    # 🕒 Blocca la cancellazione se l'evento è in corso o passato
+    if event.date <= datetime.utcnow():
+        flash("Non puoi cancellare un evento già iniziato o concluso.", "warning")
+        return redirect(url_for("events.event_detail", event_id=event.id))
+
+    # 🔔 Notifica volontari accepted o pending
+    participations = Participation.query.filter_by(event_id=event.id).all()
+    for p in participations:
+        if p.status in ("accepted", "pending"):
+            notif = Notification(
+                user_id=p.volunteer_id,
+                type="event_deleted",
+                message=f"L’evento '{event.title}' è stato cancellato dall’associazione {current_user.name}.",
+                url=url_for("home.home")
+            )
+            db.session.add(notif)
+
+    # ❗ Elimina partecipazioni collegate e poi l'evento
+    Participation.query.filter_by(event_id=event.id).delete()
     db.session.delete(event)
     db.session.commit()
-    flash("Evento eliminato con successo", "success")
+
+    flash("Evento eliminato con successo.", "success")
     return redirect(url_for("dashboard.dashboard_association"))
+
 
 
 @events_bp.route("/<int:event_id>/confirm", methods=["POST"])
@@ -378,6 +444,7 @@ def confirm_participation(event_id: int):
     return redirect(url_for("events.event_detail", event_id=event_id))
 
 
+
 @events_bp.route("/<int:event_id>/cancel", methods=["POST"])
 @login_required
 def cancel(event_id: int):
@@ -389,8 +456,27 @@ def cancel(event_id: int):
         event_id=event_id
     ).first_or_404()
 
+    # Prendiamo l'evento per eventuale notifica
+    event = Event.query.get_or_404(event_id)
+
+    # Salviamo lo stato prima della cancellazione
+    previous_status = part.status
+
+    # ✅ Cancellazione effettiva
     db.session.delete(part)
     db.session.commit()
+
+    # 🔔 Se era ACCEPTED, notifica all’associazione
+    if previous_status == "accepted":
+        notif = Notification(
+            user_id=event.association_id,
+            type="participation_update",
+            message=f"{current_user.name} ha annullato la propria partecipazione all’evento '{event.title}'.",
+            url=url_for("events.participants", event_id=event.id)
+        )
+        db.session.add(notif)
+        db.session.commit()
+
     flash("Hai annullato la tua partecipazione.", "info")
     return redirect(url_for("events.event_detail", event_id=event_id))
 

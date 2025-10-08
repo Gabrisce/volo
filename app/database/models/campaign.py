@@ -1,4 +1,3 @@
-# app/database/models/campaigns.py
 from datetime import datetime
 from typing import Any, Dict, Optional
 from app import db
@@ -9,6 +8,7 @@ class Campaign(db.Model):
 
     __tablename__ = "campaign"
 
+    # Identifiers
     id = db.Column(db.Integer, primary_key=True)
 
     # Main content
@@ -43,9 +43,31 @@ class Campaign(db.Model):
     association_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False, index=True)
     association = db.relationship("User", back_populates="campaigns")
 
-    def __repr__(self) -> str:
-        return f"<Campaign id={self.id} title='{self.title}'>"
+    # 🔗 Relationship with donations (already defined in Donation model)
+    donations = db.relationship(
+    "Donation",
+    back_populates="campaign",
+    cascade="all, delete-orphan",
+    passive_deletes=True
+)
+    # ------------------------------------------------------------------
+    # Helper properties
+    # ------------------------------------------------------------------
 
+    @property
+    def related_events(self):
+        """Return events organized by the same association."""
+        from app.database.models.event import Event
+        return (
+            Event.query.filter_by(association_id=self.association_id)
+            .order_by(Event.date.desc())
+            .limit(5)
+            .all()
+        )
+
+    # ------------------------------------------------------------------
+    # Serialization
+    # ------------------------------------------------------------------
     def to_map_dict(self, url: Optional[str] = None) -> Dict[str, Any]:
         """Serialize campaign for map or feed usage."""
         return {
@@ -65,6 +87,9 @@ class Campaign(db.Model):
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "url": url,
         }
+
+    def __repr__(self) -> str:
+        return f"<Campaign id={self.id} title='{self.title}'>"
 
 
 # Useful composite indexes

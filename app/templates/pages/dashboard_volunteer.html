@@ -34,8 +34,7 @@
           <a href="{{ url_for('settings.edit_profile') }}"
              title="{{ _('Modifica profilo') }}"
              aria-label="{{ _('Modifica profilo') }}">
-            <i class="bi bi-gear-fill"></i>
-          </a>
+          <i class="bi bi-gear-fill"></i>
         </p>
         {% if current_user.bio %}
           <p class="mb-0 text-body-secondary">{{ current_user.bio }}</p>
@@ -49,9 +48,9 @@
            aria-label="{{ _('Gestisci Eventi') }}">
           <i class="bi bi-pencil-square me-1"></i>{{ _('Nuova Petizione') }}
         </a>
-        <a href="{{ url_for('campaigns.my_campaigns') }}"
+        <a href="{{ url_for('reports.create_report') }}"
            class="btn-ghost-brand"
-           aria-label="{{ _('Gestisci Campagne') }}">
+           aria-label="{{ _('Crea report') }}">
           <i class="bi bi-geo-alt-fill me-1"></i>{{ _('Segnala!') }}
         </a>
       </div>
@@ -66,51 +65,66 @@
 
   <!-- SINISTRA: Storico attività -->
   <div class="col-lg-3">
-    <section aria-labelledby="history-title" class="card shadow-sm panel-sticky">
-      <div class="panel-header">
-        <h2 id="history-title" class="h6 mb-0">{{ _('Storico attività') }}</h2>
-      </div>
-      <div class="card-body">
-        <div class="scroll-area">
-          <ul class="list-unstyled m-0">
-            {% if donations and donations|length > 0 %}
-              {% for d in donations %}
-                <li class="list-item">
-                  <div class="list-grid">
-                    <div class="min-w-0">
-                      <a href="{{ url_for('campaigns.campaign_detail', campaign_id=d.campaign.id) }}"
-                         class="item-title link-strong">
-                        {{ d.campaign.title }}
-                      </a>
-                      <span class="badge-soft success">{{ _('Campagna') }}</span>
-                      <div class="small text-muted mt-1">
-                        {{ d.created_at.strftime('%d/%m/%Y') }}
-                        {% if d.amount %} — {{ '%.2f'|format(d.amount) }} € {% endif %}
-                      </div>
-                    </div>
+  <section aria-labelledby="history-title" class="card shadow-sm panel-sticky">
+    <div class="panel-header">
+      <h2 id="history-title" class="h6 mb-0">{{ _('Storico attività') }}</h2>
+    </div>
+    <div class="card-body">
+      <div class="scroll-area">
+        <ul class="list-unstyled m-0">
+          {% if history_items and history_items|length > 0 %}
+            {% for item in history_items %}
+              <li class="list-item">
+                <div class="list-grid">
+                  <div class="min-w-0">
 
-                    <div class="text-end">
-                      {% if d.pdf_filename %}
-                        <a href="{{ url_for('payments.download_receipt', filename=d.pdf_filename) }}"
-                           target="_blank" rel="noopener noreferrer"
-                           class="icon-btn ghost" aria-label="Apri ricevuta PDF" title="Apri ricevuta PDF">
-                          <i class="bi bi-filetype-pdf text-danger"></i>
-                        </a>
-                      {% else %}
-                        <span class="small text-muted d-inline-block mt-1">{{ _('PDF non disponibile') }}</span>
-                      {% endif %}
-                    </div>
+                    {% if item.type == "donation" %}
+                      <a href="{{ url_for('campaigns.campaign_detail', campaign_id=item.campaign_id) }}"
+                         class="item-title link-strong">
+                        {{ item.title }}
+                      </a>
+                      <span class="badge-soft warning">{{ _('Campagna') }}</span>
+                      <div class="small text-muted mt-1">
+                        {{ item.date.strftime('%d/%m/%Y') }}
+                        {% if item.amount %} — {{ '%.2f'|format(item.amount) }} € {% endif %}
+                      </div>
+
+                    {% elif item.type == "event" %}
+                      <a href="{{ url_for('events.event_detail', event_id=item.event_id) }}"
+                         class="item-title link-strong">
+                        {{ item.title }}
+                      </a>
+                      <span class="badge-soft success">{{ _('Evento') }}</span>
+                      <div class="small text-muted mt-1">
+                        {{ item.date.strftime('%d/%m/%Y %H:%M') }}
+                        {% if item.location %} — {{ item.location }} {% endif %}
+                      </div>
+                    {% endif %}
                   </div>
-                </li>
-              {% endfor %}
-            {% else %}
-              <li class="text-muted py-2">{{ _('Nessuna campagna nello storico.') }}</li>
-            {% endif %}
-          </ul>
-        </div>
+
+                  <div class="text-end">
+                    {% if item.type == "donation" and item.pdf_filename %}
+                      <a href="{{ url_for('payments.download_receipt', filename=item.pdf_filename) }}"
+                         target="_blank" rel="noopener noreferrer"
+                         class="icon-btn ghost" aria-label="Apri ricevuta PDF" title="Apri ricevuta PDF">
+                        <i class="bi bi-filetype-pdf text-danger"></i>
+                      </a>
+                    {% elif item.type == "donation" %}
+                      <span class="small text-muted d-inline-block mt-1">{{ _('PDF non disponibile') }}</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </li>
+            {% endfor %}
+          {% else %}
+            <li class="text-muted py-2">{{ _('Nessuna attività nello storico.') }}</li>
+          {% endif %}
+        </ul>
       </div>
-    </section>
-  </div>
+    </div>
+  </section>
+</div>
+
 
   <!-- CENTRO: Segnalazioni e Petizioni -->
   <div class="col-lg-6">

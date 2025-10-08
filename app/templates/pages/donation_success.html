@@ -37,6 +37,20 @@
     <p class="text-muted mt-3">{{ _('La ricevuta non è al momento disponibile.') }}</p>
   {% endif %}
 
+  {% if related_events %}
+  <hr>
+  <h5 class="mt-4">Partecipa ai prossimi eventi di {{ donation.campaign.association.name }}</h5>
+  <div class="list-group">
+    {% for e in related_events %}
+      <a href="{{ url_for('events.event_detail', event_id=e.id) }}" class="list-group-item list-group-item-action">
+        <strong>{{ e.title }}</strong><br>
+        <small>{{ e.date.strftime('%d/%m/%Y') }} – {{ e.location }}</small>
+      </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+
   <div class="mt-4">
     <a href="{{ url_for('campaigns.campaign_detail', campaign_id=donation.campaign_id) }}" class="btn btn-link">
       ← {{ _('Torna alla campagna') }}

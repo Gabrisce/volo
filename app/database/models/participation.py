@@ -23,7 +23,7 @@ class Participation(db.Model):
 
     # Relationships
     volunteer = db.relationship("User", backref="participations", foreign_keys=[volunteer_id])
-    event = db.relationship("Event", backref="participants", foreign_keys=[event_id])
+    event = db.relationship("Event", back_populates="participants", foreign_keys=[event_id])
 
     __table_args__ = (
         db.UniqueConstraint("volunteer_id", "event_id", name="uq_participation_unique"),

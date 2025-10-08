@@ -53,16 +53,15 @@ def dashboard():
     return redirect(url_for("dashboard.dashboard_volunteer"))
 
 
-# 👤 Dashboard volontario
 @dashboard_bp.route("/volunteer")
 @login_required
 def dashboard_volunteer():
     if current_user.user_type != "volunteer":
         abort(403)
 
+    # --- Attività create dal volontario (report e petizioni) ---
     activities = []
 
-    # --- Reports dell'utente ---
     reports = Report.query.filter_by(user_id=current_user.id).all()
     for r in reports:
         activities.append({
@@ -70,14 +69,9 @@ def dashboard_volunteer():
             "title": r.title,
             "description": r.description,
             "created_at": r.created_at,
-            "address": r.address,
-            "latitude": r.latitude,
-            "longitude": r.longitude,
-            "image_filename": r.image_filename,
             "type": "report",
         })
 
-    # --- Petizioni create dall'utente ---
     petitions = Petition.query.filter_by(user_id=current_user.id).all()
     for p in petitions:
         activities.append({
@@ -85,33 +79,60 @@ def dashboard_volunteer():
             "title": p.title,
             "description": p.description,
             "created_at": p.created_at,
-            "image_filename": p.image_filename,
             "type": "petition",
         })
 
-    # --- Ordine cronologico (più recenti in alto) ---
     activities = sorted(activities, key=lambda x: x["created_at"], reverse=True)
 
-    # --- Donazioni proprie ---
+    # --- Donazioni ---
     donations = _get_user_donations(current_user.id)
 
-    # --- Partecipazioni eventi futuri ---
+   # --- Partecipazioni (tutte) ---
     participations = (
         Participation.query
         .join(Event)
-        .filter(
-            Participation.volunteer_id == current_user.id,
-            Event.date >= datetime.utcnow()
-        )
-        .order_by(Event.date.asc())
+        .filter(Participation.volunteer_id == current_user.id)
+        .order_by(Event.date.desc())
         .all()
     )
+
+    # 📅 Separa eventi in futuri e passati
+    upcoming_participations = [p for p in participations if p.event.date > datetime.utcnow()]
+    past_participations = [p for p in participations if p.event.date <= datetime.utcnow() and p.status == "accepted"]
+
+    # --- Combina donazioni + eventi passati nello storico ---
+    history_items = []
+
+    # Aggiungi donazioni
+    for d in donations:
+        history_items.append({
+            "type": "donation",
+            "title": d.campaign.title if d.campaign else "Campagna",
+            "date": d.created_at,
+            "amount": d.amount,
+            "pdf_filename": d.pdf_filename,
+            "campaign_id": d.campaign.id if d.campaign else None,
+        })
+
+    # Aggiungi eventi passati
+    for p in past_participations:
+        history_items.append({
+            "type": "event",
+            "title": p.event.title,
+            "date": p.event.date,
+            "event_id": p.event.id,
+            "location": p.event.location,
+        })
+
+    # Ordina per data decrescente
+    history_items = sorted(history_items, key=lambda x: x["date"], reverse=True)
 
     return render_template(
         "pages/dashboard_volunteer.html",
         donations=donations,
-        participations=participations,
+        participations=upcoming_participations,
         activities=activities,
+        history_items=history_items,
     )
 
 
@@ -122,19 +143,35 @@ def dashboard_association():
     if current_user.user_type != "association":
         abort(403)
 
+    from datetime import datetime
+    from app.database.models.donation import Donation
+
+    # 📌 Post dell’associazione
     posts = (
         Post.query.filter_by(association_id=current_user.id)
         .order_by(Post.created_at.desc())
         .all()
     )
+
+    # 📅 Eventi dell’associazione
     my_events = (
         Event.query.filter_by(association_id=current_user.id)
         .order_by(Event.date.desc())
         .all()
     )
+
+    # 🎯 Campagne dell’associazione
     my_campaigns = (
         Campaign.query.filter_by(association_id=current_user.id)
         .order_by(Campaign.created_at.desc())
+        .all()
+    )
+
+    # 💰 Donazioni ricevute per campagne dell’associazione
+    donations = (
+        Donation.query.join(Campaign, Donation.campaign_id == Campaign.id)
+        .filter(Campaign.association_id == current_user.id)
+        .order_by(Donation.created_at.desc())
         .all()
     )
 
@@ -143,7 +180,10 @@ def dashboard_association():
         posts=posts,
         my_events=my_events,
         my_campaigns=my_campaigns,
+        donations=donations,
+        now=datetime.utcnow()
     )
+
 
 
 # 🛠️ Modifica profilo

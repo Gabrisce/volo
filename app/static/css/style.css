@@ -204,6 +204,7 @@ h4, h5, h6 { font-weight: 600; color: var(--color-primary-dark); }
 .list-grid { display: grid; grid-template-columns: 1fr auto; gap: .5rem; align-items: start; }
 /* Badge soft */ .badge-soft { display: inline-block; font-weight: 600; font-size: .72rem; padding: .15rem .4rem; border-radius: .5rem; border: 1px solid transparent; }
 .badge-soft.success { background: #ecfdf5; color: #05603a; border-color: #a7f3d0; }
+.badge-soft.warning { background: #fff8e6; color: #856404; border-color: #ffeeba; }
 /* Feed (clamp) come home */ .feed-card .card-body { padding: .9rem 1rem; }
 .feed-card:not(.expanded) .clamp { display: -webkit-box; -webkit-box-orient: vertical; overflow: hidden; line-clamp: 3; -webkit-line-clamp: 3; max-height: 4.8em; }
 .feed-card:not(.expanded) .clamp-media { max-height: 10px; overflow: hidden; }

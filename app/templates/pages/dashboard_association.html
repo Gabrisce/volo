@@ -1,11 +1,10 @@
 {% extends 'layout/base.html' %}
-
 {% block title %}Dashboard Associazione{% endblock %}
 {% block container_class %}container-xxl{% endblock %}
 
 {% block content %}
 
-{# ====== HEADER ASSOCIAZIONE ====== #}
+<!-- ====== HEADER ASSOCIAZIONE ====== -->
 <div class="row align-items-start mb-4 gy-3">
 
   <!-- Logo -->
@@ -35,11 +34,10 @@
           <p class="mb-2 text-body-secondary">{{ current_user.bio }}</p>
         {% endif %}
 
-        {# ====== Follower (reintrodotti) ====== #}
+        <!-- Follower -->
         {% set followers_count =
              (current_user.followers.count() if current_user.followers is defined
               else (current_user.followers_count if current_user.followers_count is defined else 0)) %}
-
         <div class="d-flex flex-wrap gap-2 mt-1">
           <a href="{{ url_for('public.public_profile', association_id=current_user.id) }}#followers"
              class="chip-link text-decoration-none"
@@ -58,7 +56,7 @@
     </div>
   </div>
 
-  <!-- Azioni rapide (ghost) -->
+  <!-- Azioni rapide -->
   <div class="col-lg-3 text-lg-end text-center">
     <a href="{{ url_for('events.my_events') }}" class="btn-ghost-brand me-2 mb-2" aria-label="{{ _('Gestisci Eventi') }}">
       <i class="bi bi-calendar-event me-1"></i>{{ _('Gestisci Eventi') }}
@@ -71,67 +69,73 @@
 
 <hr class="soft-divider">
 
-{# ====== LAYOUT A TRE COLONNE: EVENTI | POST | CAMPAGNE ====== #}
+<!-- ====== LAYOUT A TRE COLONNE ====== -->
 <div class="row g-4">
 
-  {# 🎯 COLONNA SINISTRA: EVENTI #}
-  <div class="col-xl-3 col-lg-4">
-    <section class="card shadow-sm panel-sticky">
-      <div class="panel-header">
-        <h6 class="mb-0">{{ _('Eventi') }}</h6>
-      </div>
-      <div class="card-body">
-        <!-- Perenni -->
-        <div class="scroll-box mb-3">
-          <h6 class="sticky-title text-success">{{ _('Perenni') }}</h6>
-          {% set has_perennial = false %}
-          {% for e in my_events %}
-            {% if (not e.end_date) or (e.duration and e.duration|lower in ['perennial','ongoing','perenne']) %}
-              {% set has_perennial = true %}
-              <div class="list-item">
-                <a href="{{ url_for('associations.detail', content_type='event', item_id=e.id) }}" class="item-title text-decoration-none">
-                  {{ e.title }}
-                </a>
-                <div class="small text-muted">
-                  {{ e.location or _('Luogo non specificato') }} · {{ _('permanente') }}
-                </div>
-              </div>
-            {% endif %}
-          {% endfor %}
-          {% if not has_perennial %}
-            <p class="text-muted small mb-0">{{ _('Nessun evento perenne.') }}</p>
-          {% endif %}
-        </div>
+<!-- 💰 COLONNA SINISTRA: DONAZIONI RICEVUTE -->
+<div class="col-xl-3 col-lg-4">
+  <section class="card shadow-sm panel-sticky">
+    <div class="panel-header">
+      <h6 class="mb-0">{{ _('Donazioni ricevute') }}</h6>
+    </div>
 
-        <!-- Temporanei -->
+    <div class="card-body">
+      {% if donations and donations|length > 0 %}
         <div class="scroll-box">
-          <h6 class="sticky-title text-secondary">{{ _('Temporanei') }}</h6>
-          {% set has_temporary = false %}
-          {% for e in my_events %}
-            {% set is_perennial = (not e.end_date) or (e.duration and e.duration|lower in ['perennial','ongoing','perenne']) %}
-            {% if not is_perennial %}
-              {% set has_temporary = true %}
-              <div class="list-item">
-                <a href="{{ url_for('associations.detail', content_type='event', item_id=e.id) }}" class="item-title text-decoration-none">
-                  {{ e.title }}
-                </a>
-                <div class="small text-muted">
-                  {% if e.date %}{{ e.date.strftime('%d/%m/%Y') }}{% endif %}
-                  {% if e.end_date %}–{{ e.end_date.strftime('%d/%m/%Y') }}{% endif %}
-                  · {{ e.location or _('Luogo non specificato') }}
+          {% for d in donations %}
+            <div class="list-item">
+              <div class="d-flex justify-content-between align-items-start">
+                
+                <div class="min-w-0">
+                  <a href="{{ url_for('public.detail', content_type='campaign', item_id=d.campaign_id) }}"
+                     class="item-title text-decoration-none">
+                    {{ d.campaign.title if d.campaign else _('Campagna sconosciuta') }}
+                  </a>
+                  <div class="small text-muted">
+                    👤 
+                    {% if d.user %}
+                      {{ d.user.name }}
+                    {% elif d.full_name %}
+                      {{ d.full_name }}
+                    {% else %}
+                      {{ _('Donatore anonimo') }}
+                    {% endif %}
+                    · 💶 {{ '%.2f'|format(d.amount) }} €
+                    · {% if d.created_at %}
+                        {{ d.created_at.strftime('%d/%m/%Y') }}
+                      {% else %}
+                        <span class="text-muted">{{ _('Data non disponibile') }}</span>
+                      {% endif %}
+                  </div>
                 </div>
-              </div>
-            {% endif %}
-          {% endfor %}
-          {% if not has_temporary %}
-            <p class="text-muted small mb-0">{{ _('Nessun evento temporaneo.') }}</p>
-          {% endif %}
-        </div>
-      </div>
-    </section>
-  </div>
 
-  {# 📰 COLONNA CENTRALE: POST (con applausi e collapse) #}
+                <div class="text-end">
+                  {% if d.pdf_filename %}
+                    <a href="{{ url_for('payments.download_receipt', filename=d.pdf_filename) }}"
+                       target="_blank"
+                       rel="noopener noreferrer"
+                       class="icon-btn ghost"
+                       title="{{ _('Apri ricevuta PDF') }}">
+                      <i class="bi bi-filetype-pdf text-danger"></i>
+                    </a>
+                  {% else %}
+                    <span class="small text-muted">{{ _('PDF non disponibile') }}</span>
+                  {% endif %}
+                </div>
+
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted small mb-0">{{ _('Nessuna donazione ricevuta finora.') }}</p>
+      {% endif %}
+    </div>
+  </section>
+</div>
+
+
+  <!-- 📰 COLONNA CENTRALE: POST -->
   <div class="col-xl-6 col-lg-4">
     <section class="card shadow-sm">
       <div class="panel-header d-flex align-items-center justify-content-between">
@@ -149,19 +153,19 @@
               <article class="card mb-3 shadow-sm post-card">
                 <div class="card-body position-relative">
 
-                  <!-- Azioni card -->
-                  <div class="post-actions" aria-label="{{ _('Azioni post') }}">
+                  <!-- Azioni -->
+                  <div class="post-actions">
                     <a href="{{ url_for('posts.edit_post', post_id=post.id) }}"
                        class="icon-btn" title="{{ _('Modifica') }}">
                       <i class="bi bi-pencil-square"></i>
                     </a>
-
-                    <button type="button" class="icon-btn danger" title="{{ _('Elimina') }}"
+                    <button type="button" class="icon-btn danger"
+                            title="{{ _('Elimina') }}"
                             data-bs-toggle="modal" data-bs-target="#confirmDeleteModal-{{ post.id }}">
                       <i class="bi bi-trash"></i>
                     </button>
 
-                    <!-- Modale conferma eliminazione -->
+                    <!-- Modale eliminazione -->
                     <div class="modal fade" id="confirmDeleteModal-{{ post.id }}" tabindex="-1" aria-hidden="true">
                       <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
@@ -170,7 +174,7 @@
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                           </div>
                           <div class="modal-body">
-                            {{ _('Sei sicuro di voler eliminare il post') }} <strong>{{ post.title }}</strong>?
+                            {{ _('Eliminare il post') }} <strong>{{ post.title }}</strong>?
                           </div>
                           <div class="modal-footer">
                             <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ _('Annulla') }}</button>
@@ -183,7 +187,7 @@
                     </div>
                   </div>
 
-                  <!-- Titolo & meta -->
+                  <!-- Titolo e contenuto -->
                   <h5 class="card-title pe-5">
                     <a href="{{ url_for('posts.post_detail', post_id=post.id) }}"
                        class="text-decoration-none text-dark">
@@ -194,8 +198,7 @@
                     {{ _('Pubblicato il') }} {{ post.created_at.strftime('%d/%m/%Y %H:%M') }}
                   </p>
 
-                  <!-- Contenuto collassabile -->
-                  <div id="{{ pid }}-content" class="post-body" data-collapsed="true" aria-expanded="false">
+                  <div id="{{ pid }}-content" class="post-body" data-collapsed="true">
                     {{ post.content }}
                     {% if post.image_filename %}
                       <img src="{{ url_for('posts.static', filename='uploads/posts/' ~ post.image_filename) }}"
@@ -203,11 +206,8 @@
                     {% endif %}
                   </div>
 
-                  <!-- Toggle -->
                   <div>
-                    <button class="post-toggle-link" type="button"
-                            aria-controls="{{ pid }}-content" aria-expanded="false"
-                            data-target="#{{ pid }}-content">
+                    <button class="post-toggle-link" type="button" data-target="#{{ pid }}-content">
                       {{ _('Mostra altro') }}
                     </button>
                   </div>
@@ -219,13 +219,10 @@
                     <button type="button"
                             class="applause-btn d-inline-flex align-items-center {% if user_has_applauded %}active{% endif %}"
                             data-post-id="{{ post.id }}">
-                      <svg class="applause-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
-                        <path d="M368 16V80c0 8.8-7.2 16-16 16s-16-7.2-16-16V16c0-8.8 7.2-16 16-16s16 7.2 16 16zm-98.7 7.1l32 48c4.9 7.4 2.9 17.3-4.4 22.2s-17.3 2.9-22.2-4.4l-32-48c-4.9-7.4-2.9-17.3 4.4-22.2s17.3-2.9 22.2 4.4zM167 119c9.4-9.4 24.6-9.4 33.9 0L324.7 242.7c10.1 10.1 27.3 2.9 27.3-11.3V192c0-17.7 14.3-32 32-32s32 14.3 32 32V345.6c0 57.1-30 110-78.9 139.4c-64 38.4-145.8 28.3-198.5-24.4L39 361c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l53 53c6.1 6.1 16 6.1 22.1 0s6.1-16 0-22.1L55 265c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l93 93c6.1 6.1 16 6.1 22.1 0s6.1-16 0-22.1L87 185c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l117 117c6.1 6.1 16 6.1 22.1 0s6.1-16 0-22.1l-93-93c-9.4-9.4-9.4-24.6 0-33.9zM465.1 484.9c-24.2 14.5-50.9 22.1-77.7 23.1c48.1-39.6 76.6-99 76.6-162.4l0-98.1c8.2-.1 16-6.4 16-16V192c0-17.7 14.3-32 32-32s32 14.3 32 32V345.6c0 57.1-30 110-78.9 139.4zM456.9 18.7c7.4 4.9 9.3 14.8 4.4 22.2l-32 48c-4.9 7.4-14.8 9.3-22.2 4.4s-9.3-14.8-4.4-22.2l32-48c4.9-7.4 14.8-9.3 22.2-4.4z"/>
-                      </svg>
+                      <i class="bi bi-hand-thumbs-up-fill"></i>
                       <span class="applause-count ms-1">{{ applause_count }}</span>
                     </button>
                   </div>
-
                 </div>
               </article>
             {% endfor %}
@@ -237,74 +234,48 @@
     </section>
   </div>
 
-  {# 🎁 COLONNA DESTRA: CAMPAGNE #}
+  <!-- 📅 COLONNA DESTRA: EVENTI + CAMPAGNE ATTIVE -->
   <div class="col-xl-3 col-lg-4">
     <section class="card shadow-sm panel-sticky">
       <div class="panel-header">
-        <h6 class="mb-0">{{ _('Campagne') }}</h6>
+        <h6 class="mb-0">{{ _('Eventi e Campagne attive') }}</h6>
       </div>
       <div class="card-body">
-
-        <!-- Perenni -->
-        <div class="scroll-box mb-3">
-          <h6 class="sticky-title text-success">{{ _('Perenni') }}</h6>
-          {% set has_c_perennial = false %}
-          {% for c in my_campaigns %}
-            {% if (not c.end_date) or (c.duration and c.duration|lower in ['perennial','ongoing','perenne']) %}
-              {% set has_c_perennial = true %}
-              <div class="list-item">
-                <a href="{{ url_for('associations.detail', content_type='campaign', item_id=c.id) }}"
-                   class="item-title text-decoration-none">
-                  {{ c.title }}
-                </a>
-                <div class="small text-muted">
-                  {{ c.goal or _('Obiettivo non indicato') }} · {{ _('permanente') }}
-                </div>
-              </div>
-            {% endif %}
-          {% endfor %}
-          {% if not has_c_perennial %}
-            <p class="text-muted small mb-0">{{ _('Nessuna campagna perenne.') }}</p>
-          {% endif %}
-        </div>
-
-        <!-- Temporanee -->
         <div class="scroll-box">
-          <h6 class="sticky-title text-secondary">{{ _('Temporanee') }}</h6>
-          {% set has_c_temporary = false %}
-          {% for c in my_campaigns %}
-            {% set is_perennial = (not c.end_date) or (c.duration and c.duration|lower in ['perennial','ongoing','perenne']) %}
-            {% if not is_perennial %}
-              {% set has_c_temporary = true %}
-              <div class="list-item">
-                <a href="{{ url_for('associations.detail', content_type='campaign', item_id=c.id) }}"
-                   class="item-title text-decoration-none">
-                  {{ c.title }}
-                </a>
-                <div class="small text-muted">
-                  {% if c.date %}{{ c.date.strftime('%d/%m/%Y') }}{% endif %}
-                  {% if c.end_date %}–{{ c.end_date.strftime('%d/%m/%Y') }}{% endif %}
-                  {% if c.goal %} · {{ c.goal }}{% endif %}
+          {% set total_items = my_events|length + my_campaigns|length %}
+          {% if total_items > 0 %}
+            {% for e in my_events %}
+              {% if (not e.end_date) or (e.end_date >= now) %}
+                <div class="list-item">
+                  <a href="{{ url_for('public.detail', content_type='event', item_id=e.id) }}" class="item-title text-decoration-none">
+                    {{ e.title }}
+                  </a>
+                  <div class="small text-muted">
+                    📅 {{ e.date.strftime('%d/%m/%Y') if e.date else _('Data non definita') }}
+                    {% if e.location %} · 📍 {{ e.location }}{% endif %}
+                  </div>
                 </div>
-              </div>
-            {% endif %}
-          {% endfor %}
-          {% if not has_c_temporary %}
-            <p class="text-muted small mb-0">{{ _('Nessuna campagna temporanea.') }}</p>
+              {% endif %}
+            {% endfor %}
+            {% for c in my_campaigns %}
+              {% if (not c.end_date) or (c.end_date >= now) %}
+                <div class="list-item">
+                  <a href="{{ url_for('public.detail', content_type='campaign', item_id=c.id) }}" class="item-title text-decoration-none">
+                    {{ c.title }}
+                  </a>
+                  <div class="small text-muted">
+                    🎯 {{ c.goal or _('Obiettivo non indicato') }}
+                  </div>
+                </div>
+              {% endif %}
+            {% endfor %}
+          {% else %}
+            <p class="text-muted small mb-0">{{ _('Nessuna iniziativa attiva.') }}</p>
           {% endif %}
         </div>
-
-        <!-- CTA gestione campagne (ghost) -->
-        <div class="mt-3 text-center">
-          <a href="{{ url_for('campaigns.my_campaigns') }}" class="btn-ghost-brand w-100" aria-label="{{ _('Gestisci Campagne') }}">
-            <i class="bi bi-bullseye me-1"></i>{{ _('Gestisci Campagne') }}
-          </a>
-        </div>
-
       </div>
     </section>
   </div>
-
 </div>
 
 <hr class="soft-divider">
@@ -316,58 +287,33 @@
 
 {% block scripts %}
 <script>
-  // Toggle "Mostra altro / meno" per i post
   document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.post-toggle-link').forEach(btn => {
-      const targetSel = btn.getAttribute('data-target');
-      const target = document.querySelector(targetSel);
+      const target = document.querySelector(btn.getAttribute('data-target'));
       if (!target) return;
-
-      const needsToggle = target.scrollHeight > target.clientHeight + 6;
-      if (!needsToggle) {
-        btn.style.display = 'none';
-        target.setAttribute('data-collapsed', 'false');
-        target.setAttribute('aria-expanded', 'true');
-        return;
-      }
-
       btn.addEventListener('click', () => {
-        const isCollapsed = target.getAttribute('data-collapsed') !== 'false';
-        target.setAttribute('data-collapsed', String(!isCollapsed));
-        target.setAttribute('aria-expanded', String(isCollapsed));
-        btn.setAttribute('aria-expanded', String(isCollapsed));
-        btn.textContent = isCollapsed ? '{{ _("Mostra meno") }}' : '{{ _("Mostra altro") }}';
+        target.classList.toggle('expanded');
+        btn.textContent = target.classList.contains('expanded')
+          ? '{{ _("Mostra meno") }}'
+          : '{{ _("Mostra altro") }}';
       });
     });
   });
 
-  // Zoom logo
   function toggleFullscreen(img) {
-    let existing = document.getElementById("img-overlay");
-    if (existing) { existing.remove(); return; }
-
-    let overlay = document.createElement("div");
-    overlay.id = "img-overlay";
+    const overlay = document.createElement("div");
     Object.assign(overlay.style, {
       position: "fixed", inset: 0, background: "rgba(0,0,0,.8)",
       display: "flex", alignItems: "center", justifyContent: "center",
-      zIndex: 9999, cursor: "zoom-out"
+      zIndex: 9999
     });
-
-    let bigImg = document.createElement("img");
-    Object.assign(bigImg.style, {
-      maxWidth: "90%", maxHeight: "90%", borderRadius: "10px",
-      boxShadow: "0 4px 20px rgba(0,0,0,.5)"
-    });
+    const bigImg = document.createElement("img");
+    Object.assign(bigImg.style, { maxWidth: "90%", maxHeight: "90%", borderRadius: "10px" });
     bigImg.src = img.src;
-
     overlay.appendChild(bigImg);
     overlay.addEventListener("click", () => overlay.remove());
     document.body.appendChild(overlay);
   }
 </script>
-
-
-
 <script src="{{ url_for('static', filename='js/applause.js') }}"></script>
 {% endblock %}

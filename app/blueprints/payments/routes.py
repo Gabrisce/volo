@@ -32,9 +32,7 @@ RECEIPTS_FOLDER = BASE_DIR / "static" / "download" / "receipts"
 RECEIPTS_FOLDER.mkdir(parents=True, exist_ok=True)
 
 
-# -----------------------------------------------------------------------------
-# Views
-# -----------------------------------------------------------------------------
+
 @payments_bp.route("/donation/<int:campaign_id>")
 def donation_form(campaign_id):
     campaign = Campaign.query.get_or_404(campaign_id)
@@ -169,7 +167,9 @@ def success():
     # URL alla route di download (NON static globale)
     receipt_url = url_for("payments.download_receipt", filename=donation.pdf_filename)
 
-    return render_template("pages/donation_success.html", donation=donation, receipt_url=receipt_url)
+    related_events = campaign.related_events[:3]  # max 3 suggerimenti
+
+    return render_template("pages/donation_success.html", donation=donation, receipt_url=receipt_url, related_events=related_events)
 
 
 @payments_bp.route("/donation/error")
