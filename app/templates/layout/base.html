@@ -60,40 +60,6 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/events.css') }}">
 
-  <style>
-    html, body { font-family: var(--font-main) !important; }
-
-    .container-wider { max-width: 1400px; margin: 0 auto; }
-    @media (min-width: 1400px) { .container-wider { max-width: 1440px; } }
-    @media (min-width: 1600px) { .container-wider { max-width: 1560px; } }
-    @media (min-width: 1800px) { .container-wider { max-width: 1680px; } }
-
-    .container-bleed { width: 100%; max-width: 100%; padding-left: 12px; padding-right: 12px; }
-
-    /* 👇 Stili generali per chat (bubbles e lista) */
-    .chat-list-item {
-      display: flex; 
-      align-items: center; 
-      padding: 10px; 
-      border-bottom: 1px solid #eee; 
-      cursor: pointer;
-    }
-    .chat-list-item img {
-      width: 36px; 
-      height: 36px; 
-      border-radius: 50%; 
-      margin-right: 10px;
-    }
-    .message { 
-      margin-bottom: 8px; 
-      padding: 8px 12px; 
-      border-radius: 16px; 
-      max-width: 70%; 
-    }
-    .message.sent { background: #d1f0d1; align-self: flex-end; }
-    .message.received { background: #f1f1f1; align-self: flex-start; }
-  </style>
-
   {% block head %}{% endblock %}
 </head>
 

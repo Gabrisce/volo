@@ -332,59 +332,12 @@
 </div>
 {% endblock %}
 
-{% block styles %}
-<style>
-  .text-dark-green { color: #006400 !important; }
-  .text-dark-green:hover { color: #004d00 !important; }
-
-  /* 🔄 Contenitore immagine principale */
-  /* Contenitore immagine */
-.detail-image-wrapper {
-  width: 100%;    /* ✅ altezza fissa */
-  overflow: hidden;
-  border-radius: 12px;
-  margin: 0 auto 1.5rem auto; /* centrata */
-  background: #f1f1f1;
-}
-
-.detail-image {
-  width: 100%;
-  max-height: 320px;
-  object-fit: contain;
-  border-radius: 12px;
-}
-
-  .detail-content p { line-height: 1.6; font-size: 1rem; }
-
-  /* Posizionamento in basso a destra dentro la card */
-.share-dropdown-card {
-  position: absolute;
-  bottom: 15px;
-  right: 15px;
-}
-.detail-card {
-  position: relative; /* necessario per contenere il dropdown posizionato assoluto */
-}
-
-.detail-info span {
-  font-size: 0.95rem;
-  color: #444;
-}
-
-.badge {
-  font-size: 0.85rem;
-  padding: 0.4em 0.6em;
-  border-radius: 8px;
-}
-
-
-</style>
 
 
 
 
 
-{% endblock %}
+
 
 {% block scripts %}
 

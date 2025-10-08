@@ -109,61 +109,6 @@
   </div>
 {% endif %}
 
-<style>
-  /* Azioni card */
-  .card .card-body{ position: relative; }
-  .post-actions{
-    position: absolute;
-    top: .6rem;
-    right: .6rem;
-    display: flex;
-    gap: .35rem;
-  }
-  .icon-btn{
-    width: 32px; height: 32px;
-    display: inline-flex;
-    align-items: center; justify-content: center;
-    border: none; background: transparent;
-    border-radius: 8px;
-    color: #6c757d;
-    transition: background .15s ease, color .15s ease;
-  }
-  .icon-btn:hover{ background: rgba(0,0,0,.05); color: #0d6efd; }
-  .icon-btn.danger:hover{ color: #dc3545; }
-  .icon-btn svg{ width: 18px; height: 18px; }
-  .icon-btn-form{ display: inline-block; margin: 0; }
-
-  /* --- DESCRIZIONE COLLASSABILE --- */
-  .event-body{
-    --collapsed-height: 3.5rem;
-    position: relative;
-    max-height: var(--collapsed-height);
-    overflow: hidden;
-    transition: max-height .25s ease;
-  }
-  .event-body[data-collapsed="false"]{ max-height: none; }
-  .event-body[data-collapsed="true"]::after{
-    content: "";
-    position: absolute; left: 0; right: 0; bottom: 0;
-    height: 2rem;
-    background: linear-gradient(to bottom, rgba(255,255,255,0), #fff 70%);
-  }
-
-  .event-toggle-link{
-    background: none;
-    border: none;
-    padding: 0;
-    margin-top: .25rem;
-    color: #6c757d;
-    font-weight: 600;
-    cursor: pointer;
-    text-decoration: none;
-  }
-  .event-toggle-link:hover, .event-toggle-link:focus{
-    text-decoration: underline;
-    color: #5a6268;
-  }
-</style>
 
 <script>
   document.addEventListener('DOMContentLoaded', function () {
