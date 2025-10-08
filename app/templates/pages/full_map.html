@@ -115,7 +115,12 @@
     <div id="map-full" style="height: 480px; width: 100%; border-radius: 12px; box-shadow: var(--elev-1, 0 2px 8px rgba(16,24,40,.06));"></div>
   </div>
 </div>
+
 {% endblock %}
+
+
+{# QUI: blocco footer vuoto per nasconderlo #}
+{% block footer %}{% endblock footer %}
 
 {% block scripts %}
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDcXFwnHjAn_WPunfH5oB2A13WTiDotRig&callback=initMap" async defer></script>
@@ -461,6 +466,5 @@ function initMap(){
 }
 window.initMap = initMap;
 </script>
-
 
 {% endblock %}

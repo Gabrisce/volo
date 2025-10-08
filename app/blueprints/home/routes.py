@@ -6,6 +6,7 @@ from app.utils.feed import get_feed_items, collect_search_text, matches_query
 from app.database.models.petition import Petition
 
 
+
 home_bp = Blueprint("home", __name__, url_prefix="/")
 
 @home_bp.route("", methods=["GET"])
@@ -52,10 +53,21 @@ def home():
     else:
         found_associations = []
 
+    associations = (
+        User.query
+        .filter(User.user_type == 'association')
+        # facoltativo: tieni solo chi ha coordinate (per il sort per distanza lato client)
+        # .filter(User.latitude.isnot(None), User.longitude.isnot(None))
+        .order_by(User.name.asc())   # o .order_by(User.created_at.desc())
+        .limit(50)                   # evita carichi inutili
+        .all()
+    )
+
     return render_template(
         "pages/home.html",
         feed_items=feed_items,
         found_associations=found_associations,
+        associations=associations,
         associations_options=associations_options,
         petitions=petitions,  # 👈 passa la lista al template
     )

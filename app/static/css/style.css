@@ -481,4 +481,115 @@ h4, h5, h6 { font-weight: 600; color: var(--color-primary-dark); }
   .navbar .brand-wrapper { left: 15; }
 }
 
+/* ===== HOME-ONLY OVERRIDES ===== */
+body.home-body { min-height: 200vh; }     /* home 2× viewport */
+body.home-body main { overflow: visible; }/* per sticky */
 
+/* feed: niente scroll interno */
+body.home-body .feed-container {
+  max-height: none !important;
+  overflow: visible !important;
+  padding-right: 0 !important;
+}
+
+/* altezza navbar per sticky */
+:root { --sticky-top: 88px; }
+
+/* Ricerca (colonna centrale) sticky */
+@media (min-width: 992px) {
+  body.home-body .home-center .search-wrapper {
+    position: sticky;
+    top: var(--sticky-top);
+    z-index: 3;
+    background: transparent;
+  }
+}
+
+/* ===== Associations rail (home right column) ===== */
+.associations-panel .petitions-header { padding: .75rem 1rem; }
+.associations-panel .associations-body { padding: .5rem 0 1rem; }
+
+.associations-scroller {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 124px;   /* ↓ più strette (prima 160px) */
+  gap: .75rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: .25rem 2.25rem;     /* spazio per frecce */
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+.associations-scroller::-webkit-scrollbar { height: 6px; }
+.associations-scroller::-webkit-scrollbar-thumb { background: rgba(0,0,0,.15); border-radius: 999px; }
+.associations-scroller { scrollbar-width: thin; }
+
+.assoc-card {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  align-content: start;
+  gap: .35rem;
+  background: #fff;
+  border: 1px solid var(--color-border, rgba(0,0,0,.08));
+  border-radius: var(--radius-lg, 14px);
+  box-shadow: var(--elev-1, 0 2px 8px rgba(16,24,40,.06));
+  padding: .5rem;             /* ↓ più compatta (prima .6rem) */
+  text-decoration: none;
+  scroll-snap-align: start;
+  min-height: 120px;          /* ↓ più bassa (prima 150px) */
+}
+.assoc-card:hover { box-shadow: var(--elev-2, 0 8px 24px rgba(16,24,40,.08)); }
+.assoc-avatar-wrap { display: flex; justify-content: center; }
+.assoc-avatar {
+  width: 52px; height: 52px;  /* ↓ avatar più piccolo (prima 64px) */
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(0,0,0,.06);
+}
+.assoc-meta { display: grid; gap: 2px; text-align: center; }
+.assoc-name {
+  font-size: .85rem;                  /* leggermente più piccolo */
+  font-weight: 400;                   /* niente grassetto */
+  color: var(--color-text, #333);
+  display: block;
+  text-decoration: none;              /* evita sottolineatura */
+}
+
+.assoc-name:hover,
+.assoc-name:focus {
+  text-decoration: none;              /* mantiene lo stato senza underline */
+}
+.assoc-distance { font-size: .8rem; color: var(--color-text-muted, #555); }
+
+/* Frecce “invisibili” */
+.hs-arrow {
+  position: absolute; top: 0; bottom: 0; width: 36px;
+  border: 0; background: none; cursor: pointer; opacity: 0; transition: opacity .2s;
+  z-index: 2;
+}
+.associations-body:hover .hs-arrow,
+.associations-body:focus-within .hs-arrow { opacity: 1; }
+.hs-prev { left: 0; background: linear-gradient(90deg, rgba(255,255,255,1), rgba(255,255,255,0)); }
+.hs-next { right: 0; background: linear-gradient(270deg, rgba(255,255,255,1), rgba(255,255,255,0)); }
+.hs-arrow::after {
+  content: '';
+  position: absolute; top: 50%; left: 50%;
+  width: 10px; height: 10px; border-top: 2px solid #666; border-right: 2px solid #666;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+.hs-prev::after { transform: translate(-50%, -50%) rotate(225deg); }
+
+/* Sticky della colonna destra come blocco unico */
+@media (min-width: 992px) {
+  body.home-body .right-rail {
+    position: sticky;
+    top: var(--sticky-top);
+    display: grid;
+    gap: 12px;
+    align-content: start;
+  }
+  /* niente sticky sui pannelli figli */
+  body.home-body .petitions-panel,
+  body.home-body .associations-panel { position: static; }
+}

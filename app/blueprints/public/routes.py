@@ -6,10 +6,12 @@ from app import db
 from app.database.models.user import User
 from app.database.models.post import Post
 from app.database.models.event import Event
+from app.database.models.donation import Donation
 from app.database.models.campaign import Campaign
 from app.database.models.report import Report   # 👈 aggiunto import
 from app.database.models.chat import Chat
 from datetime import datetime
+from sqlalchemy.orm import joinedload
 
 
 public_bp = Blueprint("public", __name__)
@@ -81,39 +83,141 @@ def unfollow_association(association_id):
     return redirect(
         url_for("public.public_profile", association_id=association_id)
     )
-
-
 # 👤 Profilo pubblico di una singola associazione
 @public_bp.route("/associazioni/<int:association_id>")
 def public_profile(association_id):
-    association = User.query.get_or_404(association_id)
+    from datetime import datetime
+    from sqlalchemy.orm import joinedload
 
+    association = User.query.get_or_404(association_id)
     if association.user_type != "association":
         abort(404)
 
-    events = (
-        Event.query.filter_by(association_id=association.id)
-        .order_by(Event.date.desc())
-        .all()
-    )
+    now = datetime.utcnow()
+
+    # subito dopo aver ottenuto 'association' e 'now'
+    is_following = False
+    if current_user.is_authenticated and current_user.id != association.id:
+        fa = getattr(current_user, "followed_associations", None)
+    try:
+        if fa is not None:
+            # se è una relazione dynamic (Query)
+            if hasattr(fa, "filter_by"):
+                is_following = fa.filter_by(id=association.id).count() > 0
+            else:
+                # se è una lista già caricata
+                is_following = any(getattr(a, "id", None) == association.id for a in fa)
+    except Exception:
+        is_following = False
+
+    # helper: primo campo data non nullo tra una lista
+    def first_dt(obj, *names):
+        for n in names:
+            val = getattr(obj, n, None)
+            if val:
+                return val
+        return None
+
+    # --- Post ---
     posts = (
         Post.query.filter_by(association_id=association.id)
         .order_by(Post.created_at.desc())
         .all()
     )
+
+    # --- Eventi (compatibili con modelli senza end_date) ---
+    events = (
+        Event.query.filter_by(association_id=association.id)
+        .order_by(Event.date.desc())   # se 'date' non esistesse, puoi togliere l'order_by
+        .all()
+    )
+    active_events, ended_events = [], []
+    for e in events:
+        start = first_dt(e, "date", "start_date", "starts_at", "start_at")
+        end   = first_dt(e, "end_date", "end_at", "ends_at", "until", "deadline")
+        if end:
+            (active_events if end >= now else ended_events).append(e)
+        else:
+            # se non c'è end: consideralo attivo se deve ancora iniziare, altrimenti terminato
+            if start and start >= now:
+                active_events.append(e)
+            else:
+                ended_events.append(e)
+
+    # --- Campagne (supporta anche modelli senza end_date) ---
     campaigns = (
         Campaign.query.filter_by(association_id=association.id)
         .order_by(Campaign.created_at.desc())
+        .all()
+    )
+    active_campaigns, ended_campaigns = [], []
+    for c in campaigns:
+        c_end = first_dt(c, "end_date", "deadline", "end_at", "ends_at", "close_date")
+        if c_end and c_end < now:
+            ended_campaigns.append(c)
+        else:
+            active_campaigns.append(c)
+
+    # --- Storico: SOLO terminati (eventi + campagne) ---
+    history_items = []
+    # Eventi terminati, ordinati per fine o in alternativa per inizio
+    history_items.extend(
+        {
+            "type": "event",
+            "event_id": e.id,
+            "title": e.title,
+            "date": first_dt(e, "end_date", "end_at", "ends_at", "date", "start_date", "starts_at", "start_at"),
+            "location": getattr(e, "location", None),
+        }
+        for e in sorted(
+            ended_events,
+            key=lambda x: first_dt(x, "end_date", "end_at", "ends_at", "date", "start_date", "starts_at", "start_at") or now,
+            reverse=True,
+        )
+    )
+    # Campagne terminate, ordinate per fine
+    history_items.extend(
+        {
+            "type": "campaign",
+            "campaign_id": c.id,
+            "title": c.title,
+            "date": first_dt(c, "end_date", "deadline", "end_at", "ends_at", "close_date"),
+            "goal": getattr(c, "goal", None) or getattr(c, "goal_amount", None),
+        }
+        for c in sorted(
+            ended_campaigns,
+            key=lambda x: first_dt(x, "end_date", "deadline", "end_at", "ends_at", "close_date") or now,
+            reverse=True,
+        )
+    )
+
+    # --- Donazioni ricevute (Campaign -> Donation) ---
+    donations = (
+        Donation.query
+        .options(joinedload(Donation.campaign), joinedload(Donation.user))
+        .join(Campaign, Campaign.id == Donation.campaign_id)
+        .filter(Campaign.association_id == association.id)
+        .order_by(Donation.created_at.desc())
         .all()
     )
 
     return render_template(
         "pages/association_profile.html",
         association=association,
-        events=events,
         posts=posts,
+        donations=donations,
+        history_items=history_items,
+        active_events=active_events,
+        active_campaigns=active_campaigns,
+        # opzionali, se ti servono altrove
+        events=events,
         campaigns=campaigns,
+        is_following=is_following, 
+        now=now,
     )
+
+
+
 
 
 @public_bp.route("/associazioni/seguiti")

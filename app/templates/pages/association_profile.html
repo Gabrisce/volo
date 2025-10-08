@@ -1,352 +1,451 @@
+{# app/templates/pages/association_profile.html #}
 {% extends 'layout/base.html' %}
 {% block title %}{{ association.name }}{% endblock %}
 {% block container_class %}container-xxl{% endblock %}
 
 {% block content %}
-<div>
 
-  <!-- 👤 Header profilo -->
-  <div class="row align-items-start mb-4 gy-3">
+<!-- ====== HEADER ASSOCIAZIONE (stile dashboard) ====== -->
+<div class="row align-items-start mb-4 gy-3">
 
-    <!-- Logo -->
-    <div class="col-lg-2 text-center">
-      <img
-        src="{% if association.photo_filename %}
-               {{ url_for('dashboard.static', filename='uploads/profile-photo/' ~ association.photo_filename) }}
-             {% else %}
-               {{ url_for('static', filename='img/avatar-placeholder.png') }}
-             {% endif %}"
-        class="profile-photo ring-click"
-        alt="Logo {{ association.name }}"
-        onclick="toggleFullscreen(this)">
-    </div>
+  <!-- Logo -->
+  <div class="col-lg-2 text-center">
+    {% if association.photo_filename %}
+      <img src="{{ url_for('dashboard.static', filename='uploads/profile-photo/' ~ association.photo_filename) }}"
+           class="profile-photo ring-click"
+           alt="Logo associazione"
+           onclick="toggleFullscreen(this)">
+    {% else %}
+      <img src="{{ url_for('static', filename='img/avatar-placeholder.png') }}"
+           class="profile-photo ring-click"
+           alt="Logo associazione"
+           onclick="toggleFullscreen(this)">
+    {% endif %}
+  </div>
 
-    <!-- Dati + chip follower + chat -->
-    <div class="col-lg-7">
-      <div class="d-flex align-items-start justify-content-between">
-        <div class="pe-2">
-          <h2 class="mb-1">{{ association.name }}</h2>
+  <!-- Dati + follower + chat -->
+  <div class="col-lg-7">
+    <div class="d-flex align-items-start justify-content-between">
 
-          {% if association.fiscal_code %}
-            <p class="mb-1 text-body-secondary"><strong>C.F./P.IVA:</strong> {{ association.fiscal_code }}</p>
-          {% endif %}
+      <div class="pe-2">
+        <h2 class="mb-1">{{ association.name }}</h2>
 
-          {% if association.bio %}
-            <p class="mb-2 text-body-secondary">{{ association.bio }}</p>
-          {% endif %}
-
-          {# Follower chip #}
-          {% set followers_count = association.followers.count() if association.followers is defined else 0 %}
-          <div class="d-flex flex-wrap gap-2 mt-1">
-            <a href="{{ url_for('public.public_profile', association_id=association.id) }}#followers"
-               class="chip-link text-decoration-none"
-               aria-label="{{ _('Vedi follower') }}">
-              👥 {{ followers_count }} {{ _('Follower') }}
-            </a>
-
-            {# Chat come icona (solo se l’utente non è l’associazione) #}
-            {% if current_user.is_authenticated and current_user.id != association.id %}
-              <a href="#"
-                id="start-chat-link"
-                data-user-id="{{ association.id }}"
-                data-user-name="{{ association.name }}"
-                data-user-photo="{% if association.photo_filename %}
-                                    {{ url_for('dashboard.static', filename='uploads/profile-photo/' ~ association.photo_filename) }}
-                                  {% else %}
-                                    {{ url_for('static', filename='img/default-profile.png') }}
-                                  {% endif %}"
-                class="d-inline-flex align-items-center text-decoration-none">
-                <img src="{{ url_for('static', filename='img/icon_chat.png') }}"
-                    alt="Chat" width="30" height="30" class="me-1" />
-                </a>
-            {% endif %}
-          </div>
-        </div>
-
-        {# Segui / Smetti di seguire (solo volontari) #}
-        {% if current_user.is_authenticated and current_user.user_type == 'volunteer' %}
-          <form action="{{ url_for('associations.follow_association', association_id=association.id) }}"
-                method="POST" class="d-inline">
-            {% if csrf_token is defined %}
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            {% endif %}
-            {% if association in current_user.followed_associations %}
-              <button type="submit"
-                      formaction="{{ url_for('associations.unfollow_association', association_id=association.id) }}"
-                      class="btn btn-outline-danger rounded-pill">
-                ❌ {{ _('Smetti di seguire') }}
-              </button>
-            {% else %}
-              <button type="submit" class="btn btn-outline-success rounded-pill">
-                ➕ {{ _('Segui') }}
-              </button>
-            {% endif %}
-          </form>
+        {% if association.fiscal_code %}
+          <p class="mb-1 text-body-secondary">
+            <strong>C.F./P.IVA:</strong> {{ association.fiscal_code }}
+          </p>
         {% endif %}
+
+        {% if association.bio %}
+          <p class="mb-2 text-body-secondary">{{ association.bio }}</p>
+        {% endif %}
+
+        {# Follower chip #}
+        {% set followers_count = association.followers.count() if association.followers is defined else 0 %}
+        <div class="d-flex flex-wrap gap-2 mt-1">
+          <a href="{{ url_for('public.public_profile', association_id=association.id) }}#followers"
+             class="chip-link text-decoration-none"
+             aria-label="{{ _('Vedi follower') }}">
+            👥 {{ followers_count }} {{ _('Follower') }}
+          </a>
+
+          {# Chat come icona (solo se l’utente non è l’associazione) #}
+          {% if current_user.is_authenticated and current_user.id != association.id %}
+            <a href="#"
+               id="start-chat-link"
+               data-user-id="{{ association.id }}"
+               data-user-name="{{ association.name }}"
+               data-user-photo="{% if association.photo_filename %}
+                                   {{ url_for('dashboard.static', filename='uploads/profile-photo/' ~ association.photo_filename) }}
+                                 {% else %}
+                                   {{ url_for('static', filename='img/default-profile.png') }}
+                                 {% endif %}"
+               class="d-inline-flex align-items-center text-decoration-none">
+              <img src="{{ url_for('static', filename='img/icon_chat.png') }}"
+                   alt="Chat" width="30" height="30" class="me-1" />
+            </a>
+          {% endif %}
+        </div>
       </div>
-    </div>
 
-    <!-- Spazio a destra (vuoto nel profilo pubblico) -->
-    <div class="col-lg-3 text-lg-end text-center"></div>
+      {# Segui / Smetti di seguire: stesso stile delle tab .pill #}
+        {% if current_user.is_authenticated and current_user.id != association.id %}
+          <div class="showcase">
+            <div class="nav-pills gap-2">
+              <form method="post"
+                    action="{{ url_for('public.unfollow_association' if is_following else 'public.follow_association',
+                                      association_id=association.id) }}"
+                    class="m-0">
+                <button type="submit"
+                        class="pill {% if is_following %}active{% endif %}"
+                        aria-pressed="{{ 'true' if is_following else 'false' }}"
+                        title="{{ 'Smetti di seguire' if is_following else 'Segui' }}"
+                        aria-label="{{ 'Smetti di seguire' if is_following else 'Segui' }}">
+                  <i class="bi {{ 'bi-person-check' if is_following else 'bi-person-plus' }} me-1"></i>
+                  <span class="d-none d-sm-inline">
+                    {{ 'Smetti di seguire' if is_following else 'Segui' }}
+                  </span>
+                </button>
+              </form>
+            </div>
+          </div>
+        {% endif %}
+
+
+    </div>
   </div>
-
-  <hr class="soft-divider">
-
-  {# ====== LAYOUT A TRE COLONNE: EVENTI | POST | CAMPAGNE ====== #}
-  <div class="row g-4">
-
-    {# 📅 Colonna sinistra: Eventi #}
-    <div class="col-xl-3 col-lg-4">
-      <section class="card shadow-sm panel-sticky">
-        <div class="panel-header">
-          <h6 class="mb-0">{{ _('Eventi') }}</h6>
-        </div>
-        <div class="card-body">
-          <!-- Perenni -->
-          <div class="scroll-box mb-3">
-            <h6 class="sticky-title text-success">{{ _('Perenni') }}</h6>
-            {% set has_perennial = false %}
-            {% for e in events %}
-              {% if (not e.end_date) or (e.duration and e.duration|lower in ['perennial','ongoing','perenne']) %}
-                {% set has_perennial = true %}
-                <div class="list-item">
-                  <a href="{{ url_for('associations.detail', content_type='event', item_id=e.id) }}"
-                     class="item-title text-decoration-none">
-                    {{ e.title }}
-                  </a>
-                  <div class="small text-muted">
-                    {{ e.location or _('Luogo non specificato') }} · {{ _('permanente') }}
-                  </div>
-                </div>
-              {% endif %}
-            {% endfor %}
-            {% if not has_perennial %}
-              <p class="text-muted small mb-0">{{ _('Nessun evento perenne.') }}</p>
-            {% endif %}
-          </div>
-
-          <!-- Temporanei -->
-          <div class="scroll-box">
-            <h6 class="sticky-title text-secondary">{{ _('Temporanei') }}</h6>
-            {% set has_temporary = false %}
-            {% for e in events %}
-              {% set is_perennial = (not e.end_date) or (e.duration and e.duration|lower in ['perennial','ongoing','perenne']) %}
-              {% if not is_perennial %}
-                {% set has_temporary = true %}
-                <div class="list-item">
-                  <a href="{{ url_for('associations.detail', content_type='event', item_id=e.id) }}"
-                     class="item-title text-decoration-none">
-                    {{ e.title }}
-                  </a>
-                  <div class="small text-muted">
-                    {% if e.date %}{{ e.date.strftime('%d/%m/%Y') }}{% endif %}
-                    {% if e.end_date %}–{{ e.end_date.strftime('%d/%m/%Y') }}{% endif %}
-                    · {{ e.location or _('Luogo non specificato') }}
-                  </div>
-                </div>
-              {% endif %}
-            {% endfor %}
-            {% if not has_temporary %}
-              <p class="text-muted small mb-0">{{ _('Nessun evento temporaneo.') }}</p>
-            {% endif %}
-          </div>
-        </div>
-      </section>
-    </div>
-
-    {# 📰 Colonna centrale: Post (solo lettura + applausi) #}
-    <div class="col-xl-6 col-lg-4">
-      <section class="card shadow-sm">
-        <div class="panel-header d-flex align-items-center justify-content-between">
-          <h6 class="mb-0">{{ _('Post') }}</h6>
-        </div>
-
-        <div class="card-body">
-          <div class="feed-container" style="max-height: 70vh; overflow-y: auto;">
-            {% if posts %}
-              {% for post in posts %}
-                {% set pid = 'post-' ~ post.id %}
-                <article class="card mb-3 shadow-sm post-card">
-                  <div class="card-body position-relative">
-
-                    <!-- Titolo & meta -->
-                    <h5 class="card-title pe-5">
-                      <a href="{{ url_for('posts.post_detail', post_id=post.id) }}"
-                         class="text-decoration-none text-dark">
-                        {{ post.title or _('Titolo mancante') }}
-                      </a>
-                    </h5>
-                    <p class="text-muted mb-2">
-                      {{ _('Pubblicato il') }} {{ post.created_at.strftime('%d/%m/%Y %H:%M') }}
-                    </p>
-
-                    <!-- Contenuto collassabile -->
-                    <div id="{{ pid }}-content" class="post-body" data-collapsed="true" aria-expanded="false">
-                      {{ post.content }}
-                      {% if post.image_filename %}
-                        <img src="{{ url_for('posts.static', filename='uploads/posts/' ~ post.image_filename) }}"
-                             class="img-fluid mt-2 rounded" alt="Immagine post">
-                      {% endif %}
-                    </div>
-
-                    <!-- Toggle -->
-                    <div>
-                      <button class="post-toggle-link" type="button"
-                              aria-controls="{{ pid }}-content" aria-expanded="false"
-                              data-target="#{{ pid }}-content">
-                        {{ _('Mostra altro') }}
-                      </button>
-                    </div>
-
-                    <!-- Applausi -->
-                    {% set applause_count = post.applause|length if post.applause is defined else 0 %}
-                    {% set user_has_applauded = current_user.is_authenticated and post.applause|selectattr("user_id","equalto",current_user.id)|list|length > 0 %}
-                    <div class="mt-2 d-flex align-items-center">
-                      <button type="button"
-                              class="applause-btn d-inline-flex align-items-center {% if user_has_applauded %}active{% endif %}"
-                              data-post-id="{{ post.id }}"
-                              aria-label="{{ _('Applaudi il post') }}">
-                         <svg class="applause-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512">
-                        <path d="M368 16V80c0 8.8-7.2 16-16 16s-16-7.2-16-16V16c0-8.8 7.2-16 16-16s16 7.2 16 16zm-98.7 7.1l32 48c4.9 7.4 2.9 17.3-4.4 22.2s-17.3 2.9-22.2-4.4l-32-48c-4.9-7.4-2.9-17.3 4.4-22.2s17.3-2.9 22.2 4.4zM167 119c9.4-9.4 24.6-9.4 33.9 0L324.7 242.7c10.1 10.1 27.3 2.9 27.3-11.3V192c0-17.7 14.3-32 32-32s32 14.3 32 32V345.6c0 57.1-30 110-78.9 139.4c-64 38.4-145.8 28.3-198.5-24.4L39 361c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l53 53c6.1 6.1 16 6.1 22.1 0s6.1-16 0-22.1L55 265c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l93 93c6.1 6.1 16 6.1 22.1 0s6.1-16 0-22.1L87 185c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l117 117c6.1 6.1 16 6.1 22.1 0s6.1-16 0-22.1l-93-93c-9.4-9.4-9.4-24.6 0-33.9zM465.1 484.9c-24.2 14.5-50.9 22.1-77.7 23.1c48.1-39.6 76.6-99 76.6-162.4l0-98.1c8.2-.1 16-6.4 16-16V192c0-17.7 14.3-32 32-32s32 14.3 32 32V345.6c0 57.1-30 110-78.9 139.4zM456.9 18.7c7.4 4.9 9.3 14.8 4.4 22.2l-32 48c-4.9 7.4-14.8 9.3-22.2 4.4s-9.3-14.8-4.4-22.2l32-48c4.9-7.4 14.8-9.3 22.2-4.4z"/>
-                      </svg>
-                        <span class="applause-count ms-1">{{ applause_count }}</span>
-                      </button>
-                    </div>
-
-                  </div>
-                </article>
-              {% endfor %}
-            {% else %}
-              <p class="text-muted mb-0">{{ _('Nessun post ancora pubblicato.') }}</p>
-            {% endif %}
-          </div>
-        </div>
-      </section>
-    </div>
-
-    {# 🎁 Colonna destra: Campagne #}
-    <div class="col-xl-3 col-lg-4">
-      <section class="card shadow-sm panel-sticky">
-        <div class="panel-header">
-          <h6 class="mb-0">{{ _('Campagne') }}</h6>
-        </div>
-        <div class="card-body">
-
-          <!-- Perenni -->
-          <div class="scroll-box mb-3">
-            <h6 class="sticky-title text-success">{{ _('Perenni') }}</h6>
-            {% set has_c_perennial = false %}
-            {% for c in campaigns %}
-              {% if (not c.end_date) or (c.duration and c.duration|lower in ['perennial','ongoing','perenne']) %}
-                {% set has_c_perennial = true %}
-                <div class="list-item">
-                  <a href="{{ url_for('associations.detail', content_type='campaign', item_id=c.id) }}"
-                     class="item-title text-decoration-none">
-                    {{ c.title }}
-                  </a>
-                  <div class="small text-muted">
-                    {{ c.goal or _('Obiettivo non indicato') }} · {{ _('permanente') }}
-                  </div>
-                </div>
-              {% endif %}
-            {% endfor %}
-            {% if not has_c_perennial %}
-              <p class="text-muted small mb-0">{{ _('Nessuna campagna perenne.') }}</p>
-            {% endif %}
-          </div>
-
-          <!-- Temporanee -->
-          <div class="scroll-box">
-            <h6 class="sticky-title text-secondary">{{ _('Temporanee') }}</h6>
-            {% set has_c_temporary = false %}
-            {% for c in campaigns %}
-              {% set is_perennial = (not c.end_date) or (c.duration and c.duration|lower in ['perennial','ongoing','perenne']) %}
-              {% if not is_perennial %}
-                {% set has_c_temporary = true %}
-                <div class="list-item">
-                  <a href="{{ url_for('associations.detail', content_type='campaign', item_id=c.id) }}"
-                     class="item-title text-decoration-none">
-                    {{ c.title }}
-                  </a>
-                  <div class="small text-muted">
-                    {% if c.date %}{{ c.date.strftime('%d/%m/%Y') }}{% endif %}
-                    {% if c.end_date %}–{{ c.end_date.strftime('%d/%m/%Y') }}{% endif %}
-                    {% if c.goal %} · {{ c.goal }}{% endif %}
-                  </div>
-                </div>
-              {% endif %}
-            {% endfor %}
-            {% if not has_c_temporary %}
-              <p class="text-muted small mb-0">{{ _('Nessuna campagna temporanea.') }}</p>
-            {% endif %}
-          </div>
-
-        </div>
-      </section>
-    </div>
-
-  </div>
-
-  <hr class="soft-divider">
 
 </div>
 
+
+<hr class="soft-divider">
+
+{# ====== VETRINA ORIZZONTALE A PANNELLI ====== #}
+<section class="showcase">
+  <!-- Nav pills -->
+  <div class="showcase-nav d-flex align-items-center justify-content-between mb-2">
+    <div class="nav-pills gap-2">
+      <button class="pill active" data-target="#slide-posts"><i class="bi bi-chat-text me-1"></i>{{ _('Post') }}</button>
+      <button class="pill" data-target="#slide-donations"><i class="bi bi-receipt me-1"></i>{{ _('Donazioni') }}</button>
+      <button class="pill" data-target="#slide-history"><i class="bi bi-clock-history me-1"></i>{{ _('Storico') }}</button>
+      <button class="pill" data-target="#slide-active"><i class="bi bi-lightning-charge me-1"></i>{{ _('Attivi') }}</button>
+    </div>
+
+    <div class="nav-arrows">
+      <button class="icon-btn ghost" id="showcasePrev" aria-label="{{ _('Vai a sinistra') }}">‹</button>
+      <button class="icon-btn ghost" id="showcaseNext" aria-label="{{ _('Vai a destra') }}">›</button>
+    </div>
+  </div>
+
+  <!-- Viewport -->
+  <div class="showcase-viewport">
+    <div class="showcase-track">
+
+      <!-- 📰 POST -->
+      <article class="showcase-slide is-active" id="slide-posts">
+        <section class="card shadow-sm h-100">
+          <div class="panel-header d-flex align-items-center justify-content-between">
+            <h6 class="mb-0 d-flex align-items-center gap-2">
+              <i class="bi bi-chat-text"></i> {{ _('Post') }}
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="feed-container" style="max-height: var(--showcase-h); overflow-y: auto;">
+              {% if posts and posts|length %}
+                {% for post in posts %}
+                  {% set pid = 'post-' ~ post.id %}
+                  <article class="card mb-3 shadow-sm post-card">
+                    <div class="card-body position-relative">
+                      <h5 class="card-title pe-5">
+                        <a href="{{ url_for('public.detail', content_type='post', item_id=post.id) }}"
+                           class="text-decoration-none text-dark">{{ post.title or _('Titolo mancante') }}</a>
+                      </h5>
+                      <p class="card-text text-muted mb-2">
+                        {{ _('Pubblicato il') }} {{ post.created_at.strftime('%d/%m/%Y %H:%M') }}
+                      </p>
+
+                      <div id="{{ pid }}-content" class="post-body" data-collapsed="true" aria-expanded="false">
+                        {{ post.content }}
+                        {% if post.image_filename %}
+                          <img src="{{ url_for('posts.static', filename='uploads/posts/' ~ post.image_filename) }}"
+                               class="img-fluid mt-2 rounded" alt="Immagine post">
+                        {% endif %}
+                      </div>
+
+                      {% set applause_count = post.applause|length if post.applause is defined else 0 %}
+                      {% set user_has_applauded = current_user.is_authenticated and post.applause|selectattr('user_id','equalto',current_user.id)|list|length > 0 %}
+                      <div class="mt-2 d-flex align-items-center">
+                        <button class="post-toggle-link" type="button" data-target="#{{ pid }}-content">
+                          {{ _('Mostra altro') }}
+                        </button>
+                        <button type="button" class="applause-btn d-inline-flex align-items-center {% if user_has_applauded %}active{% endif %}"
+                                data-post-id="{{ post.id }}">
+                          <i class="bi bi-hand-thumbs-up-fill"></i>
+                          <span class="applause-count ms-1">{{ applause_count }}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                {% endfor %}
+              {% else %}
+                <p class="text-muted mb-0">{{ _('Nessun post ancora pubblicato.') }}</p>
+              {% endif %}
+            </div>
+          </div>
+        </section>
+      </article>
+
+      <!-- 💰 DONAZIONI -->
+      <article class="showcase-slide" id="slide-donations">
+        <section class="card shadow-sm h-100">
+          <div class="panel-header">
+            <h6 class="mb-0 d-flex align-items-center gap-2">
+              <i class="bi bi-receipt"></i> {{ _('Donazioni ricevute') }}
+            </h6>
+          </div>
+          <div class="card-body p-0">
+            <div class="scroll-area p-3" style="max-height: var(--showcase-h); overflow-y:auto;">
+              {% if donations and donations|length > 0 %}
+                <ul class="list-unstyled m-0">
+                  {% for d in donations %}
+                    <li class="list-item py-2">
+                      <div class="list-grid">
+                        <div class="min-w-0">
+                          <a href="{{ url_for('public.detail', content_type='campaign', item_id=d.campaign_id) }}"
+                             class="item-title link-strong">
+                            {{ d.campaign.title if d.campaign else _('Campagna sconosciuta') }}
+                          </a>
+                          <div class="small text-muted mt-1">
+                            👤 {% if d.user %}{{ d.user.name }}{% elif d.full_name %}{{ d.full_name }}{% else %}{{ _('Donatore anonimo') }}{% endif %}
+                            · 💶 {{ '%.2f'|format(d.amount) }} €
+                            · {% if d.created_at %}{{ d.created_at.strftime('%d/%m/%Y') }}{% else %}<span class="text-muted">{{ _('Data non disponibile') }}</span>{% endif %}
+                          </div>
+                        </div>
+                        <div class="text-end">
+                          {% if d.pdf_filename %}
+                            <a href="{{ url_for('payments.download_receipt', filename=d.pdf_filename) }}"
+                               target="_blank" rel="noopener noreferrer"
+                               class="icon-btn ghost" title="{{ _('Apri ricevuta PDF') }}">
+                              <i class="bi bi-filetype-pdf text-danger"></i>
+                            </a>
+                          {% else %}
+                            <span class="small text-muted">{{ _('PDF n.d.') }}</span>
+                          {% endif %}
+                        </div>
+                      </div>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <p class="text-muted small p-3 mb-0">{{ _('Nessuna donazione ricevuta finora.') }}</p>
+              {% endif %}
+            </div>
+          </div>
+        </section>
+      </article>
+
+      <!-- 🕓 STORICO -->
+      <article class="showcase-slide" id="slide-history">
+        <section class="card shadow-sm h-100">
+          <div class="panel-header">
+            <h6 class="mb-0 d-flex align-items-center gap-2">
+              <i class="bi bi-clock-history"></i> {{ _('Storico attività') }}
+            </h6>
+          </div>
+          <div class="card-body p-0">
+            <div class="scroll-area p-3" style="max-height: var(--showcase-h); overflow-y:auto;">
+              {% if history_items and history_items|length > 0 %}
+                <ul class="list-unstyled m-0">
+                  {% for item in history_items %}
+                    <li class="list-item py-2">
+                      {% if item.type == "event" %}
+                        <a href="{{ url_for('public.detail', content_type='event', item_id=item.event_id) }}"
+                           class="item-title link-strong">
+                          {{ item.title }}
+                        </a>
+                        <div class="small text-muted mt-1">
+                          📆 {{ item.date.strftime('%d/%m/%Y %H:%M') }}
+                          {% if item.location %} · 📍 {{ item.location }}{% endif %}
+                        </div>
+                      {% elif item.type == "campaign" %}
+                        <a href="{{ url_for('public.detail', content_type='campaign', item_id=item.campaign_id) }}"
+                           class="item-title link-strong">
+                          {{ item.title }}
+                        </a>
+                        <div class="small text-muted mt-1">
+                          🏁 {{ _('Terminata il') }} {{ item.date.strftime('%d/%m/%Y') }}
+                          {% if item.goal %} · 🎯 {{ item.goal }}{% endif %}
+                        </div>
+                      {% endif %}
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <p class="text-muted small p-3 mb-0">{{ _('Nessuna voce nello storico.') }}</p>
+              {% endif %}
+            </div>
+          </div>
+        </section>
+      </article>
+
+      <!-- ⚡️ ATTIVI -->
+      <article class="showcase-slide" id="slide-active">
+        <section class="card shadow-sm h-100">
+          <div class="panel-header d-flex align-items-center justify-content-between">
+            <h6 class="mb-0 d-flex align-items-center gap-2">
+              <i class="bi bi-lightning-charge"></i> {{ _('Eventi e Campagne attive') }}
+            </h6>
+          </div>
+          <div class="card-body p-0">
+            <div class="scroll-area p-3" style="max-height: var(--showcase-h); overflow-y:auto;">
+              {% set total_items = (active_events|length if active_events is defined else 0) + (active_campaigns|length if active_campaigns is defined else 0) %}
+              {% if total_items > 0 %}
+                <ul class="list-unstyled m-0">
+                  {% for e in active_events %}
+                    <li class="list-item py-2">
+                      <a href="{{ url_for('public.detail', content_type='event', item_id=e.id) }}" class="item-title link-strong">
+                        {{ e.title }}
+                      </a>
+                      <div class="small text-muted mt-1">
+                        📅 {{ e.date.strftime('%d/%m/%Y') if e.date else _('Data non definita') }}{% if e.location %} · 📍 {{ e.location }}{% endif %}
+                      </div>
+                    </li>
+                  {% endfor %}
+                  {% for c in active_campaigns %}
+                    <li class="list-item py-2">
+                      <a href="{{ url_for('public.detail', content_type='campaign', item_id=c.id) }}" class="item-title link-strong">
+                        {{ c.title }}
+                      </a>
+                      <div class="small text-muted mt-1">🎯 {{ c.goal or c.goal_amount or _('Obiettivo non indicato') }}</div>
+                    </li>
+                  {% endfor %}
+                </ul>
+              {% else %}
+                <p class="text-muted small p-3 mb-0">{{ _('Nessuna iniziativa attiva.') }}</p>
+              {% endif %}
+            </div>
+          </div>
+        </section>
+      </article>
+
+
+
+
+    </div>
+  </div>
+</section>
 {% endblock %}
 
+{# Nascondi footer, come in dashboard #}
+{% block footer %}{% endblock footer %}
+
 {% block scripts %}
+<style>
+/* --- Vetrina orizzontale (FULL-WIDTH) --- */
+:root { --showcase-h: 62vh; --panel-inner: 640px; --tile-radius: 14px; --tile-border: rgba(0,0,0,.08);
+        --tile-shadow: 0 1px 2px rgba(16,24,40,.04), 0 2px 8px rgba(16,24,40,.06); }
+
+/* Desktop: colonne centrata e “snella” */
+@media (min-width: 992px){
+  .card .feed-container,
+  .card .scroll-area,
+  .panel__body{ max-width: var(--panel-inner); margin-inline: auto; width: 100%; }
+  .post-card{ width: 100%; }
+  .post-card .post-body{ max-width: 72ch; }
+}
+
+/* Viewport & track */
+.showcase-viewport{ width:100%; overflow-x:auto; overflow-y:visible; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch;}
+.showcase-track{ display:grid; grid-auto-flow:column; grid-auto-columns:100%; gap:0; padding:0;}
+.showcase-slide{ min-width:100%; scroll-snap-align:start; }
+.showcase-slide .card{ height:100%; }
+
+/* Tabs/pill */
+.showcase .pill{
+  border: 1px solid rgba(0,0,0,.08);
+  background: #fff;
+  padding:.35rem .7rem;
+  border-radius: 999px;
+  font-weight:600;
+  font-size:.95rem;
+}
+.showcase .pill.active{
+  background: var(--bs-light);
+  border-color: var(--bs-primary);
+  color: var(--bs-primary);
+}
+
+/* Frecce */
+.showcase .nav-arrows .icon-btn{ font-size:1.2rem; line-height:1; }
+@media (max-width: 767.98px){ .showcase .nav-arrows{ display:none; } }
+
+/* Liste a mini-card */
+.card .scroll-area > ul{ display:grid; gap:.75rem; padding:0; }
+.card .scroll-area .list-item{
+  background:#fff; border:1px solid var(--tile-border); border-radius:var(--tile-radius);
+  box-shadow:var(--tile-shadow); padding:.85rem 1rem;
+}
+.card .scroll-area .list-item .item-title{ display:inline-block; font-weight:600; margin-bottom:.25rem; text-decoration:none; }
+.card .scroll-area .soft-divider{ display:none; }
+
+/* POST: clamp/toggle */
+.post-body{ --collapsed-height:3rem; position:relative; max-height:var(--collapsed-height);
+  overflow:hidden; transition:max-height .25s ease; }
+.post-body[data-collapsed="false"]{ max-height:none; }
+.post-body[data-collapsed="true"]::after{
+  content:""; position:absolute; left:0; right:0; bottom:0; height:2.2rem;
+  background: linear-gradient(to bottom, rgba(255,255,255,0), #fff 70%);
+}
+.post-toggle-link{ background:none; border:none; padding:0; margin-top:.25rem; color:#6c757d; font-weight:600; cursor:pointer; text-decoration:none; }
+.post-toggle-link:hover,.post-toggle-link:focus{ text-decoration:underline; color:#5a6268; }
+
+/* Utility */
+.panel-header .btn-ghost-sm { white-space: nowrap; }
+@media (max-width: 575.98px){ .panel-header .d-flex.flex-wrap { gap: .5rem .5rem; } }
+</style>
+
 <script>
-  // Toggle "Mostra altro / meno" per i post
-  document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.post-toggle-link').forEach(btn => {
-      const targetSel = btn.getAttribute('data-target');
-      const target = document.querySelector(targetSel);
-      if (!target) return;
+// Showcase nav
+(function(){
+  const slides = [...document.querySelectorAll('.showcase-slide')];
+  const pills  = [...document.querySelectorAll('.showcase .pill')];
+  const prev   = document.getElementById('showcasePrev');
+  const next   = document.getElementById('showcaseNext');
 
-      const needsToggle = target.scrollHeight > target.clientHeight + 6;
-      if (!needsToggle) {
-        btn.style.display = 'none';
-        target.setAttribute('data-collapsed', 'false');
-        target.setAttribute('aria-expanded', 'true');
-        return;
-      }
-
-      btn.addEventListener('click', () => {
-        const isCollapsed = target.getAttribute('data-collapsed') !== 'false';
-        target.setAttribute('data-collapsed', String(!isCollapsed));
-        target.setAttribute('aria-expanded', String(isCollapsed));
-        btn.setAttribute('aria-expanded', String(isCollapsed));
-        btn.textContent = isCollapsed ? '{{ _("Mostra meno") }}' : '{{ _("Mostra altro") }}';
-      });
-    });
-  });
-
-  // Zoom logo
-  function toggleFullscreen(img) {
-    let existing = document.getElementById("img-overlay");
-    if (existing) { existing.remove(); return; }
-
-    let overlay = document.createElement("div");
-    overlay.id = "img-overlay";
-    Object.assign(overlay.style, {
-      position: "fixed", inset: 0, background: "rgba(0,0,0,.8)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      zIndex: 9999, cursor: "zoom-out"
-    });
-
-    let bigImg = document.createElement("img");
-    Object.assign(bigImg.style, {
-      maxWidth: "90%", maxHeight: "90%", borderRadius: "10px",
-      boxShadow: "0 4px 20px rgba(0,0,0,.5)"
-    });
-    bigImg.src = img.src;
-
-    overlay.appendChild(bigImg);
-    overlay.addEventListener("click", () => overlay.remove());
-    document.body.appendChild(overlay);
+  function setActive(el){
+    slides.forEach(s => s.classList.toggle('is-active', s===el));
+    const id = '#' + el.id;
+    pills.forEach(p => p.classList.toggle('active', p.dataset.target === id));
+    el.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
   }
 
-  // Avvio chat (profilo pubblico)
-  document.addEventListener("DOMContentLoaded", () => {
+  pills.forEach(p => p.addEventListener('click', () => {
+    const target = document.querySelector(p.dataset.target);
+    if(target) setActive(target);
+  }));
+
+  function move(dir){
+    const idx = slides.findIndex(s => s.classList.contains('is-active'));
+    let ni = Math.min(slides.length-1, Math.max(0, idx + dir));
+    setActive(slides[ni]);
+  }
+  if (prev) prev.addEventListener('click', () => move(-1));
+  if (next) next.addEventListener('click', () => move(+1));
+
+  if (slides[0]) setActive(slides[0]); // attiva prima slide
+})();
+
+// Toggle "Mostra altro / meno" nei post
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.post-toggle-link').forEach(btn => {
+    const target = document.querySelector(btn.getAttribute('data-target'));
+    if (!target) return;
+    btn.addEventListener('click', () => {
+      const isCollapsed = target.getAttribute('data-collapsed') !== 'false';
+      target.setAttribute('data-collapsed', String(!isCollapsed));
+      target.setAttribute('aria-expanded', String(!isCollapsed));
+      btn.textContent = isCollapsed ? '{{ _("Mostra meno") }}' : '{{ _("Mostra altro") }}';
+    });
+  });
+});
+
+// Zoom/logo fullscreen
+function toggleFullscreen(img) {
+  const overlay = document.createElement("div");
+  Object.assign(overlay.style, {
+    position: "fixed", inset: 0, background: "rgba(0,0,0,.8)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    zIndex: 9999, cursor:"zoom-out"
+  });
+  const bigImg = document.createElement("img");
+  Object.assign(bigImg.style, { maxWidth: "90%", maxHeight: "90%", borderRadius: "10px", boxShadow: "0 4px 20px rgba(0,0,0,.5)" });
+  bigImg.src = img.src;
+  overlay.appendChild(bigImg);
+  overlay.addEventListener("click", () => overlay.remove());
+  document.body.appendChild(overlay);
+}
+// Avvio chat (profilo pubblico)
+document.addEventListener("DOMContentLoaded", () => {
   const chatLink = document.getElementById("start-chat-link");
   if (!chatLink) return;
 
@@ -381,8 +480,5 @@
 });
 </script>
 
-
-
-<!-- Script applausi esterno -->
 <script src="{{ url_for('static', filename='js/applause.js') }}"></script>
 {% endblock %}

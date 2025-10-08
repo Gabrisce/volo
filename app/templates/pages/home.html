@@ -2,14 +2,13 @@
 {% block title %}Home{% endblock %}
 {% block container_class %}container-xl{% endblock %}
 
+
+{#  AGGIUNGI QUESTO: classe solo per home #}
+{% block body_class %}home-body{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center gy-4">
-
-  <!-- Colonna centrale (centrata) -->
-  <div class="col-12 col-lg-8 col-xl-7">
-    <section class="d-flex flex-column home-center">
-
-      {# ===================== BARRA RICERCA (versione pill) ===================== #}
+  {# ===================== BARRA RICERCA (versione pill) ===================== #}
       <form method="GET" action="{{ url_for('home.home') }}" class="mb-3" role="search" aria-label="{{ _('Cerca') }}">
         <div class="search-wrapper">
           <div class="input-group input-group-sm align-items-stretch search-inputgroup">
@@ -32,6 +31,11 @@
           </div>
         </div>
       </form>
+
+  <!-- Colonna centrale (centrata) -->
+  <div class="col-12 col-lg-8 col-xl-7">
+    <section class="d-flex flex-column home-center">
+
 
       {# ------------------ RISULTATI: Associazioni PRIMA del feed (solo se q) ------------------ #}
       {% if found_associations and request.args.get('q') %}
@@ -62,7 +66,7 @@
       {% endif %}
       {# ----------------------------- FEED DINAMICO ----------------------------- #}
       {% if feed_items %}
-        <div class="feed-container" style="max-height: calc(100vh - 200px); overflow-y: auto; padding-right: 6px;">
+        <div class="feed-container">
           {% for entry in feed_items %}
 
             {# ====== EVENTO ====== #}
@@ -251,13 +255,16 @@
     </section>
   </div>
 
-  <!-- Colonna destra: Petizioni (moderna & sticky) -->
-  <div class="col-12 col-lg-4 d-none d-lg-block">
+
+
+  <!-- Colonna destra: Petizioni + Associazioni (sticky stack) -->
+<div class="col-12 col-lg-4 d-none d-lg-block">
+  <div class="right-rail">
+    <!-- Petizioni -->
     <aside class="petitions-panel card shadow-sm border-0">
       <div class="petitions-header d-flex align-items-center justify-content-between">
         <h6 class="mb-0">{{ _('Petizioni recenti') }}</h6>
       </div>
-
       <div class="petitions-body">
         <ul class="list-unstyled m-0">
           {% for petition in petitions %}
@@ -291,7 +298,42 @@
         </ul>
       </div>
     </aside>
+
+    <!-- Associazioni vicine (orizzontale) -->
+    <aside class="associations-panel card shadow-sm border-0" aria-labelledby="assocTitle">
+      <div class="petitions-header d-flex align-items-center justify-content-between">
+        <h6 id="assocTitle" class="mb-0">{{ _('Scopri chi popola la piattaforma') }}</h6>
+        <a class="small text-decoration-none" href="{{ url_for('public.list_associations') }}">
+          {{ _('Vedi tutte') }}
+        </a>
+      </div>
+
+      <div class="associations-body position-relative">
+        <button class="hs-arrow hs-prev" type="button" aria-label="{{ _('Scorri a sinistra') }}" tabindex="0"></button>
+
+        <div class="associations-scroller" id="associationsScroller"
+             role="region" aria-label="{{ _('Associazioni vicine') }}" tabindex="0">
+          {% for a in associations %}
+            <a class="assoc-card" href="{{ url_for('public.public_profile', association_id=a.id) }}"
+               data-lat="{{ a.latitude or '' }}" data-lng="{{ a.longitude or '' }}">
+              <div class="assoc-avatar-wrap">
+                <img class="assoc-avatar"
+                     src="{% if a.photo_filename %}{{ url_for('dashboard.static', filename='uploads/profile-photo/' ~ a.photo_filename) }}{% else %}{{ url_for('static', filename='img/avatar-placeholder.png') }}{% endif %}"
+                     alt="Logo {{ a.name }}">
+              </div>
+              <div class="assoc-meta">
+                <span class="assoc-name text-truncate">{{ a.name }}</span>
+                <span class="assoc-distance" aria-hidden="true"></span>
+              </div>
+            </a>
+          {% endfor %}
+        </div>
+
+        <button class="hs-arrow hs-next" type="button" aria-label="{{ _('Scorri a destra') }}" tabindex="0"></button>
+      </div>
+    </aside>
   </div>
+</div>
 
 </div>
 {% endblock %}
@@ -375,6 +417,91 @@ document.addEventListener('DOMContentLoaded', () => {
       document.body.appendChild(overlay);
     });
   });
+});
+
+/* --- Horizontal scroll + keyboard --- */
+document.addEventListener('DOMContentLoaded', () => {
+  const scroller = document.getElementById('associationsScroller');
+  if (!scroller) return;
+
+  const prev = scroller.parentElement.querySelector('.hs-prev');
+  const next = scroller.parentElement.querySelector('.hs-next');
+
+  const STEP = Math.max(scroller.clientWidth * 0.9, 320); // ~una viewport per click
+
+  function doScroll(dx) { scroller.scrollBy({ left: dx, behavior: 'smooth' }); }
+  prev?.addEventListener('click', () => doScroll(-STEP));
+  next?.addEventListener('click', () => doScroll(+STEP));
+
+  // tastiera: frecce sx/dx scorrono il carosello quando ha focus
+  scroller.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') { e.preventDefault(); doScroll(+STEP); }
+    if (e.key === 'ArrowLeft')  { e.preventDefault(); doScroll(-STEP); }
+  });
+});
+
+/* --- Distanza utente -> associazioni (Haversine) + ordinamento DOM --- */
+document.addEventListener('DOMContentLoaded', () => {
+  const scroller = document.getElementById('associationsScroller');
+  if (!scroller) return;
+
+  const cards = Array.from(scroller.querySelectorAll('.assoc-card'));
+
+  // get user location: 1) geoloc 2) eventuale lat/lng in body data-* (se lo aggiungi) 3) fallback: no sort
+  function getUserCoords() {
+    return new Promise((resolve) => {
+      if ('geolocation' in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+          ()   => resolve(null), // rifiutata o errore
+          { enableHighAccuracy: false, timeout: 5000, maximumAge: 600000 }
+        );
+      } else {
+        resolve(null);
+      }
+    });
+  }
+
+  function haversine(lat1, lon1, lat2, lon2) {
+    const toRad = d => d * Math.PI / 180;
+    const R = 6371; // km
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  }
+
+  function formatKm(km) {
+    if (!isFinite(km)) return '';
+    if (km < 1) return `${Math.round(km*1000)} m`;
+    if (km < 50) return `${km.toFixed(1)} km`;
+    return `${Math.round(km)} km`;
+  }
+
+  (async () => {
+    const me = await getUserCoords();
+    if (!me) return; // niente sorting, mostriamo l'ordine predefinito
+
+    // calcola distanze dove disponibili, poi ordina DOM
+    const withDist = cards.map(card => {
+      const lat = parseFloat(card.dataset.lat);
+      const lng = parseFloat(card.dataset.lng);
+      const has = isFinite(lat) && isFinite(lng);
+      const dist = has ? haversine(me.lat, me.lng, lat, lng) : Number.POSITIVE_INFINITY;
+      return { card, dist, has };
+    });
+
+    // ordina: prima chi ha coordinate, by distanza asc; poi senza coordinate
+    withDist.sort((a,b) => a.dist - b.dist);
+
+    // aggiorna etichetta distanza e riordina nel DOM
+    withDist.forEach(({ card, dist, has }) => {
+      const label = card.querySelector('.assoc-distance');
+      if (label) label.textContent = has ? formatKm(dist) : '';
+      scroller.appendChild(card);
+    });
+  })();
 });
 </script>
 
