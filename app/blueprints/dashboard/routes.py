@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from flask import Blueprint, render_template, redirect, url_for, flash, abort
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
@@ -144,30 +144,24 @@ def dashboard_association():
     if current_user.user_type != "association":
         abort(403)
 
-    from datetime import datetime
+    from datetime import datetime, time
 
-    # 📌 Post dell’associazione
+    # Dati base
     posts = (
         Post.query.filter_by(association_id=current_user.id)
         .order_by(Post.created_at.desc())
         .all()
     )
-
-    # 📅 Eventi dell’associazione
     my_events = (
         Event.query.filter_by(association_id=current_user.id)
         .order_by(Event.date.desc())
         .all()
     )
-
-    # 🎯 Campagne dell’associazione
     my_campaigns = (
         Campaign.query.filter_by(association_id=current_user.id)
         .order_by(Campaign.created_at.desc())
         .all()
     )
-
-    # 💰 Donazioni ricevute (restano nella tab Donazioni, non nello Storico)
     donations = (
         Donation.query.join(Campaign, Donation.campaign_id == Campaign.id)
         .filter(Campaign.association_id == current_user.id)
@@ -175,54 +169,61 @@ def dashboard_association():
         .all()
     )
 
-    # ===== Storico: Eventi già iniziati + Campagne terminate =====
     now = datetime.utcnow()
 
-   # Evento TERMINATO:
-    # - se c'è end_date  -> end_date < now
-    # - se non c'è end_date -> considera terminato se la start date è passata di almeno 1 giorno
-    #   (puoi cambiare la tolleranza a piacere, es. a poche ore)
-    finished_events = [
-        e for e in my_events
-        if (
-            getattr(e, "end_date", None) and e.end_date < now
-        ) or (
-            not getattr(e, "end_date", None)
-            and getattr(e, "date", None)
-            and e.date < (now - timedelta(days=1))
+    # Helper: fine "effettiva" di un evento (end esplicita, altrimenti 23:59:59 del giorno di start)
+    def event_effective_end(ev):
+        end_dt = (
+            getattr(ev, "end_date", None)
+            or getattr(ev, "end_at", None)
+            or getattr(ev, "ends_at", None)
         )
-    ]
+        if end_dt:
+            return end_dt
+        start = (
+            getattr(ev, "date", None)
+            or getattr(ev, "start_date", None)
+            or getattr(ev, "starts_at", None)
+            or getattr(ev, "start_at", None)
+        )
+        if not start:
+            return None
+        return datetime.combine(start.date(), time(23, 59, 59), tzinfo=getattr(start, "tzinfo", None))
 
-    # Campagna TERMINATA: end_date esiste ed è < now
-    ended_campaigns = [
-        c for c in my_campaigns
-        if getattr(c, "end_date", None) and c.end_date < now
-    ]
+    # Helper: fine di una campagna (se non c'è è considerata attiva/perenne)
+    def campaign_end(cp):
+        return (
+            getattr(cp, "end_date", None)
+            or getattr(cp, "deadline", None)
+            or getattr(cp, "end_at", None)
+            or getattr(cp, "ends_at", None)
+            or getattr(cp, "close_date", None)
+        )
 
+    # Eventi terminati
+    finished_events = [e for e in my_events if (lambda ed: ed and ed <= now)(event_effective_end(e))]
+    # Campagne terminate
+    ended_campaigns = [c for c in my_campaigns if (campaign_end(c) and campaign_end(c) < now)]
+
+    # Costruisci storico (ordinato decrescente per data)
     history_items = []
-
     for e in finished_events:
-        # usa la data di fine se disponibile, altrimenti la start date per ordinare/mostrare
-        display_date = getattr(e, "end_date", None) or getattr(e, "date", None) or now
         history_items.append({
             "type": "event",
             "title": e.title,
-            "date": display_date,
+            "date": event_effective_end(e),
             "event_id": e.id,
             "location": getattr(e, "location", None),
         })
-
     for c in ended_campaigns:
         history_items.append({
             "type": "campaign",
             "title": c.title,
-            "date": c.end_date,     # data di fine campagna
+            "date": campaign_end(c),
             "campaign_id": c.id,
-            "goal": getattr(c, "goal", None),
+            "goal": getattr(c, "goal", None) or getattr(c, "goal_amount", None),
         })
-
-    # ordina per data desc
-    history_items.sort(key=lambda x: x["date"], reverse=True)
+    history_items.sort(key=lambda x: x.get("date") or now, reverse=True)
 
     return render_template(
         "pages/dashboard_association.html",
@@ -233,6 +234,7 @@ def dashboard_association():
         history_items=history_items,
         now=now,
     )
+
 
 # 🛠️ Modifica profilo
 @dashboard_bp.route("/modify", methods=["GET", "POST"])
@@ -334,3 +336,49 @@ def delete_post(post_id):
     db.session.commit()
     flash("Post eliminato con successo!", "success")
     return redirect(url_for("dashboard.dashboard_association"))
+
+# 🗑️ Elimina segnalazione (Report)
+@dashboard_bp.route("/report/<int:report_id>/delete", methods=["POST"])
+@login_required
+def delete_report(report_id):
+    if current_user.user_type != "volunteer":
+        abort(403)
+
+    report = Report.query.filter_by(id=report_id, user_id=current_user.id).first_or_404()
+
+    # 🔄 Rimozione immagine collegata, se esiste
+    if report.image_filename:
+        image_path = os.path.join(
+            dashboard_bp.static_folder, "uploads", "reports", report.image_filename
+        )
+        if os.path.exists(image_path):
+            os.remove(image_path)
+
+    db.session.delete(report)
+    db.session.commit()
+    flash("Segnalazione eliminata con successo!", "success")
+    return redirect(url_for("dashboard.dashboard_volunteer"))
+
+
+# 🗑️ Elimina petizione (Petition)
+@dashboard_bp.route("/petition/<int:petition_id>/delete", methods=["POST"])
+@login_required
+def delete_petition(petition_id):
+    if current_user.user_type != "volunteer":
+        abort(403)
+
+    petition = Petition.query.filter_by(id=petition_id, user_id=current_user.id).first_or_404()
+
+    # Se le petizioni hanno eventuale immagine (facoltativo)
+    if getattr(petition, "image_filename", None):
+        image_path = os.path.join(
+            dashboard_bp.static_folder, "uploads", "petitions", petition.image_filename
+        )
+        if os.path.exists(image_path):
+            os.remove(image_path)
+
+    db.session.delete(petition)
+    db.session.commit()
+    flash("Petizione eliminata con successo!", "success")
+    return redirect(url_for("dashboard.dashboard_volunteer"))
+

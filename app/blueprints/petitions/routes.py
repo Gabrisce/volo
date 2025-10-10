@@ -195,26 +195,4 @@ def support_petition(petition_id):
         flash("Hai sostenuto la petizione!", "success")
     return redirect(url_for("petitions.petition_detail", petition_id=petition.id))
 
-# =============================================================================
-# Delete
-# =============================================================================
-@petitions_bp.route("/<int:petition_id>/delete", methods=["POST"])
-@login_required
-def delete_petition(petition_id):
-    petition = Petition.query.get_or_404(petition_id)
 
-    if petition.user_id != current_user.id:
-        flash("Non sei autorizzato a eliminare questa petizione.", "danger")
-        return redirect(url_for("dashboard.dashboard_volunteer"))
-
-    # elimina immagine associata, se presente
-    if petition.image_filename:
-        try:
-            (PETITIONS_UPLOAD_FOLDER / petition.image_filename).unlink(missing_ok=True)
-        except Exception:
-            pass
-
-    db.session.delete(petition)
-    db.session.commit()
-    flash("Petizione eliminata con successo.", "success")
-    return redirect(url_for("dashboard.dashboard_volunteer"))

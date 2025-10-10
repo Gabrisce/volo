@@ -62,9 +62,9 @@
   <div class="showcase-nav d-flex align-items-center justify-content-between mb-2">
     <div class="nav-pills gap-2">
       <button class="pill active" data-target="#slide-posts"><i class="bi bi-chat-text me-1"></i>{{ _('Post') }}</button>
-      <button class="pill" data-target="#slide-donations"><i class="bi bi-receipt me-1"></i>{{ _('Donazioni') }}</button>
-      <button class="pill" data-target="#slide-history"><i class="bi bi-clock-history me-1"></i>{{ _('Storico') }}</button>
-      <button class="pill" data-target="#slide-active"><i class="bi bi-lightning-charge me-1"></i>{{ _('Attivi') }}</button>
+      <button class="pill" data-target="#slide-donations"><i class="bi bi-receipt me-1"></i>{{ _('Donazioni ricevute') }}</button>
+      <button class="pill" data-target="#slide-history"><i class="bi bi-clock-history me-1"></i>{{ _('Storico attività') }}</button>
+      <button class="pill" data-target="#slide-active"><i class="bi bi-lightning-charge me-1"></i>{{ _('Campagne ed Eventi attivi') }}</button>
     </div>
 
     <div class="nav-arrows">
@@ -125,14 +125,13 @@
                         </div>
                       </div>
 
-                      <h5 class="card-title pe-5">
+                      <h6 class="card-title mb-1 fw-semibold">
                         <a href="{{ url_for('posts.post_detail', post_id=post.id) }}"
-                           class="text-decoration-none text-dark">{{ post.title or _('Titolo mancante') }}</a>
-                      </h5>
-                      <p class="card-text text-muted mb-2">
+                          class="text-decoration-none text-body">{{ post.title or _('Titolo mancante') }}</a>
+                      </h6>
+                      <p class="small text-body-secondary mb-2">
                         {{ _('Pubblicato il') }} {{ post.created_at.strftime('%d/%m/%Y %H:%M') }}
                       </p>
-
                       <div id="{{ pid }}-content" class="post-body" data-collapsed="true" aria-expanded="false">
                         {{ post.content }}
                         {% if post.image_filename %}
@@ -141,12 +140,11 @@
                         {% endif %}
                       </div>
 
-                      <div>
-                        <button class="post-toggle-link" type="button" data-target="#{{ pid }}-content">
-                          {{ _('Mostra altro') }}
-                        </button>
-                      </div>
-
+                      <button class="post-toggle-link small text-success fw-semibold"
+                            type="button"
+                              data-target="#{{ pid }}-content">
+                        {{ _('Mostra altro') }}
+                      </button>
                       {% set applause_count = post.applause|length if post.applause is defined else 0 %}
                       {% set user_has_applauded = current_user.is_authenticated and post.applause|selectattr('user_id','equalto',current_user.id)|list|length > 0 %}
                       <div class="mt-2 d-flex align-items-center">
@@ -233,11 +231,11 @@
               <li class="list-item py-2">
                 {% if item.type == "event" %}
                   <a href="{{ url_for('public.detail', content_type='event', item_id=item.event_id) }}"
-                     class="item-title link-strong">
+                    class="item-title link-strong">
                     {{ item.title }}
                   </a>
                   <div class="small text-muted mt-1">
-                    📆 {{ item.date.strftime('%d/%m/%Y %H:%M') }}
+                    🗓️ {{ _('Fine:') }} {{ item.date.strftime('%d/%m/%Y %H:%M') }}
                     {% if item.location %} · 📍 {{ item.location }}{% endif %}
                   </div>
 
@@ -268,9 +266,6 @@
       <article class="showcase-slide" id="slide-active">
         <section class="card shadow-sm h-100">
           <div class="panel-header">
-            <h6 class="mb-0 d-flex align-items-center gap-2">
-              <i class="bi bi-lightning-charge"></i> {{ _('Eventi e Campagne attive') }}
-            </h6>
            <!-- NUOVO: pulsanti gestione dentro la sezione -->
             <div class="d-flex align-items-center gap-2 flex-wrap">
               <a href="{{ url_for('events.my_events') }}"
@@ -291,18 +286,22 @@
               {% if total_items > 0 %}
                 <ul class="list-unstyled m-0">
                   {% for e in my_events %}
-                    {% if (not e.end_date) or (e.end_date >= now) %}
+                    {% set end_dt = e.end_date or e.date.replace(hour=23, minute=59, second=59, microsecond=999999) %}
+                    {% if end_dt >= now %}
                       <li class="list-item py-2">
-                        <a href="{{ url_for('public.detail', content_type='event', item_id=e.id) }}" class="item-title link-strong">
+                        <a href="{{ url_for('public.detail', content_type='event', item_id=e.id) }}"
+                          class="item-title link-strong">
                           {{ e.title }}
                         </a>
                         <div class="small text-muted mt-1">
-                          📅 {{ e.date.strftime('%d/%m/%Y') if e.date else _('Data non definita') }}{% if e.location %} · 📍 {{ e.location }}{% endif %}
+                          📅 {{ e.date.strftime('%d/%m/%Y %H:%M') if e.date else _('Data non definita') }}
+                          {% if e.location %} · 📍 {{ e.location }}{% endif %}
                         </div>
                         <hr class="soft-divider my-2">
                       </li>
                     {% endif %}
                   {% endfor %}
+
                   {% for c in my_campaigns %}
                     {% if (not c.end_date) or (c.end_date >= now) %}
                       <li class="list-item py-2">

@@ -60,6 +60,7 @@ h4, h5, h6 { font-weight: 600; color: var(--color-primary-dark); }
 .btn:hover, .btn:focus, .btn:active, .btn:not(:disabled):active { background-color: var(--color-navbar-hover) !important; color: white !important; box-shadow: none !important; outline: none !important; }
 .btn:active { transform: translateY(1px); }
 /* === FEED CONTAINER === */ .feed-container { max-height: 340px; overflow-y: auto; padding-right: 6px; display: flex; flex-direction: column; gap: 1rem; scroll-behavior: smooth; }
+
 .feed-container::-webkit-scrollbar { width: 0; }
 .feed-container { scrollbar-width: thin; scrollbar-color: rgba(0, 0, 0, 0.15) transparent; }
 .feed-item { background-color: var(--color-surface); border-radius: var(--radius-md); padding: 1rem; box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05); font-size: 0.95rem; border: 1px solid var(--color-border); }
@@ -142,8 +143,19 @@ h4, h5, h6 { font-weight: 600; color: var(--color-primary-dark); }
 .item-title { color: #0f172a; font-weight: 600; text-decoration: none; }
 .item-title:hover { text-decoration: underline; text-underline-offset: 2px; }
 /* Post (collapse morbido) */ .post-card .card-body { position: relative; }
-.post-body { --collapsed-height: 4.5rem; position: relative; max-height: var(--collapsed-height); overflow: hidden; transition: max-height .25s ease; }
-.post-body[data-collapsed="false"] { max-height: none; }
+.post-body {
+  --collapsed-height: 4.5rem;
+  position: relative;
+  max-height: var(--collapsed-height);
+  overflow: hidden;
+  transition: max-height .25s ease;
+
+  /* 🔹 Uniforma al resto della dashboard */
+  font-size: 0.95rem;               /* come il testo dei pannelli */
+  line-height: 1.5;                 /* altezza di linea coerente */
+  color: var(--color-text-muted);   /* tono neutro già definito in :root */
+  font-weight: 400;
+}.post-body[data-collapsed="false"] { max-height: none; }
 .post-body[data-collapsed="true"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2.2rem; background: linear-gradient(to bottom, rgba(255,255,255,0), #fff 70%); }
 .post-toggle-link { background: none; border: none; padding: 0; margin-top: .25rem; color: #006400; font-weight: 600; cursor: pointer; text-decoration: underline; }
 .post-toggle-link:hover { color: #004d00; }

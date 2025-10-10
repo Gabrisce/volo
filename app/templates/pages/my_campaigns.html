@@ -2,140 +2,152 @@
 {% block title %}Le mie campagne{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">{{ _('Le mie campagne') }}</h2>
+<div class="container-xxl">
 
-<div class="mb-3 text-end">
-  <a href="{{ url_for('campaigns.create_campaign') }}" class="btn btn-success">
-    ➕ {{ _('Crea nuova campagna') }}
-  </a>
-</div>
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+    <h2 class="mb-0">{{ _('Le mie campagne') }}</h2>
+    <a href="{{ url_for('campaigns.create_campaign') }}" class="btn-ghost-brand btn-ghost-sm rounded-pill">
+      <i class="bi bi-plus-lg me-1"></i>{{ _('Crea nuova campagna') }}
+    </a>
+  </div>
 
-{% if campaigns %}
-  <div class="row">
-    {% for campaign in campaigns %}
-      {% set cid = 'campaign-' ~ campaign.id %}
-      <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100 shadow-sm border-0">
+  {# -- riferimento all'orario corrente passato dalla route -- #}
+  {% set now = namespace(value=current_time) %}
 
-          <!-- Immagine campagna -->
-          {% if campaign.image_filename %}
-            <img src="{{ url_for('campaigns.static', filename='uploads/campaigns/' ~ campaign.image_filename) }}"
-                 class="card-img-top" alt="Immagine campagna"
-                 style="object-fit: cover; height: 180px;">
-          {% else %}
-            <div class="d-flex align-items-center justify-content-center bg-light"
-                 style="height: 180px;">
-              <span class="text-muted">{{ _('Nessuna immagine') }}</span>
-            </div>
-          {% endif %}
+  {# ==================== CAMPAGNE ATTIVE ==================== #}
+  <div class="mb-3">
+    <h5 class="mb-2 d-flex align-items-center gap-2">
+      <i class="bi bi-lightning-charge"></i> {{ _('Campagne attive') }}
+    </h5>
+   
+    {# ---- CAMPAGNE ATTIVE ---- #}
+{% set active = namespace(found=False) %}
+<div class="row g-3">
+  {% for campaign in campaigns %}
+    {% set ended = campaign.end_date is not none and campaign.end_date < now.value %}
+    {% if not ended %}
+      {% set active.found = True %}
+          {% set cid = 'campaign-' ~ campaign.id %}
+          <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+              {% if campaign.image_filename %}
+                <img src="{{ url_for('campaigns.static', filename='uploads/campaigns/' ~ campaign.image_filename) }}"
+                     class="card-img-top" alt="Immagine campagna" style="object-fit:cover; height:180px;">
+              {% else %}
+                <div class="d-flex align-items-center justify-content-center bg-light" style="height:180px;">
+                  <span class="text-muted">{{ _('Nessuna immagine') }}</span>
+                </div>
+              {% endif %}
 
-          <div class="card-body position-relative d-flex flex-column">
-            <!-- Azioni card -->
-            <div class="post-actions">
-              <a href="{{ url_for('campaigns.edit_campaign', campaign_id=campaign.id) }}"
-                 class="icon-btn" title="Modifica" aria-label="Modifica campagna">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M12 20h9" stroke-width="2" stroke-linecap="round"/>
-                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"
-                        stroke-width="2" stroke-linejoin="round"/>
-                </svg>
-              </a>
-              <form action="{{ url_for('campaigns.delete_campaign', campaign_id=campaign.id) }}"
-                    method="POST" class="icon-btn-form"
-                    onsubmit="return confirm('Sei sicuro di voler eliminare questa campagna?');">
-                <button type="submit" class="icon-btn danger"
-                        title="Elimina" aria-label="Elimina campagna">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M3 6h18" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-width="2"/>
-                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"
-                          stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M10 11v6M14 11v6" stroke-width="2" stroke-linecap="round"/>
-                  </svg>
-                </button>
-              </form>
-            </div>
+              <div class="card-body position-relative d-flex flex-column">
+                {# Azioni visibili SOLO per campagne attive #}
+                <div class="post-actions">
+                  <a href="{{ url_for('campaigns.edit_campaign', campaign_id=campaign.id) }}"
+                     class="icon-btn" title="{{ _('Modifica') }}" aria-label="{{ _('Modifica campagna') }}">
+                    <i class="bi bi-pencil-square"></i>
+                  </a>
+                  <form action="{{ url_for('campaigns.delete_campaign', campaign_id=campaign.id) }}"
+                        method="POST" class="icon-btn-form"
+                        onsubmit="return confirm('Sei sicuro di voler eliminare questa campagna?');">
+                    <button type="submit" class="icon-btn danger" title="{{ _('Elimina') }}" aria-label="{{ _('Elimina campagna') }}">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
+                </div>
 
-            <!-- Titolo -->
-            <h5 class="card-title pe-5">
-              <a href="{{ url_for('associations.detail', content_type='campaign', item_id=campaign.id) }}"
-                 class="text-decoration-none text-dark">
-                {{ campaign.title }}
-              </a>
-            </h5>
+                <h5 class="card-title pe-5 mb-2">
+                  <a href="{{ url_for('public.detail', content_type='campaign', item_id=campaign.id) }}"
+                     class="text-decoration-none text-dark">{{ campaign.title }}</a>
+                </h5>
 
-            <!-- Info principali -->
-            <p class="card-text mb-1">
-              <small class="text-muted">
-                {% if campaign.date %}
-                  📅 Inizio: {{ campaign.date.strftime('%d/%m/%Y') }}
-                  {% if campaign.end_date %} – Fine: {{ campaign.end_date.strftime('%d/%m/%Y') }}{% endif %}
-                  <br>
+                <p class="card-text mb-1">
+                  <small class="text-muted">
+                    {% if campaign.date %}
+                      📅 {{ _('Inizio:') }} {{ campaign.date.strftime('%d/%m/%Y') }}
+                      {% if campaign.end_date %} — {{ _('Fine:') }} {{ campaign.end_date.strftime('%d/%m/%Y') }}{% endif %}
+                      <br>
+                    {% endif %}
+                    📍 {{ campaign.location or _('Luogo non specificato') }}
+                  </small>
+                </p>
+
+                {% if campaign.goal_amount %}
+                  <p class="card-text mb-2">
+                    <small class="text-muted">🎯 {{ _('Obiettivo:') }} €{{ campaign.goal_amount }}</small>
+                  </p>
                 {% endif %}
-                📍 {{ campaign.location or _('Luogo non specificato') }}
-              </small>
-            </p>
 
-            {% if campaign.goal_amount %}
-              <p class="card-text mb-1">
-                <small class="text-muted">🎯 Obiettivo: €{{ campaign.goal_amount }}</small>
-              </p>
-            {% endif %}
-
-            <!-- Descrizione collassabile -->
-            <div id="{{ cid }}-desc"
-                 class="event-body"
-                 data-collapsed="true"
-                 aria-expanded="false">
-              {{ campaign.description }}
+              
+              </div>
             </div>
-
-            <button class="event-toggle-link"
-                    type="button"
-                    aria-controls="{{ cid }}-desc"
-                    aria-expanded="false"
-                    data-target="#{{ cid }}-desc">
-              Mostra altro
-            </button>
           </div>
-        </div>
-      </div>
-    {% endfor %}
-  </div>
-{% else %}
-  <div class="alert alert-info">
-    {{ _('Non hai ancora pubblicato campagne.') }}
-    <a href="{{ url_for('campaigns.create_campaign') }}">{{ _('Avvia la prima campagna') }}</a>!
-  </div>
+         {% endif %}
+  {% endfor %}
+</div>
+{% if not active.found %}
+  <div class="alert alert-light mt-2 mb-0">{{ _('Nessuna campagna attiva.') }}</div>
 {% endif %}
+  </div>
 
+  {# ==================== CAMPAGNE PASSATE ==================== #}
+  <div class="mt-4">
+    <h5 class="mb-2 d-flex align-items-center gap-2">
+      <i class="bi bi-clock-history"></i> {{ _('Campagne passate') }}
+    </h5>
 
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const toggles = document.querySelectorAll('.event-toggle-link');
+    {# ---- CAMPAGNE PASSATE ---- #}
+{% set past = namespace(found=False) %}
+<div class="row g-3">
+  {% for campaign in campaigns %}
+    {% set ended = campaign.end_date is not none and campaign.end_date < now.value %}
+    {% if ended %}
+      {% set past.found = True %}
+          {% set cid = 'campaign-' ~ campaign.id %}
+          <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+              {% if campaign.image_filename %}
+                <img src="{{ url_for('campaigns.static', filename='uploads/campaigns/' ~ campaign.image_filename) }}"
+                     class="card-img-top" alt="Immagine campagna" style="object-fit:cover; height:180px;">
+              {% else %}
+                <div class="d-flex align-items-center justify-content-center bg-light" style="height:180px;">
+                  <span class="text-muted">{{ _('Nessuna immagine') }}</span>
+                </div>
+              {% endif %}
 
-    toggles.forEach(btn => {
-      const targetSel = btn.getAttribute('data-target');
-      const target = document.querySelector(targetSel);
+              <div class="card-body position-relative d-flex flex-column">
+                {# ⚠️ Nessuna azione di modifica/eliminazione per le passate #}
 
-      const needsToggle = target && target.scrollHeight > target.clientHeight + 6;
-      if (!needsToggle) {
-        btn.style.display = 'none';
-        if (target){
-          target.setAttribute('data-collapsed', 'false');
-          target.setAttribute('aria-expanded', 'true');
-        }
-        return;
-      }
+                <h5 class="card-title mb-2">
+                  <a href="{{ url_for('public.detail', content_type='campaign', item_id=campaign.id) }}"
+                     class="text-decoration-none text-dark">{{ campaign.title }}</a>
+                </h5>
 
-      btn.addEventListener('click', () => {
-        const isCollapsed = target.getAttribute('data-collapsed') !== 'false';
-        target.setAttribute('data-collapsed', String(!isCollapsed));
-        target.setAttribute('aria-expanded', String(isCollapsed));
-        btn.setAttribute('aria-expanded', String(isCollapsed));
-        btn.textContent = isCollapsed ? 'Mostra meno' : 'Mostra altro';
-      });
-    });
-  });
-</script>
+                <p class="card-text mb-1">
+                  <small class="text-muted">
+                    {% if campaign.date %}
+                      📅 {{ _('Inizio:') }} {{ campaign.date.strftime('%d/%m/%Y') }}
+                      {% if campaign.end_date %} — {{ _('Fine:') }} {{ campaign.end_date.strftime('%d/%m/%Y') }}{% endif %}
+                      <br>
+                    {% endif %}
+                    📍 {{ campaign.location or _('Luogo non specificato') }}
+                  </small>
+                </p>
+
+                {% if campaign.goal_amount %}
+                  <p class="card-text mb-2">
+                    <small class="text-muted">🎯 {{ _('Obiettivo:') }} €{{ campaign.goal_amount }}</small>
+                  </p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endif %}
+  {% endfor %}
+</div>
+{% if not past.found %}
+  <div class="alert alert-light mt-2 mb-0">{{ _('Non ci sono campagne passate.') }}</div>
+{% endif %}
+  </div>
+
+</div>
 {% endblock %}

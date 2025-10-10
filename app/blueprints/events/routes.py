@@ -281,18 +281,21 @@ def apply(event_id: int):
     return render_template("pages/confirm_participation.html", event=event, related_campaigns=related_campaigns)
 
 
-@events_bp.route("/my", methods=["GET"])
+@events_bp.route("/my")
 @login_required
 def my_events():
-    if current_user.user_type != "association":
-        abort(403)
-
-    my_events = (
-        Event.query.filter_by(association_id=current_user.id)
-        .order_by(Event.date.asc())
+    events = (
+        Event.query
+        .filter_by(association_id=current_user.id)
+        .order_by(Event.date.desc())
         .all()
     )
-    return render_template("pages/my_events.html", events=my_events)
+    return render_template(
+        "pages/my_events.html",
+        events=events,
+        current_time=datetime.utcnow(),   # 👈 passato al template
+    )
+
 
 
 @events_bp.route("/api", methods=["GET"])

@@ -147,23 +147,3 @@ def report_file(filename):
     return send_from_directory(REPORTS_UPLOAD_FOLDER, filename)
 
 # --------------------------------------------------------------------------
-# Elimina
-# --------------------------------------------------------------------------
-@reports_bp.route("/<int:report_id>/delete", methods=["POST"])
-@login_required
-def delete_report(report_id):
-    report = Report.query.get_or_404(report_id)
-    if report.user_id != current_user.id:
-        abort(403)
-
-    # elimina file immagine associato
-    if report.image_filename:
-        try:
-            (REPORTS_UPLOAD_FOLDER / report.image_filename).unlink(missing_ok=True)
-        except Exception:
-            pass
-
-    db.session.delete(report)
-    db.session.commit()
-    flash("Segnalazione eliminata con successo.", "success")
-    return redirect(url_for("dashboard.dashboard_volunteer"))

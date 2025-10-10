@@ -68,6 +68,8 @@ def create_campaign():
     return render_template("pages/campaign_form.html", form=form)
 
 
+
+
 # 👁️ Elenco campagne dell'associazione loggata
 @campaigns_bp.route("/my")
 @login_required
@@ -80,7 +82,13 @@ def my_campaigns():
         .order_by(Campaign.created_at.desc())
         .all()
     )
-    return render_template("pages/my_campaigns.html", campaigns=my_campaigns)
+
+    return render_template(
+        "pages/my_campaigns.html",
+        campaigns=my_campaigns,
+        current_time=datetime.utcnow()  # 👈 qui la variabile necessaria
+    )
+
 
 
 # ✏️ Modifica campagna esistente

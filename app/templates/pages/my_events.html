@@ -2,147 +2,157 @@
 {% block title %}I miei eventi{% endblock %}
 
 {% block content %}
-<h2 class="mb-4">{{ _('I miei eventi pubblicati') }}</h2>
+<div class="container-xxl">
 
-<div class="mb-3 text-end">
-  <a href="{{ url_for('events.create_event') }}" class="btn btn-success">
-    ➕ {{ _('Crea nuovo evento') }}
-  </a>
-</div>
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+    <h2 class="mb-0">{{ _('I miei eventi') }}</h2>
+    <a href="{{ url_for('events.create_event') }}" class="btn-ghost-brand btn-ghost-sm rounded-pill">
+      <i class="bi bi-plus-lg me-1"></i>{{ _('Crea nuovo evento') }}
+    </a>
+  </div>
 
-{% if events %}
-  <div class="row">
+  {# -- riferimento all'orario corrente passato dalla route -- #}
+  {% set now = namespace(value=current_time) %}
+
+  {# ==================== EVENTI ATTIVI ==================== #}
+  <div class="mb-3">
+    <h5 class="mb-2 d-flex align-items-center gap-2">
+      <i class="bi bi-lightning-charge"></i> {{ _('Eventi attivi') }}
+    </h5>
+
+    {% set active = namespace(found=False) %}
+    <div class="row g-3">
       {% for event in events %}
-      {% set eid = 'event-' ~ event.id %}
-      {% set total_seats    = event.capacity_max %}
-      {% set accepted_count = event.participants|selectattr("status","equalto","accepted")|list|length %}
-      {% set seats_left     = (total_seats - accepted_count) if total_seats is not none else None %}
-      {% set is_full        = (total_seats is not none and seats_left <= 0) %}
-      <div class="col-md-6 col-lg-4 mb-4">
-        <div class="card h-100 shadow-sm border-0">
-
-         <!-- Immagine evento -->
-{% if event.image_filename %}
-  <img src="{{ url_for('events.static', filename='uploads/events/' ~ event.image_filename) }}"
-       class="card-img-top" alt="Immagine evento"
-       style="object-fit: cover; height: 180px;">
-{% else %}
-  <div class="d-flex align-items-center justify-content-center bg-light"
-       style="height: 180px;">
-    <span class="text-muted">{{ _('Nessuna immagine') }}</span>
-  </div>
-{% endif %}
-
-
-          <div class="card-body position-relative d-flex flex-column">
-            <!-- Azioni card -->
-            <div class="post-actions">
-              <a href="{{ url_for('events.edit_event', event_id=event.id) }}"
-                 class="icon-btn" title="Modifica" aria-label="Modifica evento">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path d="M12 20h9" stroke-width="2" stroke-linecap="round"/>
-                  <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"
-                        stroke-width="2" stroke-linejoin="round"/>
-                </svg>
-              </a>
-              <form action="{{ url_for('events.delete_event', event_id=event.id) }}"
-                    method="POST" class="icon-btn-form"
-                    onsubmit="return confirm('Sei sicuro di voler eliminare questo evento?');">
-                <button type="submit" class="icon-btn danger"
-                        title="Elimina" aria-label="Elimina evento">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path d="M3 6h18" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke-width="2"/>
-                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"
-                          stroke-width="2" stroke-linejoin="round"/>
-                    <path d="M10 11v6M14 11v6" stroke-width="2" stroke-linecap="round"/>
-                  </svg>
-                </button>
-              </form>
-            </div>
-
-            <h5 class="card-title pe-5">
-              <a href="{{ url_for('associations.detail', content_type='event', item_id=event.id) }}"
-                 class="text-decoration-none text-dark">
-                {{ event.title }}
-              </a>
-            </h5>
-
-            <p class="card-text mb-1">
-              <small class="text-muted">
-                📍 {{ event.location or _('Luogo non specificato') }}<br>
-                🗓️ {{ event.date.strftime('%d/%m/%Y %H:%M') }}
-              </small>
-            </p>
-
-            <!-- Descrizione collassabile -->
-            <div id="{{ eid }}-desc"
-                 class="event-body"
-                 data-collapsed="true"
-                 aria-expanded="false">
-              {{ event.description }}
-            </div>
-
-            <button class="event-toggle-link"
-                    type="button"
-                    aria-controls="{{ eid }}-desc"
-                    aria-expanded="false"
-                    data-target="#{{ eid }}-desc">
-              Mostra altro
-            </button>
-
-             <!-- Footer card: pulsante partecipanti -->
-                <div class="mt-auto d-flex justify-content-end align-items-center gap-2">
-              {% if is_full %}
-                <span class="badge bg-danger">
-                  {{ event.participants|length }} <a href="{{ url_for('events.participants', event_id=event.id) }}"> 👥 </a>
-                </span>
+        {# end_dt = end_date (se esiste), altrimenti fine giornata della start date #}
+        {% set end_dt = event.end_date
+                        | default(event.date.replace(hour=23, minute=59, second=59, microsecond=999999), true) %}
+        {% set ended = now.value is not none and end_dt < now.value %}
+        {% if not ended %}
+          {% set active.found = True %}
+          <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+              {% if event.image_filename %}
+                <img src="{{ url_for('events.static', filename='uploads/events/' ~ event.image_filename) }}"
+                     class="card-img-top" alt="Immagine evento" style="object-fit:cover; height:180px;">
               {% else %}
-                <span>
-                  {{ event.participants|length }} <a href="{{ url_for('events.participants', event_id=event.id) }}"> 👥 </a>
-                </span>
+                <div class="d-flex align-items-center justify-content-center bg-light" style="height:180px;">
+                  <span class="text-muted">{{ _('Nessuna immagine') }}</span>
+                </div>
               {% endif %}
+
+              <div class="card-body position-relative d-flex flex-column">
+                <div class="post-actions">
+                  <a href="{{ url_for('events.edit_event', event_id=event.id) }}"
+                     class="icon-btn" title="{{ _('Modifica') }}" aria-label="{{ _('Modifica evento') }}">
+                    <i class="bi bi-pencil-square"></i>
+                  </a>
+                  <form action="{{ url_for('events.delete_event', event_id=event.id) }}"
+                        method="POST" class="icon-btn-form"
+                        onsubmit="return confirm('Sei sicuro di voler eliminare questo evento?');">
+                    <button type="submit" class="icon-btn danger" title="{{ _('Elimina') }}" aria-label="{{ _('Elimina evento') }}">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
+                </div>
+
+                <h5 class="card-title pe-5 mb-2">
+                  <a href="{{ url_for('public.detail', content_type='event', item_id=event.id) }}"
+                     class="text-decoration-none text-dark">{{ event.title }}</a>
+                </h5>
+
+                <p class="card-text mb-1">
+                  <small class="text-muted">
+                    {% if event.date %}
+                      🗓️ {{ _('Inizio:') }} {{ event.date.strftime('%d/%m/%Y %H:%M') }}
+                      {% if event.end_date is defined and event.end_date %}
+                        — {{ _('Fine:') }} {{ event.end_date.strftime('%d/%m/%Y %H:%M') }}
+                      {% else %}
+                        — {{ _('Fine:') }} {{ event.date.strftime('%d/%m/%Y') }} 23:59
+                      {% endif %}
+                      <br>
+                    {% endif %}
+                    📍 {{ event.location or _('Luogo non specificato') }}
+                  </small>
+                </p>
+
+                <div class="mt-auto d-flex justify-content-end align-items-center gap-2">
+                  <a href="{{ url_for('events.participants', event_id=event.id) }}"
+                     class="text-decoration-none" title="{{ _('Partecipanti') }}" aria-label="{{ _('Vedi partecipanti') }}">
+                    👥 {{ event.participants|length }}
+                  </a>
+                </div>
+              </div>
             </div>
-
-
           </div>
-        </div>
-      </div>
-    {% endfor %}
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    {% if not active.found %}
+      <div class="alert alert-light mt-2 mb-0">{{ _('Nessun evento attivo.') }}</div>
+    {% endif %}
   </div>
-{% else %}
-  <div class="alert alert-info">
-    Non hai ancora {{ _('pubblicato eventi.') }}
-    <a href="{{ url_for('events.create_event') }}">{{ _('Crea il primo evento') }}</a>!
+
+  {# ==================== EVENTI PASSATI ==================== #}
+  <div class="mt-4">
+    <h5 class="mb-2 d-flex align-items-center gap-2">
+      <i class="bi bi-clock-history"></i> {{ _('Eventi passati') }}
+    </h5>
+
+    {% set past = namespace(found=False) %}
+    <div class="row g-3">
+      {% for event in events %}
+        {% set end_dt = event.end_date
+                        | default(event.date.replace(hour=23, minute=59, second=59, microsecond=999999), true) %}
+        {% set ended = now.value is not none and end_dt < now.value %}
+        {% if ended %}
+          {% set past.found = True %}
+          <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm">
+              {% if event.image_filename %}
+                <img src="{{ url_for('events.static', filename='uploads/events/' ~ event.image_filename) }}"
+                     class="card-img-top" alt="Immagine evento" style="object-fit:cover; height:180px;">
+              {% else %}
+                <div class="d-flex align-items-center justify-content-center bg-light" style="height:180px;">
+                  <span class="text-muted">{{ _('Nessuna immagine') }}</span>
+                </div>
+              {% endif %}
+
+              <div class="card-body position-relative d-flex flex-column">
+                <h5 class="card-title mb-2">
+                  <a href="{{ url_for('public.detail', content_type='event', item_id=event.id) }}"
+                     class="text-decoration-none text-dark">{{ event.title }}</a>
+                </h5>
+
+                <p class="card-text mb-1">
+                  <small class="text-muted">
+                    {% if event.date %}
+                      🗓️ {{ _('Inizio:') }} {{ event.date.strftime('%d/%m/%Y %H:%M') }}
+                      {% if event.end_date is defined and event.end_date %}
+                        — {{ _('Fine:') }} {{ event.end_date.strftime('%d/%m/%Y %H:%M') }}
+                      {% else %}
+                        — {{ _('Fine:') }} {{ event.date.strftime('%d/%m/%Y') }} 23:59
+                      {% endif %}
+                      <br>
+                    {% endif %}
+                    📍 {{ event.location or _('Luogo non specificato') }}
+                  </small>
+                </p>
+
+                <div class="mt-auto d-flex justify-content-end">
+                  <span class="text-muted">👥 {{ event.participants|length }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    {% if not past.found %}
+      <div class="alert alert-light mt-2 mb-0">{{ _('Non ci sono eventi passati.') }}</div>
+    {% endif %}
   </div>
-{% endif %}
 
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const toggles = document.querySelectorAll('.event-toggle-link');
-
-    toggles.forEach(btn => {
-      const targetSel = btn.getAttribute('data-target');
-      const target = document.querySelector(targetSel);
-
-      const needsToggle = target && target.scrollHeight > target.clientHeight + 6;
-      if (!needsToggle) {
-        btn.style.display = 'none';
-        if (target){
-          target.setAttribute('data-collapsed', 'false');
-          target.setAttribute('aria-expanded', 'true');
-        }
-        return;
-      }
-
-      btn.addEventListener('click', () => {
-        const isCollapsed = target.getAttribute('data-collapsed') !== 'false';
-        target.setAttribute('data-collapsed', String(!isCollapsed));
-        target.setAttribute('aria-expanded', String(isCollapsed));
-        btn.setAttribute('aria-expanded', String(isCollapsed));
-        btn.textContent = isCollapsed ? 'Mostra meno' : 'Mostra altro';
-      });
-    });
-  });
-</script>
+</div>
 {% endblock %}

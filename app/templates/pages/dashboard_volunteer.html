@@ -23,7 +23,7 @@
       <div>
         <h3 class="mb-1">{{ current_user.name }}</h3>
         <p class="mb-2">
-          <a href="{{ url_for('public.followed_associations') }}" class="chip-link">
+          <a href="{{ url_for('public.followed_associations') }}" class="pill chip-link">
             👥 {{ current_user.followed_associations.count() }} {{ _('seguite') }}
           </a>
           <a href="{{ url_for('settings.edit_profile') }}" title="{{ _('Modifica profilo') }}" aria-label="{{ _('Modifica profilo') }}">
@@ -114,83 +114,44 @@
                       </button>
                     {% endif %}
                   </div>
-
-                  <!-- Modali conferma -->
-                  {% if item.type == 'report' %}
-                  <div class="modal fade" id="confirmDeleteModal-report-{{ item.id }}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                      <div class="modal-content">
-                        <div class="modal-header">
-                          <h5 class="modal-title">{{ _('Conferma eliminazione') }}</h5>
-                          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                          {{ _('Eliminare la segnalazione') }} <strong>{{ item.title }}</strong>?
-                        </div>
-                        <div class="modal-footer">
-                          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ _('Annulla') }}</button>
-                          <form action="{{ url_for('reports.delete_report', report_id=item.id) }}" method="POST" class="d-inline">
-                            <button type="submit" class="btn btn-danger btn-sm">{{ _('Elimina') }}</button>
-                          </form>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {% elif item.type == 'petition' %}
-                  <div class="modal fade" id="confirmDeleteModal-petition-{{ item.id }}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                      <div class="modal-content">
-                        <div class="modal-header">
-                          <h5 class="modal-title">{{ _('Conferma eliminazione') }}</h5>
-                          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                          {{ _('Eliminare la petizione') }} <strong>{{ item.title }}</strong>?
-                        </div>
-                        <div class="modal-footer">
-                          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ _('Annulla') }}</button>
-                          <form action="{{ url_for('petitions.delete_petition', petition_id=item.id) }}" method="POST" class="d-inline">
-                            <button type="submit" class="btn btn-danger btn-sm">{{ _('Elimina') }}</button>
-                          </form>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  {% endif %}
+                
 
                   <!-- Contenuto -->
-                  <h5 class="card-title mb-1">
-                    {% if item.type == 'report' %}
-                      <a href="{{ url_for('public.detail', content_type='report', item_id=item.id) }}"
-                         class="text-decoration-none text-dark">{{ item.title }}</a>
-                    {% else %}
-                      <a href="{{ url_for('petitions.petition_detail', petition_id=item.id) }}"
-                         class="text-decoration-none text-dark">{{ item.title }}</a>
-                    {% endif %}
-                  </h5>
+                 <h6 class="card-title mb-1 fw-semibold">
+  {% if item.type == 'report' %}
+    <a href="{{ url_for('public.detail', content_type='report', item_id=item.id) }}"
+       class="text-decoration-none text-body">{{ item.title }}</a>
+  {% else %}
+    <a href="{{ url_for('petitions.petition_detail', petition_id=item.id) }}"
+       class="text-decoration-none text-body">{{ item.title }}</a>
+  {% endif %}
+</h6>
 
-                  <small class="text-muted d-block mb-2">
-                    🗓️ {{ item.created_at.strftime("%d/%m/%Y %H:%M") }}
-                    {% if item.type == 'report' %}
-                      · 📍 {{ item.address if item.address else (item.latitude ~ ", " ~ item.longitude) }}
-                    {% endif %}
-                  </small>
+<p class="small text-body-secondary mb-2">
+  🗓️ {{ item.created_at.strftime("%d/%m/%Y %H:%M") }}
+  {% if item.type == 'report' %}
+    · 📍 {{ item.address if item.address else (item.latitude ~ ", " ~ item.longitude) }}
+  {% endif %}
+</p>
 
-                  {% if item.description %}
-                    <p class="card-text clamp" data-clamp="4">{{ item.description }}</p>
-                  {% endif %}
+{% if item.description %}
+  <p class="card-text clamp text-muted" style="font-size: .95rem; line-height: 1.55;">
+    {{ item.description }}
+  </p>
+{% endif %}
 
-                  {% if item.image_filename %}
-                    <div class="media-wrap clamp-media mb-2">
-                      {% if item.type == 'report' %}
-                        <img src="{{ url_for('reports.static', filename='uploads/reports/' ~ item.image_filename) }}"
-                             class="img-fluid rounded" alt="Immagine segnalazione">
-                      {% else %}
-                        <img src="{{ url_for('petitions.static', filename='uploads/petitions/' ~ item.image_filename) }}"
-                             class="img-fluid rounded" alt="Immagine petizione">
-                      {% endif %}
-                    </div>
-                  {% endif %}
+{% if item.image_filename %}
+  <div class="media-wrap clamp-media mb-2">
+    {% if item.type == 'report' %}
+      <img src="{{ url_for('reports.static', filename='uploads/reports/' ~ item.image_filename) }}"
+           class="img-fluid rounded" alt="Immagine segnalazione">
+    {% else %}
+      <img src="{{ url_for('petitions.static', filename='uploads/petitions/' ~ item.image_filename) }}"
+           class="img-fluid rounded" alt="Immagine petizione">
+    {% endif %}
+  </div>
+{% endif %}
+
 
                   <button type="button" class="toggle-card d-none">{{ _('Mostra altro') }}</button>
                 </div>
@@ -301,6 +262,53 @@
   </div>
 </section>
 
+{% block modals %}
+  {% for item in activities %}
+    {% if item.type == 'report' %}
+      <div class="modal fade" id="confirmDeleteModal-report-{{ item.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">{{ _('Conferma eliminazione') }}</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              {{ _('Eliminare la segnalazione') }} <strong>{{ item.title }}</strong>?
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="pill" data-bs-dismiss="modal">{{ _('Annulla') }}</button>
+              <form action="{{ url_for('dashboard.delete_report', report_id=item.id) }}" method="POST" class="d-inline">
+                <button type="submit" class="pill active">{{ _('Elimina') }}</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% elif item.type == 'petition' %}
+      <div class="modal fade" id="confirmDeleteModal-petition-{{ item.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">{{ _('Conferma eliminazione') }}</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              {{ _('Eliminare la petizione') }} <strong>{{ item.title }}</strong>?
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ _('Annulla') }}</button>
+              <form action="{{ url_for('dashboard.delete_petition', petition_id=item.id) }}" method="POST" class="d-inline">
+                <button type="submit" class="btn btn-danger btn-sm">{{ _('Elimina') }}</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  {% endfor %}
+{% endblock %}
+
+
 <hr class="soft-divider">
 
 </div><!-- /.v-dashboard -->
@@ -312,68 +320,186 @@
 
 {% block scripts %}
 <style>
-/* ====== SCOPED VARS ====== */
-.v-dashboard{
-  --v-showcase-h: 62vh;
-  --v-panel-inner: 640px;
-  --v-tile-radius: 14px;
-  --v-tile-border: rgba(0,0,0,.08);
-  --v-tile-shadow: 0 1px 2px rgba(16,24,40,.04), 0 2px 8px rgba(16,24,40,.06);
+/* ===========================================================
+   DASHBOARD VOLONTARIO — layout vetrina orizzontale (replica Associazione)
+   =========================================================== */
+
+:root {
+  --showcase-h: 52vh;          /* altezza visiva del pannello */
+  --panel-inner: 640px;        /* larghezza massima interna */
+  --tile-radius: 14px;
+  --tile-border: rgba(0,0,0,.08);
+  --tile-shadow: 0 1px 2px rgba(16,24,40,.04), 0 2px 8px rgba(16,24,40,.06);
 }
 
-/* contenuti interni stretti e centrati su desktop */
-@media (min-width: 992px){
-  .v-dashboard .card .feed-container,
-  .v-dashboard .card .scroll-area,
-  .v-dashboard .panel__body{
-    max-width: var(--v-panel-inner);
-    margin-inline: auto;
-    width: 100%;
-  }
-  .v-dashboard .post-card .post-body{ max-width: 72ch; }
+/* ====== STRUTTURA BASE ====== */
+.v-dashboard .showcase-viewport {
+  width: 100%;
+  overflow-x: auto;              /* swipe con mouse/touch */
+  overflow-y: visible;
+  scroll-snap-type: x mandatory; /* scatta di una slide per volta */
+  -webkit-overflow-scrolling: touch;
 }
 
-/* viewport = una slide per schermo, con snap */
-.v-dashboard .showcase-viewport{
-  width:100%; overflow-x:auto; overflow-y:visible;
-  scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+.v-dashboard .showcase-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;       /* ogni slide larga 100% */
+  gap: 0;                        /* nessun gap orizzontale */
+  padding: 0;
 }
-/* ogni slide è larga 100% */
-.v-dashboard .showcase-track{ display:grid; grid-auto-flow:column; grid-auto-columns:100%; gap:0; padding:0; }
-.v-dashboard .showcase-slide{ min-width:100%; scroll-snap-align:start; }
-.v-dashboard .showcase-slide .card{ height:100%; }
 
-/* pills (scoped) */
-.v-dashboard .showcase .pill{
-  border:1px solid rgba(0,0,0,.08); background:#fff; padding:.35rem .7rem;
-  border-radius:999px; font-weight:600; font-size:.95rem;
+.v-dashboard .showcase-slide {
+  min-width: 100%;
+  scroll-snap-align: start;
 }
-.v-dashboard .showcase .pill.active{ background:var(--bs-light); border-color:var(--bs-primary); color:var(--bs-primary); }
 
-/* frecce */
-.v-dashboard .showcase .nav-arrows .icon-btn{ font-size:1.2rem; line-height:1; }
-@media (max-width: 767.98px){ .v-dashboard .showcase .nav-arrows{ display:none; } }
 
-/* tiles uniformi per liste (scoped) */
-.v-dashboard .v-tile{
-  background:#fff; border:1px solid var(--v-tile-border);
-  border-radius:var(--v-tile-radius); box-shadow:var(--v-tile-shadow);
-  padding:.85rem 1rem;
+
+
+
+/* ====== TAB PILL (NAV PILLS) ====== */
+.v-dashboard .pill {
+  border: 1px solid rgba(0,0,0,.08);
+  background: #fff;
+  padding: .35rem .7rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: .95rem;
+  transition: all .2s ease;
 }
-.v-dashboard .list-grid{ display:grid; grid-template-columns:1fr auto; gap:.5rem 1rem; align-items:start; }
-.v-dashboard .v-link-strong{ font-weight:600; text-decoration:none; }
-.v-dashboard .v-link-strong:hover{ text-decoration:underline; }
+
+.v-dashboard .pill:hover {
+  background: var(--bs-light);
+  border-color: var(--bs-primary);
+  color: var(--bs-primary);
+}
+
+.v-dashboard .pill.active {
+  background: var(--bs-light);
+  border-color: var(--bs-primary);
+  color: var(--bs-primary);
+}
+
 .v-dashboard .v-badge-soft{ font-size:.72rem; padding:.15rem .5rem; border-radius:999px; display:inline-block; }
 .v-dashboard .v-badge-success{ background:rgba(16,185,129,.12); color:#0f5132; }
 .v-dashboard .v-badge-warning{ background:rgba(245,158,11,.12); color:#7c4a03; }
-.v-dashboard .v-status-dot{ width:10px; height:10px; border-radius:50%; margin-top:.35rem; }
-.v-dashboard .v-status-dot[data-status="confirmed"]{ background:#16a34a; }
-.v-dashboard .v-status-dot[data-status="pending"]{ background:#f59e0b; }
-.v-dashboard .v-status-dot[data-status="declined"]{ background:#ef4444; }
 
-/* divider rimane globale perché già usato altrove, ma se crea conflitti, scoprlo: */
-/* .v-dashboard .soft-divider{ border:0; height:1px; background:rgba(0,0,0,.06); } */
+/* ====== FRECCE ====== */
+.v-dashboard .nav-arrows .icon-btn {
+  font-size: 1.2rem;
+  line-height: 1;
+}
+@media (max-width: 767.98px) {
+  .v-dashboard .nav-arrows { display: none; }
+}
+
+/* ====== CARD / CONTENUTO ====== */
+.v-dashboard .card .feed-container {
+  max-width: var(--panel-inner);
+  margin-inline: auto;
+  width: 100%;
+  height: var(--showcase-h);
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.v-dashboard .card .scroll-area {
+  max-width: var(--panel-inner);
+  margin-inline: auto;
+  width: 100%;
+  height: var(--showcase-h);
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+/* ====== MINI-CARD LISTE (Donazioni / Storico / Attivi) ====== */
+.v-dashboard .card .scroll-area > ul {
+  display: grid;
+  gap: .75rem;
+  padding: 0;
+}
+
+.v-dashboard .card .scroll-area .list-item {
+  background: #fff;
+  border: 1px solid var(--tile-border);
+  border-radius: var(--tile-radius);
+  box-shadow: var(--tile-shadow);
+  padding: .85rem 1rem;
+}
+
+.v-dashboard .card .scroll-area .list-item .item-title {
+  display: inline-block;
+  font-weight: 600;
+  margin-bottom: .25rem;
+  text-decoration: none;
+}
+
+.v-dashboard .card .scroll-area .list-item .icon-btn {
+  align-self: start;
+}
+
+/* Rimuove gli <hr> di separazione dentro le liste */
+.v-dashboard .card .scroll-area .soft-divider {
+  display: none;
+}
+
+/* ====== PANEL HEADER ====== */
+.v-dashboard .panel-header {
+  padding: .75rem 1rem;
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  border-bottom: 1px solid #eef2f7;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.v-dashboard .panel-header .btn-ghost-sm {
+  white-space: nowrap;
+}
+
+/* ====== RESPONSIVE TUNING ====== */
+@media (min-width: 992px) {
+  .v-dashboard .card .scroll-area,
+  .v-dashboard .card .feed-container {
+    max-width: var(--panel-inner, 640px);
+    margin-inline: auto;
+    width: 100%;
+  }
+
+}
+
+@media (max-width: 575.98px) {
+  .v-dashboard .panel-header .d-flex.flex-wrap {
+    gap: .5rem .5rem;
+  }
+}
+
+/* === Testo coerente con i post (dashboard association) === */
+.card-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--color-text, #333);
+}
+
+.card-text {
+  font-size: .95rem;
+  line-height: 1.55;
+  color: var(--color-text-muted, #555);
+}
+
+.text-body-secondary,
+.small.text-body-secondary {
+  font-size: .875rem;
+  color: var(--color-text-muted, #6c757d);
+}
+
+
 </style>
+
 
 <script>
 /* --- logica vetrina: pills/frecce/keyboard (SCOPED) --- */
@@ -461,4 +587,6 @@ function toggleFullscreen(img) {
   document.body.appendChild(overlay);
 }
 </script>
+
 {% endblock %}
+
